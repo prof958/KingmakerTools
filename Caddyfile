@@ -1,0 +1,4 @@
+# Replace with your actual domain
+yourdomain.com {
+    reverse_proxy app:3000
+}

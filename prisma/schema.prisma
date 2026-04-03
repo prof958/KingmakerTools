@@ -1,7 +1,5 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
+// KingdomTools — Prisma Schema
+// PF2e Kingmaker Campaign Helper
 
 generator client {
   provider = "prisma-client"
@@ -10,4 +8,410 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+}
+
+// ──────────────────────────────────────────────
+// Phase 0 — Core
+// ──────────────────────────────────────────────
+
+model Campaign {
+  id        String   @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  characters     Character[]
+  inventoryItems InventoryItem[]
+  wallets        Wallet[]
+  objectives     Objective[]
+  quickLinks     QuickLink[]
+  campsiteLayouts CampsiteLayout[]
+  recipes        Recipe[]
+  wishListItems  WishListItem[]
+
+  // Phase 5
+  kingdom Kingdom?
+
+  @@map("campaigns")
+}
+
+model Character {
+  id          String   @id @default(cuid())
+  campaignId  String   @map("campaign_id")
+  name        String
+  strModifier Int      @default(0) @map("str_modifier")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  campaign        Campaign         @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  inventoryItems  InventoryItem[]
+  wallets         Wallet[]
+  campingActivities CampingActivity[]
+  wishListItems   WishListItem[]
+
+  // Phase 5
+  leadershipRoles LeadershipRole[]
+
+  @@map("characters")
+}
+
+// ──────────────────────────────────────────────
+// Phase 1 — Inventory
+// ──────────────────────────────────────────────
+
+model Item {
+  id                     String   @id @default(cuid())
+  name                   String
+  bulkValue              Float    @default(0) @map("bulk_value")       // numeric bulk (1, 2, etc.)
+  isBulkLight            Boolean  @default(false) @map("is_bulk_light") // "L" bulk item
+  level                  Int      @default(0)
+  rarity                 Rarity   @default(COMMON)
+  traits                 String[] @default([])
+  category               ItemCategory @default(GEAR)
+  valueCp                Int      @default(0) @map("value_cp")         // price in copper pieces
+  isInvestable           Boolean  @default(false) @map("is_investable")
+  containerCapacity      Float?   @map("container_capacity")           // max bulk the container can hold
+  containerBulkReduction Float?   @map("container_bulk_reduction")     // bulk reduction when worn
+  description            String?
+  createdAt              DateTime @default(now()) @map("created_at")
+
+  inventoryItems InventoryItem[]
+  wishListItems  WishListItem[]
+
+  @@map("items")
+}
+
+model InventoryItem {
+  id                       String   @id @default(cuid())
+  campaignId               String   @map("campaign_id")
+  itemId                   String   @map("item_id")
+  characterId              String?  @map("character_id")              // null = shared party loot
+  containerInventoryItemId String?  @map("container_inventory_item_id") // self-ref: item inside container
+  quantity                 Int      @default(1)
+  isInvested               Boolean  @default(false) @map("is_invested")
+  isWorn                   Boolean  @default(false) @map("is_worn")
+  notes                    String?
+  createdAt                DateTime @default(now()) @map("created_at")
+  updatedAt                DateTime @updatedAt @map("updated_at")
+
+  campaign  Campaign  @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  item      Item      @relation(fields: [itemId], references: [id])
+  character Character? @relation(fields: [characterId], references: [id], onDelete: SetNull)
+
+  // Self-referencing container relationship
+  container      InventoryItem?  @relation("ContainerContents", fields: [containerInventoryItemId], references: [id], onDelete: SetNull)
+  containedItems InventoryItem[] @relation("ContainerContents")
+
+  @@map("inventory_items")
+}
+
+model Wallet {
+  id          String  @id @default(cuid())
+  campaignId  String  @map("campaign_id")
+  characterId String? @map("character_id") // null = party treasury
+  cp          Int     @default(0)
+  sp          Int     @default(0)
+  gp          Int     @default(0)
+  pp          Int     @default(0)
+
+  campaign  Campaign   @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  character Character? @relation(fields: [characterId], references: [id], onDelete: SetNull)
+
+  @@unique([campaignId, characterId])
+  @@map("wallets")
+}
+
+model WishListItem {
+  id           String   @id @default(cuid())
+  campaignId   String   @map("campaign_id")
+  characterId  String?  @map("character_id")  // null = group wish
+  itemId       String?  @map("item_id")       // null = custom item
+  customName   String?  @map("custom_name")
+  customPriceCp Int?    @map("custom_price_cp")
+  notes        String?
+  isAcquired   Boolean  @default(false) @map("is_acquired")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  campaign  Campaign   @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  character Character? @relation(fields: [characterId], references: [id], onDelete: SetNull)
+  item      Item?      @relation(fields: [itemId], references: [id])
+
+  @@map("wish_list_items")
+}
+
+// ──────────────────────────────────────────────
+// Phase 2 — Dashboard
+// ──────────────────────────────────────────────
+
+model Objective {
+  id          String          @id @default(cuid())
+  campaignId  String          @map("campaign_id")
+  title       String
+  description String?
+  status      ObjectiveStatus @default(ACTIVE)
+  priority    Int             @default(0)
+  createdAt   DateTime        @default(now()) @map("created_at")
+  updatedAt   DateTime        @updatedAt @map("updated_at")
+
+  campaign Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  @@map("objectives")
+}
+
+model QuickLink {
+  id         String  @id @default(cuid())
+  campaignId String  @map("campaign_id")
+  label      String
+  url        String
+  category   String?
+  sortOrder  Int     @default(0) @map("sort_order")
+
+  campaign Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  @@map("quick_links")
+}
+
+// ──────────────────────────────────────────────
+// Phase 3 — Campsite
+// ──────────────────────────────────────────────
+
+model CampsiteLayout {
+  id         String  @id @default(cuid())
+  campaignId String  @map("campaign_id")
+  name       String
+  isActive   Boolean @default(false) @map("is_active")
+  elements   Json    @default("[]") // JSONB: positions of tents, fire, PCs, traps
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  campaign         Campaign          @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  watchShifts      WatchShift[]
+  campingActivities CampingActivity[]
+
+  @@map("campsite_layouts")
+}
+
+model WatchShift {
+  id               String @id @default(cuid())
+  campsiteLayoutId String @map("campsite_layout_id")
+  shiftNumber      Int    @map("shift_number")
+  characterIds     String[] @map("character_ids") // array of character IDs on this shift
+
+  campsiteLayout CampsiteLayout @relation(fields: [campsiteLayoutId], references: [id], onDelete: Cascade)
+
+  @@unique([campsiteLayoutId, shiftNumber])
+  @@map("watch_shifts")
+}
+
+model CampingActivity {
+  id               String  @id @default(cuid())
+  campsiteLayoutId String  @map("campsite_layout_id")
+  characterId      String  @map("character_id")
+  activityType     String  @map("activity_type")
+  skill            String?
+  result           String? // "critical_success" | "success" | "failure" | "critical_failure"
+
+  campsiteLayout CampsiteLayout @relation(fields: [campsiteLayoutId], references: [id], onDelete: Cascade)
+  character      Character      @relation(fields: [characterId], references: [id], onDelete: Cascade)
+
+  @@map("camping_activities")
+}
+
+model Recipe {
+  id             String  @id @default(cuid())
+  campaignId     String  @map("campaign_id")
+  name           String
+  ingredients    String?
+  dc             Int?
+  effectsSuccess String? @map("effects_success")
+  effectsFail    String? @map("effects_fail")
+  isDiscovered   Boolean @default(false) @map("is_discovered")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  campaign Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  @@map("recipes")
+}
+
+// ──────────────────────────────────────────────
+// Phase 5 — Kingdom Management
+// ──────────────────────────────────────────────
+
+model Kingdom {
+  id         String @id @default(cuid())
+  campaignId String @unique @map("campaign_id")
+  name       String
+  level      Int    @default(1)
+  xp         Int    @default(0)
+
+  // Ability scores
+  culture   Int @default(10)
+  economy   Int @default(10)
+  loyalty   Int @default(10)
+  stability Int @default(10)
+
+  // Negative tracks
+  unrest     Int @default(0)
+  corruption Int @default(0)
+  crime      Int @default(0)
+  decay      Int @default(0)
+  strife     Int @default(0)
+
+  // Resources
+  rp       Int @default(0) // resource points
+  food     Int @default(0)
+  lumber   Int @default(0)
+  luxuries Int @default(0)
+  ore      Int @default(0)
+  stone    Int @default(0)
+
+  campaign        Campaign         @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  hexes           Hex[]
+  settlements     Settlement[]
+  leadershipRoles LeadershipRole[]
+  kingdomTurns    KingdomTurn[]
+
+  @@map("kingdoms")
+}
+
+model Hex {
+  id         String    @id @default(cuid())
+  kingdomId  String    @map("kingdom_id")
+  q          Int       // axial coordinate
+  r          Int       // axial coordinate
+  terrain    String    @default("plains")
+  state      HexState  @default(UNEXPLORED)
+  improvement String?
+
+  kingdom    Kingdom     @relation(fields: [kingdomId], references: [id], onDelete: Cascade)
+  settlement Settlement?
+
+  @@unique([kingdomId, q, r])
+  @@map("hexes")
+}
+
+model Settlement {
+  id         String         @id @default(cuid())
+  kingdomId  String         @map("kingdom_id")
+  hexId      String         @unique @map("hex_id")
+  name       String
+  type       SettlementType @default(VILLAGE)
+
+  kingdom Kingdom @relation(fields: [kingdomId], references: [id], onDelete: Cascade)
+  hex     Hex     @relation(fields: [hexId], references: [id], onDelete: Cascade)
+  blocks  Block[]
+
+  @@map("settlements")
+}
+
+model Block {
+  id           String @id @default(cuid())
+  settlementId String @map("settlement_id")
+  position     Int
+
+  settlement Settlement @relation(fields: [settlementId], references: [id], onDelete: Cascade)
+  lots       Lot[]
+
+  @@unique([settlementId, position])
+  @@map("blocks")
+}
+
+model Lot {
+  id          String  @id @default(cuid())
+  blockId     String  @map("block_id")
+  position    Int     // 1-4
+  structureId String? @map("structure_id")
+
+  block     Block      @relation(fields: [blockId], references: [id], onDelete: Cascade)
+  structure Structure? @relation(fields: [structureId], references: [id])
+
+  @@unique([blockId, position])
+  @@map("lots")
+}
+
+model Structure {
+  id            String @id @default(cuid())
+  name          String
+  lotsRequired  Int    @default(1) @map("lots_required")
+  costRp        Int    @default(0) @map("cost_rp")
+  costs         Json?  // JSONB: { food: 0, lumber: 0, luxuries: 0, ore: 0, stone: 0 }
+  buildTime     Int    @default(1) @map("build_time") // in kingdom turns
+  itemBonus     Int?   @map("item_bonus")
+  effects       Json?  // JSONB: flexible effects
+  description   String?
+
+  lots Lot[]
+
+  @@map("structures")
+}
+
+model LeadershipRole {
+  id          String  @id @default(cuid())
+  kingdomId   String  @map("kingdom_id")
+  role        String  // "ruler", "counselor", "general", etc.
+  characterId String? @map("character_id")
+  ability     String? // "culture", "economy", "loyalty", "stability"
+
+  kingdom   Kingdom    @relation(fields: [kingdomId], references: [id], onDelete: Cascade)
+  character Character? @relation(fields: [characterId], references: [id], onDelete: SetNull)
+
+  @@unique([kingdomId, role])
+  @@map("leadership_roles")
+}
+
+model KingdomTurn {
+  id         String   @id @default(cuid())
+  kingdomId  String   @map("kingdom_id")
+  turnNumber Int      @map("turn_number")
+  phaseLog   Json?    @map("phase_log") // JSONB: audit trail of actions
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  kingdom Kingdom @relation(fields: [kingdomId], references: [id], onDelete: Cascade)
+
+  @@unique([kingdomId, turnNumber])
+  @@map("kingdom_turns")
+}
+
+// ──────────────────────────────────────────────
+// Enums
+// ──────────────────────────────────────────────
+
+enum Rarity {
+  COMMON
+  UNCOMMON
+  RARE
+  UNIQUE
+}
+
+enum ItemCategory {
+  WEAPON
+  ARMOR
+  SHIELD
+  GEAR
+  CONSUMABLE
+  WORN
+  HELD
+  MATERIAL
+  CONTAINER
+  WAND
+  OTHER
+}
+
+enum ObjectiveStatus {
+  ACTIVE
+  COMPLETED
+  FAILED
+}
+
+enum HexState {
+  UNEXPLORED
+  EXPLORED
+  CLAIMED
+  CLEARED
+}
+
+enum SettlementType {
+  VILLAGE
+  TOWN
+  CITY
+  METROPOLIS
 }
