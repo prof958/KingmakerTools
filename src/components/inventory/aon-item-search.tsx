@@ -159,7 +159,7 @@ export function AonItemSearch({ onSelect, disabled }: AonItemSearchProps) {
   }, [search, rarity, levelMin, levelMax, doSearch]);
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3 overflow-hidden">
       {/* Search input */}
       <div className="relative">
         <Globe className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -177,13 +177,17 @@ export function AonItemSearch({ onSelect, disabled }: AonItemSearchProps) {
 
       {/* Filters */}
       <div className="flex gap-2 flex-wrap">
-        <Select value={rarity} onValueChange={(val) => setRarity(val ?? "all")}>
+        <Select
+          value={rarity}
+          onValueChange={(val) => setRarity(val ?? "all")}
+          items={Object.fromEntries(RARITY_OPTIONS.map((r) => [r.value, r.label]))}
+        >
           <SelectTrigger className="w-[140px] h-8 text-xs">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
             {RARITY_OPTIONS.map((r) => (
-              <SelectItem key={r.value} value={r.value}>
+              <SelectItem key={r.value} value={r.value} label={r.label}>
                 {r.label}
               </SelectItem>
             ))}
@@ -213,11 +217,19 @@ export function AonItemSearch({ onSelect, disabled }: AonItemSearchProps) {
       </div>
 
       {/* Results */}
-      <div className="max-h-[300px] overflow-y-auto space-y-1">
+      <div className="relative max-h-[250px] min-h-[80px] overflow-y-auto overflow-x-hidden space-y-1 rounded-md border border-dashed border-border/50 p-1">
+        {/* Loading overlay */}
+        {loading && (
+          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-2 bg-popover/80 backdrop-blur-[1px]">
+            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            <span className="text-xs text-muted-foreground">Searching AoN…</span>
+          </div>
+        )}
+
         {results.map((item) => (
           <div
             key={item.aonId}
-            className="flex items-center justify-between rounded-md border p-2 hover:bg-muted/50 cursor-pointer transition-colors"
+            className="flex items-center justify-between rounded-md border p-2 hover:bg-muted/50 cursor-pointer transition-colors overflow-hidden"
             onClick={() => !disabled && onSelect(item)}
           >
             <div className="min-w-0 flex-1">
@@ -314,6 +326,14 @@ export function AonItemSearch({ onSelect, disabled }: AonItemSearchProps) {
           </p>
         )}
       </div>
+
+      {/* Scroll hint: shows result count below the list when scrollable */}
+      {searched && !loading && results.length > 0 && (
+        <div className="flex items-center justify-between text-[10px] text-muted-foreground px-1">
+          <span>{total.toLocaleString()} result{total !== 1 ? "s" : ""} found</span>
+          {results.length > 3 && <span>↕ Scroll for more</span>}
+        </div>
+      )}
     </div>
   );
 }

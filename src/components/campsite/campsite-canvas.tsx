@@ -15,17 +15,25 @@ import {
   ELEMENT_PALETTE,
 } from "@/stores/campsite-store";
 
-// Size & colour mapping per element type
+const GRID_SIZE = 50;
+
+// Snap a coordinate to the nearest grid cell
+function snapToGrid(val: number): number {
+  return Math.round(val / GRID_SIZE) * GRID_SIZE;
+}
+
+// Size & colour mapping per element type — sizes are multiples of GRID_SIZE
+const G = GRID_SIZE;
 const TYPE_CONFIG: Record<
   ElementType,
   { fill: string; w: number; h: number; shape: "rect" | "circle" }
 > = {
-  tent: { fill: "#8B5E3C", w: 60, h: 50, shape: "rect" },
-  campfire: { fill: "#FF6600", w: 18, h: 18, shape: "circle" },
-  character: { fill: "#4A90D9", w: 16, h: 16, shape: "circle" },
-  trap: { fill: "#CC3333", w: 30, h: 30, shape: "rect" },
-  bedroll: { fill: "#6B8E23", w: 40, h: 20, shape: "rect" },
-  marker: { fill: "#CCCCCC", w: 10, h: 10, shape: "circle" },
+  tent:      { fill: "#8B5E3C", w: G * 2, h: G * 2, shape: "rect" },   // 2×2 squares
+  campfire:  { fill: "#FF6600", w: G,     h: G,     shape: "circle" },  // 1×1 square
+  character: { fill: "#4A90D9", w: G,     h: G,     shape: "circle" },  // 1×1 square
+  trap:      { fill: "#CC3333", w: G,     h: G,     shape: "rect" },    // 1×1 square
+  bedroll:   { fill: "#6B8E23", w: G * 2, h: G,     shape: "rect" },   // 2×1 rectangle
+  marker:    { fill: "#CCCCCC", w: G,     h: G,     shape: "circle" },  // 1×1 square
 };
 
 function ElementShape({ el }: { el: CampElement }) {
@@ -35,17 +43,24 @@ function ElementShape({ el }: { el: CampElement }) {
 
   const handleDragEnd = useCallback(
     (e: Konva.KonvaEventObject<DragEvent>) => {
+      // Stop event from bubbling to Stage's onDragEnd
+      e.cancelBubble = true;
       updateElement(el.id, {
-        x: Math.round(e.target.x()),
-        y: Math.round(e.target.y()),
+        x: snapToGrid(e.target.x()),
+        y: snapToGrid(e.target.y()),
       });
     },
     [el.id, updateElement],
   );
 
-  const handleClick = useCallback(() => {
-    select(el.id);
-  }, [el.id, select]);
+  const handleClick = useCallback(
+    (e: Konva.KonvaEventObject<MouseEvent | TouchEvent>) => {
+      // Stop event from bubbling to Stage click handler
+      e.cancelBubble = true;
+      select(el.id);
+    },
+    [el.id, select],
+  );
 
   const emoji =
     ELEMENT_PALETTE.find((p) => p.type === el.type)?.emoji ?? "📍";
@@ -60,26 +75,16 @@ function ElementShape({ el }: { el: CampElement }) {
       onTap={handleClick}
     >
       {/* Selection ring */}
-      {isSelected && cfg.shape === "rect" && (
+      {isSelected && (
         <Rect
-          x={-4}
-          y={-4}
-          width={cfg.w + 8}
-          height={cfg.h + 8}
+          x={-3}
+          y={-3}
+          width={cfg.w + 6}
+          height={cfg.h + 6}
           stroke="#FFD700"
           strokeWidth={2}
           dash={[4, 2]}
-          cornerRadius={4}
-        />
-      )}
-      {isSelected && cfg.shape === "circle" && (
-        <Circle
-          x={cfg.w}
-          y={cfg.h}
-          radius={cfg.w + 6}
-          stroke="#FFD700"
-          strokeWidth={2}
-          dash={[4, 2]}
+          cornerRadius={cfg.shape === "circle" ? cfg.w : 4}
         />
       )}
 
@@ -94,9 +99,9 @@ function ElementShape({ el }: { el: CampElement }) {
         />
       ) : (
         <Circle
-          x={cfg.w}
-          y={cfg.h}
-          radius={cfg.w}
+          x={cfg.w / 2}
+          y={cfg.h / 2}
+          radius={cfg.w / 2 - 2}
           fill={cfg.fill}
           opacity={0.85}
         />
@@ -105,19 +110,19 @@ function ElementShape({ el }: { el: CampElement }) {
       {/* Emoji label */}
       <Text
         text={emoji}
-        fontSize={cfg.shape === "rect" ? 20 : 14}
-        x={cfg.shape === "rect" ? cfg.w / 2 - 10 : cfg.w - 7}
-        y={cfg.shape === "rect" ? cfg.h / 2 - 10 : cfg.h - 7}
+        fontSize={Math.min(cfg.w, cfg.h) * 0.5}
+        x={cfg.w / 2 - Math.min(cfg.w, cfg.h) * 0.25}
+        y={cfg.h / 2 - Math.min(cfg.w, cfg.h) * 0.25}
       />
 
       {/* Name label */}
       <Text
         text={el.label}
-        fontSize={10}
+        fontSize={11}
         fill="#fff"
-        x={cfg.shape === "rect" ? 0 : -cfg.w}
-        y={cfg.shape === "rect" ? cfg.h + 2 : cfg.h + cfg.w + 4}
-        width={cfg.shape === "rect" ? cfg.w : cfg.w * 3}
+        x={0}
+        y={cfg.h + 2}
+        width={cfg.w}
         align="center"
       />
     </Group>
@@ -177,6 +182,8 @@ export default function CampsiteCanvas() {
 
   const handleDragEnd = useCallback(
     (e: Konva.KonvaEventObject<DragEvent>) => {
+      // Only update viewport when the Stage itself is dragged, not child elements
+      if (e.target !== e.target.getStage()) return;
       setViewport(e.target.x(), e.target.y(), scale);
     },
     [scale, setViewport],
@@ -200,35 +207,36 @@ export default function CampsiteCanvas() {
         height={stageSize.height}
         x={stageX}
         y={stageY}
-      scaleX={scale}
-      scaleY={scale}
-      draggable
-      onWheel={handleWheel}
-      onDragEnd={handleDragEnd}
-      onClick={handleStageClick}
-      onTap={handleStageClick}
-      className="rounded-md border bg-[#1a1e2e]"
+        scaleX={scale}
+        scaleY={scale}
+        draggable
+        onWheel={handleWheel}
+        onDragEnd={handleDragEnd}
+        onClick={handleStageClick}
+        onTap={handleStageClick}
+        style={{ cursor: "grab" }}
+        className="rounded-md border bg-[#1a1e2e]"
     >
       <Layer>
         {/* Grid lines */}
-        {Array.from({ length: 20 }).map((_, i) => (
+        {Array.from({ length: 40 }).map((_, i) => (
           <Rect
             key={`gv-${i}`}
-            x={i * 50}
+            x={i * GRID_SIZE}
             y={0}
             width={1}
-            height={1000}
-            fill="rgba(255,255,255,0.05)"
+            height={2000}
+            fill="rgba(255,255,255,0.07)"
           />
         ))}
-        {Array.from({ length: 20 }).map((_, i) => (
+        {Array.from({ length: 40 }).map((_, i) => (
           <Rect
             key={`gh-${i}`}
             x={0}
-            y={i * 50}
-            width={1000}
+            y={i * GRID_SIZE}
+            width={2000}
             height={1}
-            fill="rgba(255,255,255,0.05)"
+            fill="rgba(255,255,255,0.07)"
           />
         ))}
 

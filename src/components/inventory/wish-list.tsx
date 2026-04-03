@@ -378,14 +378,18 @@ export function WishList({
                   <Select
                     value={assignTo}
                     onValueChange={(val) => setAssignTo(val ?? "party")}
+                    items={{
+                      party: "Party / Shared",
+                      ...Object.fromEntries(characters.map((c) => [c.id, c.name])),
+                    }}
                   >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="party">Party / Shared</SelectItem>
+                      <SelectItem value="party" label="Party / Shared">Party / Shared</SelectItem>
                       {characters.map((c) => (
-                        <SelectItem key={c.id} value={c.id}>
+                        <SelectItem key={c.id} value={c.id} label={c.name}>
                           {c.name}
                         </SelectItem>
                       ))}

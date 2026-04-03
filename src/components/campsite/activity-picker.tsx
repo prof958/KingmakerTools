@@ -160,13 +160,14 @@ export function ActivityPicker({
               <Select
                 value={assignment?.activityType ?? ""}
                 onValueChange={(val) => setActivity(char.id, val || null)}
+                items={Object.fromEntries(CAMPING_ACTIVITIES.map((a) => [a.id, a.name]))}
               >
                 <SelectTrigger className="w-48">
                   <SelectValue placeholder="Choose activity…" />
                 </SelectTrigger>
                 <SelectContent>
                   {CAMPING_ACTIVITIES.map((act) => (
-                    <SelectItem key={act.id} value={act.id}>
+                    <SelectItem key={act.id} value={act.id} label={act.name}>
                       {act.name}
                       {act.isRequired && (
                         <Badge variant="secondary" className="ml-1 text-[10px]">
@@ -185,13 +186,16 @@ export function ActivityPicker({
                   onValueChange={(val) =>
                     setResult(char.id, (val as CheckResult) || null)
                   }
+                  items={Object.fromEntries(
+                    resultOptions.map((r) => [r.value, r.label]),
+                  )}
                 >
                   <SelectTrigger className="w-36">
                     <SelectValue placeholder="Result…" />
                   </SelectTrigger>
                   <SelectContent>
                     {resultOptions.map((r) => (
-                      <SelectItem key={r.value} value={r.value}>
+                      <SelectItem key={r.value} value={r.value} label={r.label}>
                         <span className={r.color}>{r.label}</span>
                       </SelectItem>
                     ))}

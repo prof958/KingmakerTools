@@ -68,6 +68,7 @@ export function AddItemDialog({
   const [assignTo, setAssignTo] = useState<string>("shared");
   const [quantity, setQuantity] = useState(1);
   const [notes, setNotes] = useState("");
+  const [selectedAonItem, setSelectedAonItem] = useState<AonItem | null>(null);
 
   // Custom item fields
   const [customName, setCustomName] = useState("");
@@ -194,6 +195,7 @@ export function AddItemDialog({
     setAssignTo("shared");
     setQuantity(1);
     setNotes("");
+    setSelectedAonItem(null);
     setCustomName("");
     setCustomBulk("0");
     setCustomBulkLight(false);
@@ -209,64 +211,64 @@ export function AddItemDialog({
       >
         <Plus className="mr-1 h-4 w-4" /> Add Item
       </DialogTrigger>
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>Add Item to Inventory</DialogTitle>
         </DialogHeader>
 
-        {/* Common fields: assign-to + quantity */}
-        <div className="flex gap-4 mb-4">
-          <div className="flex-1">
-            <Label>Assign to</Label>
-            <Select value={assignTo} onValueChange={(val) => setAssignTo(val ?? "shared")}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="shared">Shared / Party Loot</SelectItem>
-                {characters.map((c) => (
-                  <SelectItem key={c.id} value={c.id}>
-                    {c.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="w-20">
-            <Label>Qty</Label>
-            <Input
-              type="number"
-              min={1}
-              value={quantity}
-              onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
-            />
-          </div>
-        </div>
-
-        <div>
-          <Label>Notes (optional)</Label>
-          <Input
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            placeholder="e.g., Found in the Stag Lord's fortress"
-          />
-        </div>
-
-        <Tabs defaultValue="aon" className="mt-4">
-          <TabsList className="grid w-full grid-cols-3">
+        {/* Item source tabs — main content area */}
+        <Tabs defaultValue="aon">
+          <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="aon">AoN Database</TabsTrigger>
-            <TabsTrigger value="catalog">Local Catalog</TabsTrigger>
             <TabsTrigger value="custom">Custom Item</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="aon" className="space-y-3">
-            <AonItemSearch
-              disabled={isPending}
-              onSelect={(aonItem: AonItem) => addFromAon(aonItem)}
-            />
+          <TabsContent value="aon" className="mt-3">
+            {selectedAonItem ? (
+              <div className="rounded-md border p-3 space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-medium">{selectedAonItem.name}</span>
+                    {selectedAonItem.level > 0 && (
+                      <Badge variant="outline" className="text-[10px]">
+                        Lv {selectedAonItem.level}
+                      </Badge>
+                    )}
+                    {selectedAonItem.rarity !== "common" && (
+                      <Badge variant="outline" className="text-[10px]">
+                        {selectedAonItem.rarity}
+                      </Badge>
+                    )}
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setSelectedAonItem(null)}
+                  >
+                    Change
+                  </Button>
+                </div>
+                {selectedAonItem.summary && (
+                  <p className="text-xs text-muted-foreground">{selectedAonItem.summary}</p>
+                )}
+                <div className="flex gap-3 text-xs text-muted-foreground">
+                  {selectedAonItem.priceCp > 0 && (
+                    <span>{formatCurrency(selectedAonItem.priceCp)}</span>
+                  )}
+                  <span>
+                    {selectedAonItem.bulkRaw === "L" ? "L" : selectedAonItem.bulk || "—"} Bulk
+                  </span>
+                </div>
+              </div>
+            ) : (
+              <AonItemSearch
+                disabled={isPending}
+                onSelect={(aonItem: AonItem) => setSelectedAonItem(aonItem)}
+              />
+            )}
           </TabsContent>
 
-          <TabsContent value="catalog" className="space-y-3">
+          <TabsContent value="catalog" className="mt-3">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
@@ -277,7 +279,7 @@ export function AddItemDialog({
               />
             </div>
 
-            <div className="max-h-[300px] overflow-y-auto space-y-1">
+            <div className="max-h-[300px] overflow-y-auto space-y-1 mt-2">
               {catalogItems.map((item) => (
                 <div
                   key={item.id}
@@ -324,7 +326,7 @@ export function AddItemDialog({
             </div>
           </TabsContent>
 
-          <TabsContent value="custom" className="space-y-3">
+          <TabsContent value="custom" className="mt-3 space-y-3">
             <div>
               <Label>Item Name</Label>
               <Input
@@ -336,21 +338,29 @@ export function AddItemDialog({
             <div className="grid grid-cols-3 gap-3">
               <div>
                 <Label>Category</Label>
-                <Select value={customCategory} onValueChange={(val) => setCustomCategory(val ?? "GEAR")}>
+                <Select
+                  value={customCategory}
+                  onValueChange={(val) => setCustomCategory(val ?? "GEAR")}
+                  items={{
+                    WEAPON: "Weapon", ARMOR: "Armor", SHIELD: "Shield",
+                    GEAR: "Gear", CONSUMABLE: "Consumable", WORN: "Worn",
+                    HELD: "Held", CONTAINER: "Container", WAND: "Wand", OTHER: "Other",
+                  }}
+                >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="WEAPON">Weapon</SelectItem>
-                    <SelectItem value="ARMOR">Armor</SelectItem>
-                    <SelectItem value="SHIELD">Shield</SelectItem>
-                    <SelectItem value="GEAR">Gear</SelectItem>
-                    <SelectItem value="CONSUMABLE">Consumable</SelectItem>
-                    <SelectItem value="WORN">Worn</SelectItem>
-                    <SelectItem value="HELD">Held</SelectItem>
-                    <SelectItem value="CONTAINER">Container</SelectItem>
-                    <SelectItem value="WAND">Wand</SelectItem>
-                    <SelectItem value="OTHER">Other</SelectItem>
+                    <SelectItem value="WEAPON" label="Weapon">Weapon</SelectItem>
+                    <SelectItem value="ARMOR" label="Armor">Armor</SelectItem>
+                    <SelectItem value="SHIELD" label="Shield">Shield</SelectItem>
+                    <SelectItem value="GEAR" label="Gear">Gear</SelectItem>
+                    <SelectItem value="CONSUMABLE" label="Consumable">Consumable</SelectItem>
+                    <SelectItem value="WORN" label="Worn">Worn</SelectItem>
+                    <SelectItem value="HELD" label="Held">Held</SelectItem>
+                    <SelectItem value="CONTAINER" label="Container">Container</SelectItem>
+                    <SelectItem value="WAND" label="Wand">Wand</SelectItem>
+                    <SelectItem value="OTHER" label="Other">Other</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -403,6 +413,63 @@ export function AddItemDialog({
             </Button>
           </TabsContent>
         </Tabs>
+
+        {/* Bottom row: assign-to, qty, notes */}
+        <div className="border-t pt-3 mt-1 space-y-2">
+          <div className="flex gap-3 items-end">
+            <div className="flex-1">
+              <Label className="text-xs text-muted-foreground">Assign to</Label>
+              <Select
+                value={assignTo}
+                onValueChange={(val) => setAssignTo(val ?? "shared")}
+                items={{
+                  shared: "Shared / Party Loot",
+                  ...Object.fromEntries(characters.map((c) => [c.id, c.name])),
+                }}
+              >
+                <SelectTrigger className="h-8">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="shared" label="Shared / Party Loot">Shared / Party Loot</SelectItem>
+                  {characters.map((c) => (
+                    <SelectItem key={c.id} value={c.id} label={c.name}>
+                      {c.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="w-16">
+              <Label className="text-xs text-muted-foreground">Qty</Label>
+              <Input
+                type="number"
+                min={1}
+                value={quantity}
+                onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
+                className="h-8"
+              />
+            </div>
+          </div>
+          <div>
+            <Label className="text-xs text-muted-foreground">Notes (optional)</Label>
+            <Input
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="e.g., Found in the Stag Lord's fortress"
+              className="h-8"
+            />
+          </div>
+          {selectedAonItem && (
+            <Button
+              onClick={() => addFromAon(selectedAonItem)}
+              disabled={isPending}
+              className="w-full"
+            >
+              {isPending ? "Adding..." : "Add to Inventory"}
+            </Button>
+          )}
+        </div>
       </DialogContent>
     </Dialog>
   );

@@ -208,15 +208,16 @@ export function ObjectiveTracker({
               onValueChange={(val) =>
                 setFilter((val as typeof filter) ?? "ALL")
               }
+              items={{ ALL: "All", ACTIVE: "Active", COMPLETED: "Completed", FAILED: "Failed" }}
             >
               <SelectTrigger className="w-[120px] h-8 text-xs">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="ALL">All</SelectItem>
-                <SelectItem value="ACTIVE">Active</SelectItem>
-                <SelectItem value="COMPLETED">Completed</SelectItem>
-                <SelectItem value="FAILED">Failed</SelectItem>
+                <SelectItem value="ALL" label="All">All</SelectItem>
+                <SelectItem value="ACTIVE" label="Active">Active</SelectItem>
+                <SelectItem value="COMPLETED" label="Completed">Completed</SelectItem>
+                <SelectItem value="FAILED" label="Failed">Failed</SelectItem>
               </SelectContent>
             </Select>
 
@@ -251,14 +252,15 @@ export function ObjectiveTracker({
                     <Select
                       value={newPriority}
                       onValueChange={(val) => setNewPriority(val ?? "0")}
+                      items={{ "0": "Normal Priority", "1": "Medium Priority", "2": "High Priority" }}
                     >
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="0">Normal Priority</SelectItem>
-                        <SelectItem value="1">Medium Priority</SelectItem>
-                        <SelectItem value="2">High Priority</SelectItem>
+                        <SelectItem value="0" label="Normal Priority">Normal Priority</SelectItem>
+                        <SelectItem value="1" label="Medium Priority">Medium Priority</SelectItem>
+                        <SelectItem value="2" label="High Priority">High Priority</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -410,14 +412,15 @@ export function ObjectiveTracker({
               <Select
                 value={editPriority}
                 onValueChange={(val) => setEditPriority(val ?? "0")}
+                items={{ "0": "Normal Priority", "1": "Medium Priority", "2": "High Priority" }}
               >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="0">Normal Priority</SelectItem>
-                  <SelectItem value="1">Medium Priority</SelectItem>
-                  <SelectItem value="2">High Priority</SelectItem>
+                  <SelectItem value="0" label="Normal Priority">Normal Priority</SelectItem>
+                  <SelectItem value="1" label="Medium Priority">Medium Priority</SelectItem>
+                  <SelectItem value="2" label="High Priority">High Priority</SelectItem>
                 </SelectContent>
               </Select>
             </div>

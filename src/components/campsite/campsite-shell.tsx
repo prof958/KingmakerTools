@@ -140,6 +140,14 @@ export function CampsiteShell({
             elements: store.elements,
           }),
         });
+        // Sync saved data back into local layouts state so switching works
+        setLayouts((prev) =>
+          prev.map((l) =>
+            l.id === store.layoutId
+              ? { ...l, name: store.layoutName, elements: [...store.elements] }
+              : l,
+          ),
+        );
         store.markSaved();
       } finally {
         store.setSaving(false);
@@ -172,6 +180,12 @@ export function CampsiteShell({
 
   const switchLayout = useCallback(
     (layoutId: string) => {
+      if (store.isDirty) {
+        const ok = window.confirm(
+          "You have unsaved changes. Switch layout and discard them?",
+        );
+        if (!ok) return;
+      }
       const layout = layouts.find((l) => l.id === layoutId);
       if (layout) {
         store.setLayout(
@@ -184,17 +198,30 @@ export function CampsiteShell({
     [layouts, store],
   );
 
+  // Compute the center of the current viewport in canvas coordinates
+  const getViewportCenter = useCallback(() => {
+    // Approximate canvas size (matches CampsiteCanvas default)
+    const canvasW = 800;
+    const canvasH = 500;
+    const { stageX, stageY, scale } = useCampsiteStore.getState();
+    return {
+      x: Math.round((-stageX + canvasW / 2) / scale),
+      y: Math.round((-stageY + canvasH / 2) / scale),
+    };
+  }, []);
+
   // Add element to canvas
   const addCanvasElement = useCallback(
     (type: (typeof ELEMENT_PALETTE)[number]["type"]) => {
       const palette = ELEMENT_PALETTE.find((p) => p.type === type);
       if (!palette) return;
+      const center = getViewportCenter();
       const el: CampElement = {
         id: crypto.randomUUID(),
         type,
         label: palette.label,
-        x: 200 + Math.random() * 200,
-        y: 150 + Math.random() * 100,
+        x: center.x + Math.round(Math.random() * 60 - 30),
+        y: center.y + Math.round(Math.random() * 60 - 30),
       };
       store.addElement(el);
     },
@@ -206,13 +233,14 @@ export function CampsiteShell({
     (char: Character) => {
       // Don't add if already on canvas
       if (store.elements.some((el) => el.characterId === char.id)) return;
+      const center = getViewportCenter();
       const el: CampElement = {
         id: crypto.randomUUID(),
         type: "character",
         label: char.name,
         characterId: char.id,
-        x: 300 + Math.random() * 100,
-        y: 200 + Math.random() * 100,
+        x: center.x + Math.round(Math.random() * 60 - 30),
+        y: center.y + Math.round(Math.random() * 60 - 30),
       };
       store.addElement(el);
     },
@@ -252,7 +280,7 @@ export function CampsiteShell({
               </div>
               <div className="flex flex-wrap items-center gap-2">
                 {/* Layout switcher */}
-                {layouts.length > 1 && (
+                {layouts.length > 0 && (
                   <select
                     className="h-8 rounded-md border bg-background px-2 text-sm"
                     value={store.layoutId ?? ""}

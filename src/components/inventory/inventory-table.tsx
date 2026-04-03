@@ -133,15 +133,23 @@ export function InventoryTable({
       {/* Filter by owner */}
       <div className="flex items-center gap-2">
         <span className="text-sm text-muted-foreground">Filter:</span>
-        <Select value={filter} onValueChange={(val) => setFilter(val ?? "all")}>
+        <Select
+          value={filter}
+          onValueChange={(val) => setFilter(val ?? "all")}
+          items={{
+            all: "All Items",
+            shared: "Shared / Unassigned",
+            ...Object.fromEntries(characters.map((c) => [c.id, c.name])),
+          }}
+        >
           <SelectTrigger className="w-[200px]">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Items</SelectItem>
-            <SelectItem value="shared">Shared / Unassigned</SelectItem>
+            <SelectItem value="all" label="All Items">All Items</SelectItem>
+            <SelectItem value="shared" label="Shared / Unassigned">Shared / Unassigned</SelectItem>
             {characters.map((c) => (
-              <SelectItem key={c.id} value={c.id}>
+              <SelectItem key={c.id} value={c.id} label={c.name}>
                 {c.name}
               </SelectItem>
             ))}
@@ -229,14 +237,18 @@ export function InventoryTable({
                           characterId: !val || val === "shared" ? null : val,
                         })
                       }
+                      items={{
+                        shared: "Shared",
+                        ...Object.fromEntries(characters.map((c) => [c.id, c.name])),
+                      }}
                     >
                       <SelectTrigger className="h-7 text-xs">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="shared">Shared</SelectItem>
+                        <SelectItem value="shared" label="Shared">Shared</SelectItem>
                         {characters.map((c) => (
-                          <SelectItem key={c.id} value={c.id}>
+                          <SelectItem key={c.id} value={c.id} label={c.name}>
                             {c.name}
                           </SelectItem>
                         ))}
