@@ -2,16 +2,17 @@
 # KingdomTools — Multi-stage Docker build
 # ──────────────────────────────────────────────────
 
-# Stage 1: Install dependencies
+# Stage 1: Install production dependencies (for the final image)
 FROM node:20-alpine AS deps
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci --omit=dev
 
-# Stage 2: Build the application
+# Stage 2: Build the application (needs ALL dependencies including dev)
 FROM node:20-alpine AS builder
 WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
+COPY package.json package-lock.json ./
+RUN npm ci
 COPY . .
 
 # Generate Prisma Client
