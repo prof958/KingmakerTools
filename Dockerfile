@@ -38,9 +38,10 @@ COPY --from=builder /app/public ./public
 # Copy Prisma schema, migrations, and generated client for `prisma migrate deploy`
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
-COPY --from=builder /app/node_modules/prisma ./node_modules/prisma
-COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
 COPY --from=builder /app/src/generated ./src/generated
+
+# Copy full production node_modules (from deps stage) so prisma CLI works
+COPY --from=deps /app/node_modules ./node_modules
 
 USER nextjs
 
@@ -50,4 +51,4 @@ ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
 # Run migrations then start the server
-CMD ["sh", "-c", "node node_modules/prisma/build/index.js migrate deploy && node server.js"]
+CMD ["sh", "-c", "npx prisma migrate deploy && node server.js"]
