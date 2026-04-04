@@ -146,7 +146,7 @@ export function ActivityPicker({
           );
           const activityDef = assignment
             ? CAMPING_ACTIVITIES.find((a) => a.id === assignment.activityType)
-            : null;
+            : undefined;
 
           return (
             <ActivityRow
@@ -175,7 +175,7 @@ export function ActivityPicker({
               );
               const activityDef = assignment
                 ? CAMPING_ACTIVITIES.find((a) => a.id === assignment.activityType)
-                : null;
+                : undefined;
 
               return (
                 <ActivityRow
