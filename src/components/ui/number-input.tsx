@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, type ComponentProps } from "react";
+import { useState, useRef, useEffect, type ComponentProps } from "react";
 import { Input } from "@/components/ui/input";
 
 interface NumberInputProps
@@ -21,12 +21,16 @@ function NumberInput({
   step,
   fallback,
   onBlur,
+  onFocus,
   ...props
 }: NumberInputProps) {
   const [display, setDisplay] = useState(String(value));
+  const editing = useRef(false);
 
   useEffect(() => {
-    setDisplay(String(value));
+    if (!editing.current) {
+      setDisplay(String(value));
+    }
   }, [value]);
 
   const clamp = (n: number) => {
@@ -37,6 +41,7 @@ function NumberInput({
   };
 
   const commit = () => {
+    editing.current = false;
     const trimmed = display.trim();
     if (trimmed === "" || isNaN(Number(trimmed))) {
       const def = fallback ?? min ?? 0;
@@ -52,13 +57,21 @@ function NumberInput({
   return (
     <Input
       {...props}
-      type="number"
-      inputMode="decimal"
-      min={min}
-      max={max}
-      step={step}
+      type="text"
+      inputMode="numeric"
       value={display}
-      onChange={(e) => setDisplay(e.target.value)}
+      onChange={(e) => {
+        const raw = e.target.value;
+        // Allow empty, minus sign, digits, and decimal point only
+        if (raw === "" || /^-?\d*\.?\d*$/.test(raw)) {
+          setDisplay(raw);
+        }
+      }}
+      onFocus={(e) => {
+        editing.current = true;
+        e.target.select();
+        onFocus?.(e);
+      }}
       onBlur={(e) => {
         commit();
         onBlur?.(e);

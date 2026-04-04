@@ -156,11 +156,10 @@ export function WalletManager({
                 <div>
                   <Label>Total loot value (gp)</Label>
                   <Input
-                    type="number"
-                    min={0}
-                    step={0.01}
+                    type="text"
+                    inputMode="decimal"
                     value={splitGp}
-                    onChange={(e) => setSplitGp(e.target.value)}
+                    onChange={(e) => { if (e.target.value === "" || /^\d*\.?\d*$/.test(e.target.value)) setSplitGp(e.target.value); }}
                     placeholder="e.g., 100"
                   />
                 </div>

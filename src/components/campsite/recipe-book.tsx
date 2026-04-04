@@ -152,9 +152,10 @@ export function RecipeBook({
                     <Label htmlFor="r-dc">DC</Label>
                     <Input
                       id="r-dc"
-                      type="number"
+                      type="text"
+                      inputMode="numeric"
                       value={dc}
-                      onChange={(e) => setDc(e.target.value)}
+                      onChange={(e) => { if (e.target.value === "" || /^\d*$/.test(e.target.value)) setDc(e.target.value); }}
                       placeholder="18"
                     />
                   </div>

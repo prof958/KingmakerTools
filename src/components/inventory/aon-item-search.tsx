@@ -195,23 +195,21 @@ export function AonItemSearch({ onSelect, disabled }: AonItemSearchProps) {
         </Select>
         <div className="flex items-center gap-1">
           <Input
-            type="number"
+            type="text"
+            inputMode="numeric"
             placeholder="Min Lv"
             value={levelMin}
-            onChange={(e) => setLevelMin(e.target.value)}
+            onChange={(e) => { if (e.target.value === "" || /^\d*$/.test(e.target.value)) setLevelMin(e.target.value); }}
             className="w-[72px] h-8 text-xs"
-            min={0}
-            max={30}
           />
           <span className="text-xs text-muted-foreground">–</span>
           <Input
-            type="number"
+            type="text"
+            inputMode="numeric"
             placeholder="Max Lv"
             value={levelMax}
-            onChange={(e) => setLevelMax(e.target.value)}
+            onChange={(e) => { if (e.target.value === "" || /^\d*$/.test(e.target.value)) setLevelMax(e.target.value); }}
             className="w-[72px] h-8 text-xs"
-            min={0}
-            max={30}
           />
         </div>
       </div>

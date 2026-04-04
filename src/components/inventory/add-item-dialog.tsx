@@ -369,10 +369,10 @@ export function AddItemDialog({
                 <Label>Bulk</Label>
                 <div className="flex gap-1">
                   <Input
-                    type="number"
-                    min={0}
+                    type="text"
+                    inputMode="numeric"
                     value={customBulk}
-                    onChange={(e) => setCustomBulk(e.target.value)}
+                    onChange={(e) => { if (e.target.value === "" || /^\d*\.?\d*$/.test(e.target.value)) setCustomBulk(e.target.value); }}
                     disabled={customBulkLight}
                   />
                   <Button
@@ -388,11 +388,10 @@ export function AddItemDialog({
               <div>
                 <Label>Value (gp)</Label>
                 <Input
-                  type="number"
-                  min={0}
-                  step={0.01}
+                  type="text"
+                  inputMode="decimal"
                   value={customValue}
-                  onChange={(e) => setCustomValue(e.target.value)}
+                  onChange={(e) => { if (e.target.value === "" || /^\d*\.?\d*$/.test(e.target.value)) setCustomValue(e.target.value); }}
                 />
               </div>
             </div>

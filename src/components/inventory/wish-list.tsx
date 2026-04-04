@@ -362,10 +362,10 @@ export function WishList({
                     <div className="space-y-1">
                       <Label>Price (gp)</Label>
                       <Input
-                        type="number"
-                        step="0.01"
+                        type="text"
+                        inputMode="decimal"
                         value={customPrice}
-                        onChange={(e) => setCustomPrice(e.target.value)}
+                        onChange={(e) => { if (e.target.value === "" || /^\d*\.?\d*$/.test(e.target.value)) setCustomPrice(e.target.value); }}
                         placeholder="100"
                       />
                     </div>
