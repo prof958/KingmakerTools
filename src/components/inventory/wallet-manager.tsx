@@ -8,6 +8,7 @@
 import { useState, useTransition } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { NumberInput } from "@/components/ui/number-input";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
@@ -281,14 +282,14 @@ function WalletRow({
           {(["pp", "gp", "sp", "cp"] as const).map((denom) => (
             <div key={denom}>
               <Label className="text-xs uppercase">{denom}</Label>
-              <Input
-                type="number"
+              <NumberInput
                 min={0}
+                fallback={0}
                 value={editValues[denom]}
-                onChange={(e) =>
+                onValueChange={(val) =>
                   onEditValues({
                     ...editValues,
-                    [denom]: parseInt(e.target.value) || 0,
+                    [denom]: val,
                   })
                 }
                 className="h-8"

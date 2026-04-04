@@ -8,6 +8,7 @@
 import { useState, useTransition, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { NumberInput } from "@/components/ui/number-input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -442,11 +443,11 @@ export function AddItemDialog({
             </div>
             <div className="w-16">
               <Label className="text-xs text-muted-foreground">Qty</Label>
-              <Input
-                type="number"
+              <NumberInput
                 min={1}
+                fallback={1}
                 value={quantity}
-                onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
+                onValueChange={setQuantity}
                 className="h-8"
               />
             </div>

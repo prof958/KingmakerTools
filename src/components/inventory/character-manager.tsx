@@ -8,6 +8,7 @@
 import { useState, useTransition } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { NumberInput } from "@/components/ui/number-input";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -137,11 +138,11 @@ export function CharacterManager({
               </div>
               <div>
                 <Label htmlFor="str-mod">STR Modifier</Label>
-                <Input
+                <NumberInput
                   id="str-mod"
-                  type="number"
                   value={strMod}
-                  onChange={(e) => setStrMod(parseInt(e.target.value) || 0)}
+                  fallback={0}
+                  onValueChange={setStrMod}
                 />
                 <p className="text-xs text-muted-foreground mt-1">
                   Used for encumbrance calculation (carry limit: 5+STR / 10+STR)

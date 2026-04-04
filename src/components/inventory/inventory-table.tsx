@@ -8,6 +8,7 @@
 import { useState, useTransition, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { NumberInput } from "@/components/ui/number-input";
 import { Input } from "@/components/ui/input";
 import {
   Table,
@@ -213,14 +214,11 @@ export function InventoryTable({
                     {bulkDisplay(inv.item)}
                   </TableCell>
                   <TableCell className="text-center">
-                    <Input
-                      type="number"
+                    <NumberInput
                       min={1}
+                      fallback={1}
                       value={inv.quantity}
-                      onChange={(e) => {
-                        const qty = parseInt(e.target.value);
-                        if (qty > 0) updateItem(inv.id, { quantity: qty });
-                      }}
+                      onValueChange={(qty) => updateItem(inv.id, { quantity: qty })}
                       className="w-14 h-7 text-center text-sm"
                     />
                   </TableCell>
