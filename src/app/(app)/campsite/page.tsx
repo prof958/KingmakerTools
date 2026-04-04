@@ -4,6 +4,8 @@
  */
 import { prisma } from "@/lib/db";
 import { getOrCreateCampaign } from "@/lib/campaign";
+
+export const dynamic = "force-dynamic";
 import { CampsiteShell } from "@/components/campsite";
 
 export default async function CampsitePage() {

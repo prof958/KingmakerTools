@@ -2,6 +2,8 @@
  * Inventory Page — Server Component
  * Fetches all inventory data and passes it to the client shell.
  */
+export const dynamic = "force-dynamic";
+
 import { Badge } from "@/components/ui/badge";
 import { prisma } from "@/lib/db";
 import { getOrCreateCampaign } from "@/lib/campaign";

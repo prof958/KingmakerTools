@@ -2,6 +2,8 @@
  * Dashboard Page — Server Component
  * Fetches objectives, quick links, and wallet data, then renders the dashboard.
  */
+export const dynamic = "force-dynamic";
+
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Crown } from "lucide-react";
