@@ -16,7 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { UtensilsCrossed, Save, Trash2 } from "lucide-react";
+import { UtensilsCrossed, Save, Trash2, PawPrint } from "lucide-react";
 import {
   CAMPING_ACTIVITIES,
   type CheckResult,
@@ -33,6 +33,7 @@ export interface ActivityAssignment {
 interface Character {
   id: string;
   name: string;
+  isCompanion: boolean;
 }
 
 export function ActivityPicker({
@@ -139,7 +140,7 @@ export function ActivityPicker({
           </p>
         )}
 
-        {characters.map((char) => {
+        {characters.filter((c) => !c.isCompanion).map((char) => {
           const assignment = activities.find(
             (a) => a.characterId === char.id,
           );
@@ -148,83 +149,138 @@ export function ActivityPicker({
             : null;
 
           return (
-            <div
+            <ActivityRow
               key={char.id}
-              className="flex flex-col gap-2 rounded-md border p-3 sm:flex-row sm:items-center"
-            >
-              <span className="w-28 shrink-0 font-medium text-sm">
-                {char.name}
-              </span>
-
-              {/* Activity select */}
-              <Select
-                value={assignment?.activityType ?? ""}
-                onValueChange={(val) => setActivity(char.id, val || null)}
-                items={Object.fromEntries(CAMPING_ACTIVITIES.map((a) => [a.id, a.name]))}
-              >
-                <SelectTrigger className="w-48">
-                  <SelectValue placeholder="Choose activity…" />
-                </SelectTrigger>
-                <SelectContent>
-                  {CAMPING_ACTIVITIES.map((act) => (
-                    <SelectItem key={act.id} value={act.id} label={act.name}>
-                      {act.name}
-                      {act.isRequired && (
-                        <Badge variant="secondary" className="ml-1 text-[10px]">
-                          Req
-                        </Badge>
-                      )}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              {/* Result select */}
-              {assignment && (
-                <Select
-                  value={assignment.result ?? ""}
-                  onValueChange={(val) =>
-                    setResult(char.id, (val as CheckResult) || null)
-                  }
-                  items={Object.fromEntries(
-                    resultOptions.map((r) => [r.value, r.label]),
-                  )}
-                >
-                  <SelectTrigger className="w-36">
-                    <SelectValue placeholder="Result…" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {resultOptions.map((r) => (
-                      <SelectItem key={r.value} value={r.value} label={r.label}>
-                        <span className={r.color}>{r.label}</span>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-
-              {/* Skill badge */}
-              {activityDef && (
-                <Badge variant="outline" className="text-xs">
-                  {activityDef.skill}
-                </Badge>
-              )}
-
-              {/* Remove */}
-              {assignment && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-7 w-7"
-                  onClick={() => removeActivity(char.id)}
-                >
-                  <Trash2 className="h-3 w-3" />
-                </Button>
-              )}
-            </div>
+              char={char}
+              assignment={assignment}
+              activityDef={activityDef}
+              setActivity={setActivity}
+              setResult={setResult}
+              removeActivity={removeActivity}
+              resultOptions={resultOptions}
+            />
           );
         })}
+
+        {characters.some((c) => c.isCompanion) && (
+          <>
+            <div className="flex items-center gap-2 pt-1">
+              <PawPrint className="h-4 w-4 text-muted-foreground" />
+              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Companions</span>
+              <div className="flex-1 border-t border-border" />
+            </div>
+            {characters.filter((c) => c.isCompanion).map((char) => {
+              const assignment = activities.find(
+                (a) => a.characterId === char.id,
+              );
+              const activityDef = assignment
+                ? CAMPING_ACTIVITIES.find((a) => a.id === assignment.activityType)
+                : null;
+
+              return (
+                <ActivityRow
+                  key={char.id}
+                  char={char}
+                  assignment={assignment}
+                  activityDef={activityDef}
+                  setActivity={setActivity}
+                  setResult={setResult}
+                  removeActivity={removeActivity}
+                  resultOptions={resultOptions}
+                />
+              );
+            })}
+          </>
+        )}
       </CardContent>
     </Card>
+  );
+}
+
+type CampingActivityDef = (typeof CAMPING_ACTIVITIES)[number];
+
+function ActivityRow({
+  char,
+  assignment,
+  activityDef,
+  setActivity,
+  setResult,
+  removeActivity,
+  resultOptions,
+}: {
+  char: Character;
+  assignment: ActivityAssignment | undefined;
+  activityDef: CampingActivityDef | undefined;
+  setActivity: (charId: string, activityId: string | null) => void;
+  setResult: (charId: string, result: CheckResult | null) => void;
+  removeActivity: (charId: string) => void;
+  resultOptions: { value: CheckResult; label: string; color: string }[];
+}) {
+  return (
+    <div className="flex flex-col gap-2 rounded-md border p-3 sm:flex-row sm:items-center">
+      <span className="w-28 shrink-0 font-medium text-sm">{char.name}</span>
+
+      <Select
+        value={assignment?.activityType ?? ""}
+        onValueChange={(val) => setActivity(char.id, val || null)}
+        items={Object.fromEntries(CAMPING_ACTIVITIES.map((a) => [a.id, a.name]))}
+      >
+        <SelectTrigger className="w-48">
+          <SelectValue placeholder="Choose activity…" />
+        </SelectTrigger>
+        <SelectContent>
+          {CAMPING_ACTIVITIES.map((act) => (
+            <SelectItem key={act.id} value={act.id} label={act.name}>
+              {act.name}
+              {act.isRequired && (
+                <Badge variant="secondary" className="ml-1 text-[10px]">
+                  Req
+                </Badge>
+              )}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+
+      {assignment && (
+        <Select
+          value={assignment.result ?? ""}
+          onValueChange={(val) =>
+            setResult(char.id, (val as CheckResult) || null)
+          }
+          items={Object.fromEntries(
+            resultOptions.map((r) => [r.value, r.label]),
+          )}
+        >
+          <SelectTrigger className="w-36">
+            <SelectValue placeholder="Result…" />
+          </SelectTrigger>
+          <SelectContent>
+            {resultOptions.map((r) => (
+              <SelectItem key={r.value} value={r.value} label={r.label}>
+                <span className={r.color}>{r.label}</span>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      )}
+
+      {activityDef && (
+        <Badge variant="outline" className="text-xs">
+          {activityDef.skill}
+        </Badge>
+      )}
+
+      {assignment && (
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-7 w-7"
+          onClick={() => removeActivity(char.id)}
+        >
+          <Trash2 className="h-3 w-3" />
+        </Button>
+      )}
+    </div>
   );
 }

@@ -21,6 +21,8 @@ import {
 import {
   Select,
   SelectContent,
+  SelectGroup,
+  SelectLabel,
   SelectItem,
   SelectTrigger,
   SelectValue,
@@ -32,6 +34,7 @@ interface Character {
   id: string;
   name: string;
   strModifier: number;
+  isCompanion: boolean;
 }
 
 interface Item {
@@ -149,11 +152,26 @@ export function InventoryTable({
           <SelectContent>
             <SelectItem value="all" label="All Items">All Items</SelectItem>
             <SelectItem value="shared" label="Shared / Unassigned">Shared / Unassigned</SelectItem>
-            {characters.map((c) => (
-              <SelectItem key={c.id} value={c.id} label={c.name}>
-                {c.name}
-              </SelectItem>
-            ))}
+            {characters.filter((c) => !c.isCompanion).length > 0 && (
+              <SelectGroup>
+                <SelectLabel>Characters</SelectLabel>
+                {characters.filter((c) => !c.isCompanion).map((c) => (
+                  <SelectItem key={c.id} value={c.id} label={c.name}>
+                    {c.name}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            )}
+            {characters.filter((c) => c.isCompanion).length > 0 && (
+              <SelectGroup>
+                <SelectLabel>Companions</SelectLabel>
+                {characters.filter((c) => c.isCompanion).map((c) => (
+                  <SelectItem key={c.id} value={c.id} label={c.name}>
+                    {c.name}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            )}
           </SelectContent>
         </Select>
         <span className="ml-auto text-sm text-muted-foreground">
@@ -245,11 +263,26 @@ export function InventoryTable({
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="shared" label="Shared">Shared</SelectItem>
-                        {characters.map((c) => (
-                          <SelectItem key={c.id} value={c.id} label={c.name}>
-                            {c.name}
-                          </SelectItem>
-                        ))}
+                        {characters.filter((c) => !c.isCompanion).length > 0 && (
+                          <SelectGroup>
+                            <SelectLabel>Characters</SelectLabel>
+                            {characters.filter((c) => !c.isCompanion).map((c) => (
+                              <SelectItem key={c.id} value={c.id} label={c.name}>
+                                {c.name}
+                              </SelectItem>
+                            ))}
+                          </SelectGroup>
+                        )}
+                        {characters.filter((c) => c.isCompanion).length > 0 && (
+                          <SelectGroup>
+                            <SelectLabel>Companions</SelectLabel>
+                            {characters.filter((c) => c.isCompanion).map((c) => (
+                              <SelectItem key={c.id} value={c.id} label={c.name}>
+                                {c.name}
+                              </SelectItem>
+                            ))}
+                          </SelectGroup>
+                        )}
                       </SelectContent>
                     </Select>
                   </TableCell>

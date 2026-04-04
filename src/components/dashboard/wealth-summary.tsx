@@ -7,7 +7,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Coins } from "lucide-react";
+import { Coins, PawPrint } from "lucide-react";
 import { walletToCp, formatAsGp, formatCurrency, sumWallets } from "@/lib/pf2e/currency";
 
 interface WalletData {
@@ -17,7 +17,7 @@ interface WalletData {
   sp: number;
   gp: number;
   pp: number;
-  character: { id: string; name: string } | null;
+  character: { id: string; name: string; isCompanion?: boolean } | null;
 }
 
 export function WealthSummary({
@@ -71,23 +71,54 @@ export function WealthSummary({
                 </div>
               )}
 
-              {/* Personal wallets */}
-              {personalWallets.map((w) => {
-                const cp = walletToCp(w);
-                return (
-                  <div
-                    key={w.id}
-                    className="flex items-center justify-between text-sm"
-                  >
-                    <span className="text-muted-foreground">
-                      {w.character?.name ?? "Unknown"}
-                    </span>
-                    <span className="font-medium">
-                      {cp > 0 ? formatAsGp(cp) : "0 gp"}
-                    </span>
+              {/* PC wallets */}
+              {personalWallets
+                .filter((w) => !w.character?.isCompanion)
+                .map((w) => {
+                  const cp = walletToCp(w);
+                  return (
+                    <div
+                      key={w.id}
+                      className="flex items-center justify-between text-sm"
+                    >
+                      <span className="text-muted-foreground">
+                        {w.character?.name ?? "Unknown"}
+                      </span>
+                      <span className="font-medium">
+                        {cp > 0 ? formatAsGp(cp) : "0 gp"}
+                      </span>
+                    </div>
+                  );
+                })}
+
+              {/* Companion wallets */}
+              {personalWallets.some((w) => w.character?.isCompanion) && (
+                <>
+                  <div className="flex items-center gap-2 pt-1">
+                    <PawPrint className="h-3 w-3 text-muted-foreground" />
+                    <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">Companions</span>
+                    <div className="flex-1 border-t border-border" />
                   </div>
-                );
-              })}
+                  {personalWallets
+                    .filter((w) => w.character?.isCompanion)
+                    .map((w) => {
+                      const cp = walletToCp(w);
+                      return (
+                        <div
+                          key={w.id}
+                          className="flex items-center justify-between text-sm"
+                        >
+                          <span className="text-muted-foreground">
+                            {w.character?.name ?? "Unknown"}
+                          </span>
+                          <span className="font-medium">
+                            {cp > 0 ? formatAsGp(cp) : "0 gp"}
+                          </span>
+                        </div>
+                      );
+                    })}
+                </>
+              )}
 
               {personalWallets.length === 0 && !treasury && (
                 <p className="text-xs text-muted-foreground">

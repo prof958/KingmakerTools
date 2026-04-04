@@ -14,6 +14,7 @@ import { Eye, Save, Plus, Trash2 } from "lucide-react";
 interface Character {
   id: string;
   name: string;
+  isCompanion: boolean;
 }
 
 export interface WatchShiftData {
@@ -128,7 +129,7 @@ export function WatchOrder({
             </div>
 
             <div className="flex flex-wrap gap-2">
-              {characters.map((char) => {
+              {characters.filter((c) => !c.isCompanion).map((char) => {
                 const assigned = shift.characterIds.includes(char.id);
                 return (
                   <Badge
@@ -143,6 +144,26 @@ export function WatchOrder({
                   </Badge>
                 );
               })}
+              {characters.some((c) => c.isCompanion) && (
+                <>
+                  <span className="text-xs text-muted-foreground self-center">|</span>
+                  {characters.filter((c) => c.isCompanion).map((char) => {
+                    const assigned = shift.characterIds.includes(char.id);
+                    return (
+                      <Badge
+                        key={char.id}
+                        variant={assigned ? "default" : "outline"}
+                        className="cursor-pointer select-none"
+                        onClick={() =>
+                          toggleCharOnShift(shift.shiftNumber, char.id)
+                        }
+                      >
+                        🐾 {char.name}
+                      </Badge>
+                    );
+                  })}
+                </>
+              )}
               {characters.length === 0 && (
                 <span className="text-xs text-muted-foreground">
                   No characters

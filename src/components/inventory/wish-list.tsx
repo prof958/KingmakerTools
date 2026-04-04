@@ -23,6 +23,8 @@ import {
 import {
   Select,
   SelectContent,
+  SelectGroup,
+  SelectLabel,
   SelectItem,
   SelectTrigger,
   SelectValue,
@@ -57,6 +59,7 @@ import {
 interface Character {
   id: string;
   name: string;
+  isCompanion: boolean;
 }
 
 interface CatalogItem {
@@ -388,11 +391,26 @@ export function WishList({
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="party" label="Party / Shared">Party / Shared</SelectItem>
-                      {characters.map((c) => (
-                        <SelectItem key={c.id} value={c.id} label={c.name}>
-                          {c.name}
-                        </SelectItem>
-                      ))}
+                      {characters.filter((c) => !c.isCompanion).length > 0 && (
+                        <SelectGroup>
+                          <SelectLabel>Characters</SelectLabel>
+                          {characters.filter((c) => !c.isCompanion).map((c) => (
+                            <SelectItem key={c.id} value={c.id} label={c.name}>
+                              {c.name}
+                            </SelectItem>
+                          ))}
+                        </SelectGroup>
+                      )}
+                      {characters.filter((c) => c.isCompanion).length > 0 && (
+                        <SelectGroup>
+                          <SelectLabel>Companions</SelectLabel>
+                          {characters.filter((c) => c.isCompanion).map((c) => (
+                            <SelectItem key={c.id} value={c.id} label={c.name}>
+                              {c.name}
+                            </SelectItem>
+                          ))}
+                        </SelectGroup>
+                      )}
                     </SelectContent>
                   </Select>
                 </div>

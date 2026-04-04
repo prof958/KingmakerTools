@@ -19,12 +19,13 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Trash2, Pencil, Users } from "lucide-react";
+import { Plus, Trash2, Pencil, Users, PawPrint } from "lucide-react";
 
 interface Character {
   id: string;
   name: string;
   strModifier: number;
+  isCompanion: boolean;
 }
 
 export function CharacterManager({
@@ -35,6 +36,7 @@ export function CharacterManager({
   const [characters, setCharacters] = useState<Character[]>(initialCharacters);
   const [name, setName] = useState("");
   const [strMod, setStrMod] = useState(0);
+  const [isCompanion, setIsCompanion] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -46,13 +48,14 @@ export function CharacterManager({
       const res = await fetch("/api/characters", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: name.trim(), strModifier: strMod }),
+        body: JSON.stringify({ name: name.trim(), strModifier: strMod, isCompanion }),
       });
       if (res.ok) {
         const character = await res.json();
         setCharacters((prev) => [...prev, character]);
         setName("");
         setStrMod(0);
+        setIsCompanion(false);
         setDialogOpen(false);
       }
     });
@@ -65,7 +68,7 @@ export function CharacterManager({
       const res = await fetch(`/api/characters/${editId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: name.trim(), strModifier: strMod }),
+        body: JSON.stringify({ name: name.trim(), strModifier: strMod, isCompanion }),
       });
       if (res.ok) {
         const updated = await res.json();
@@ -74,6 +77,7 @@ export function CharacterManager({
         );
         setName("");
         setStrMod(0);
+        setIsCompanion(false);
         setEditId(null);
         setDialogOpen(false);
       }
@@ -93,6 +97,7 @@ export function CharacterManager({
     setEditId(character.id);
     setName(character.name);
     setStrMod(character.strModifier);
+    setIsCompanion(character.isCompanion);
     setDialogOpen(true);
   }
 
@@ -100,6 +105,7 @@ export function CharacterManager({
     setEditId(null);
     setName("");
     setStrMod(0);
+    setIsCompanion(false);
     setDialogOpen(true);
   }
 
@@ -148,6 +154,22 @@ export function CharacterManager({
                   Used for encumbrance calculation (carry limit: 5+STR / 10+STR)
                 </p>
               </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant={isCompanion ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setIsCompanion(!isCompanion)}
+                >
+                  <PawPrint className="mr-1 h-4 w-4" />
+                  {isCompanion ? "Companion" : "Mark as Companion"}
+                </Button>
+                {isCompanion && (
+                  <span className="text-xs text-muted-foreground">
+                    Will be shown separately from PCs
+                  </span>
+                )}
+              </div>
               <Button
                 onClick={editId ? handleEdit : handleAdd}
                 disabled={isPending || !name.trim()}
@@ -166,40 +188,61 @@ export function CharacterManager({
           </p>
         ) : (
           <div className="space-y-2">
-            {characters.map((c) => (
-              <div
-                key={c.id}
-                className="flex items-center justify-between rounded-md border p-3"
-              >
-                <div className="flex items-center gap-3">
-                  <span className="font-medium">{c.name}</span>
-                  <Badge variant="secondary" className="text-xs">
-                    STR {c.strModifier >= 0 ? "+" : ""}
-                    {c.strModifier}
-                  </Badge>
-                </div>
-                <div className="flex gap-1">
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    onClick={() => openEdit(c)}
-                  >
-                    <Pencil className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    onClick={() => handleDelete(c.id)}
-                    disabled={isPending}
-                  >
-                    <Trash2 className="h-4 w-4 text-destructive" />
-                  </Button>
-                </div>
-              </div>
+            {characters.filter((c) => !c.isCompanion).map((c) => (
+              <CharacterRow key={c.id} character={c} onEdit={openEdit} onDelete={handleDelete} isPending={isPending} />
             ))}
+            {characters.some((c) => c.isCompanion) && (
+              <>
+                <div className="flex items-center gap-2 pt-2">
+                  <PawPrint className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Companions</span>
+                  <div className="flex-1 border-t border-border" />
+                </div>
+                {characters.filter((c) => c.isCompanion).map((c) => (
+                  <CharacterRow key={c.id} character={c} onEdit={openEdit} onDelete={handleDelete} isPending={isPending} />
+                ))}
+              </>
+            )}
           </div>
         )}
       </CardContent>
     </Card>
+  );
+}
+
+function CharacterRow({
+  character: c,
+  onEdit,
+  onDelete,
+  isPending,
+}: {
+  character: Character;
+  onEdit: (c: Character) => void;
+  onDelete: (id: string) => void;
+  isPending: boolean;
+}) {
+  return (
+    <div className="flex items-center justify-between rounded-md border p-3">
+      <div className="flex items-center gap-3">
+        <span className="font-medium">{c.name}</span>
+        <Badge variant="secondary" className="text-xs">
+          STR {c.strModifier >= 0 ? "+" : ""}
+          {c.strModifier}
+        </Badge>
+      </div>
+      <div className="flex gap-1">
+        <Button size="icon" variant="ghost" onClick={() => onEdit(c)}>
+          <Pencil className="h-4 w-4" />
+        </Button>
+        <Button
+          size="icon"
+          variant="ghost"
+          onClick={() => onDelete(c.id)}
+          disabled={isPending}
+        >
+          <Trash2 className="h-4 w-4 text-destructive" />
+        </Button>
+      </div>
+    </div>
   );
 }

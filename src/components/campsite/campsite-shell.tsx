@@ -52,6 +52,7 @@ interface LayoutData {
 interface Character {
   id: string;
   name: string;
+  isCompanion: boolean;
 }
 
 // ─── Component ───

@@ -20,12 +20,13 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Coins, Split, Save } from "lucide-react";
+import { Coins, Split, Save, PawPrint } from "lucide-react";
 import { walletToCp, formatCurrency, formatAsGp, cpToWallet } from "@/lib/pf2e/currency";
 
 interface Character {
   id: string;
   name: string;
+  isCompanion: boolean;
 }
 
 interface WalletData {
@@ -210,21 +211,50 @@ export function WalletManager({
 
         {characterWallets.length > 0 && <Separator />}
 
-        {/* Character Wallets */}
-        {characterWallets.map((w) => (
-          <WalletRow
-            key={w.id}
-            label={w.character?.name ?? "Unknown"}
-            wallet={w}
-            isEditing={editingId === w.id}
-            editValues={editValues}
-            onEditValues={setEditValues}
-            onStartEdit={() => startEdit(w)}
-            onSave={() => saveEdit(w.id)}
-            onCancel={cancelEdit}
-            isPending={isPending}
-          />
-        ))}
+        {/* PC Wallets */}
+        {characterWallets
+          .filter((w) => !w.character?.isCompanion)
+          .map((w) => (
+            <WalletRow
+              key={w.id}
+              label={w.character?.name ?? "Unknown"}
+              wallet={w}
+              isEditing={editingId === w.id}
+              editValues={editValues}
+              onEditValues={setEditValues}
+              onStartEdit={() => startEdit(w)}
+              onSave={() => saveEdit(w.id)}
+              onCancel={cancelEdit}
+              isPending={isPending}
+            />
+          ))}
+
+        {/* Companion Wallets */}
+        {characterWallets.some((w) => w.character?.isCompanion) && (
+          <>
+            <div className="flex items-center gap-2 pt-1">
+              <PawPrint className="h-4 w-4 text-muted-foreground" />
+              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Companions</span>
+              <div className="flex-1 border-t border-border" />
+            </div>
+            {characterWallets
+              .filter((w) => w.character?.isCompanion)
+              .map((w) => (
+                <WalletRow
+                  key={w.id}
+                  label={w.character?.name ?? "Unknown"}
+                  wallet={w}
+                  isEditing={editingId === w.id}
+                  editValues={editValues}
+                  onEditValues={setEditValues}
+                  onStartEdit={() => startEdit(w)}
+                  onSave={() => saveEdit(w.id)}
+                  onCancel={cancelEdit}
+                  isPending={isPending}
+                />
+              ))}
+          </>
+        )}
 
         {characterWallets.length === 0 && (
           <p className="text-sm text-muted-foreground">

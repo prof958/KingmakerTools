@@ -21,6 +21,8 @@ import {
 import {
   Select,
   SelectContent,
+  SelectGroup,
+  SelectLabel,
   SelectItem,
   SelectTrigger,
   SelectValue,
@@ -53,6 +55,7 @@ interface CatalogItem {
 interface Character {
   id: string;
   name: string;
+  isCompanion: boolean;
 }
 
 export function AddItemDialog({
@@ -432,11 +435,26 @@ export function AddItemDialog({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="shared" label="Shared / Party Loot">Shared / Party Loot</SelectItem>
-                  {characters.map((c) => (
-                    <SelectItem key={c.id} value={c.id} label={c.name}>
-                      {c.name}
-                    </SelectItem>
-                  ))}
+                  {characters.filter((c) => !c.isCompanion).length > 0 && (
+                    <SelectGroup>
+                      <SelectLabel>Characters</SelectLabel>
+                      {characters.filter((c) => !c.isCompanion).map((c) => (
+                        <SelectItem key={c.id} value={c.id} label={c.name}>
+                          {c.name}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  )}
+                  {characters.filter((c) => c.isCompanion).length > 0 && (
+                    <SelectGroup>
+                      <SelectLabel>Companions</SelectLabel>
+                      {characters.filter((c) => c.isCompanion).map((c) => (
+                        <SelectItem key={c.id} value={c.id} label={c.name}>
+                          {c.name}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  )}
                 </SelectContent>
               </Select>
             </div>

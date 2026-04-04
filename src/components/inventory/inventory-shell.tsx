@@ -18,6 +18,7 @@ interface Character {
   id: string;
   name: string;
   strModifier: number;
+  isCompanion: boolean;
 }
 
 interface WalletData {
