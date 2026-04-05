@@ -66,7 +66,7 @@ function statusBadge(status: ObjectiveData["status"]) {
 function priorityLabel(priority: number) {
   if (priority >= 2) return "High";
   if (priority === 1) return "Medium";
-  return "Normal";
+  return "Low";
 }
 
 function priorityColor(priority: number) {
@@ -102,7 +102,9 @@ export function ObjectiveTracker({
   const activeCount = objectives.filter((o) => o.status === "ACTIVE").length;
   const completedCount = objectives.filter((o) => o.status === "COMPLETED").length;
 
-  const filtered = objectives.filter((o) => filter === "ALL" || o.status === filter);
+  const filtered = objectives
+    .filter((o) => filter === "ALL" || o.status === filter)
+    .sort((a, b) => b.priority - a.priority);
 
   const addObjective = useCallback(() => {
     if (!newTitle.trim()) return;
@@ -252,13 +254,13 @@ export function ObjectiveTracker({
                     <Select
                       value={newPriority}
                       onValueChange={(val) => setNewPriority(val ?? "0")}
-                      items={{ "0": "Normal Priority", "1": "Medium Priority", "2": "High Priority" }}
+                      items={{ "0": "Low Priority", "1": "Medium Priority", "2": "High Priority" }}
                     >
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="0" label="Normal Priority">Normal Priority</SelectItem>
+                        <SelectItem value="0" label="Low Priority">Low Priority</SelectItem>
                         <SelectItem value="1" label="Medium Priority">Medium Priority</SelectItem>
                         <SelectItem value="2" label="High Priority">High Priority</SelectItem>
                       </SelectContent>
@@ -412,13 +414,13 @@ export function ObjectiveTracker({
               <Select
                 value={editPriority}
                 onValueChange={(val) => setEditPriority(val ?? "0")}
-                items={{ "0": "Normal Priority", "1": "Medium Priority", "2": "High Priority" }}
+                items={{ "0": "Low Priority", "1": "Medium Priority", "2": "High Priority" }}
               >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="0" label="Normal Priority">Normal Priority</SelectItem>
+                  <SelectItem value="0" label="Low Priority">Low Priority</SelectItem>
                   <SelectItem value="1" label="Medium Priority">Medium Priority</SelectItem>
                   <SelectItem value="2" label="High Priority">High Priority</SelectItem>
                 </SelectContent>

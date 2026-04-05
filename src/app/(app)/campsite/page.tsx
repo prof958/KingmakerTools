@@ -11,7 +11,7 @@ import { CampsiteShell } from "@/components/campsite";
 export default async function CampsitePage() {
   const campaign = await getOrCreateCampaign();
 
-  const [layouts, characters, recipes] = await Promise.all([
+  const [layouts, characters, recipes, customActivities] = await Promise.all([
     prisma.campsiteLayout.findMany({
       where: { campaignId: campaign.id },
       include: {
@@ -28,6 +28,10 @@ export default async function CampsitePage() {
       where: { campaignId: campaign.id },
       orderBy: [{ isDiscovered: "desc" }, { name: "asc" }],
     }),
+    prisma.customCampActivity.findMany({
+      where: { campaignId: campaign.id },
+      orderBy: { name: "asc" },
+    }),
   ]);
 
   return (
@@ -43,6 +47,7 @@ export default async function CampsitePage() {
         initialLayouts={JSON.parse(JSON.stringify(layouts))}
         characters={JSON.parse(JSON.stringify(characters))}
         recipes={JSON.parse(JSON.stringify(recipes))}
+        customActivities={JSON.parse(JSON.stringify(customActivities))}
       />
     </div>
   );

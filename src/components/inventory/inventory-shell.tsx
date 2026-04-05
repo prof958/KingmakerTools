@@ -84,7 +84,7 @@ export function InventoryShell({
             <TabsTrigger value="wallets">Wallets</TabsTrigger>
             <TabsTrigger value="wishlist">Wish List</TabsTrigger>
           </TabsList>
-          <AddItemDialog characters={characters} onAdd={refresh} />
+          <AddItemDialog characters={characters} carriers={initialCarriers} onAdd={refresh} />
         </div>
 
         <TabsContent value="items">

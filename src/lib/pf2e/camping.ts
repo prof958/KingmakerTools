@@ -23,7 +23,9 @@ export interface RecipeDef {
 }
 
 /**
- * Standard camping activities from the Kingmaker AP.
+ * Standard camping activities from the Kingmaker AP (AoN).
+ * Companion-specific activities (Harrim, Linzi, Jubilost, etc.) are excluded;
+ * players can add those as custom activities once learned via "Learn from a Companion".
  */
 export const CAMPING_ACTIVITIES: CampingActivityDef[] = [
   {
@@ -35,74 +37,92 @@ export const CAMPING_ACTIVITIES: CampingActivityDef[] = [
     isRequired: true,
   },
   {
-    id: "cook-meal",
-    name: "Cook Meal",
-    description: "Prepare a meal for the party using a known recipe.",
-    skill: "Survival / Cooking Lore",
-    dc: null,
-    isRequired: false,
-  },
-  {
-    id: "hunt-and-gather",
-    name: "Hunt and Gather",
-    description: "Forage for food and ingredients in the surrounding area.",
-    skill: "Survival",
-    dc: null,
-    isRequired: false,
-  },
-  {
     id: "camouflage-campsite",
     name: "Camouflage Campsite",
-    description: "Hide the campsite to reduce the chance of random encounters.",
-    skill: "Stealth / Survival",
-    dc: null,
-    isRequired: false,
-  },
-  {
-    id: "blend-into-the-night",
-    name: "Blend Into the Night",
-    description: "Use stealth to avoid detection during the night.",
+    description:
+      "Conceal the camp from potential threats. Attempt a Stealth check against the Zone DC. Can only attempt once per camping session.",
     skill: "Stealth",
     dc: null,
     isRequired: false,
   },
   {
-    id: "organize-watch",
-    name: "Organize Watch",
-    description: "Coordinate the watch to improve its effectiveness.",
-    skill: "Perception",
+    id: "cook-basic-meal",
+    name: "Cook Basic Meal",
+    description:
+      "Spend 2 hours preparing a basic meal. Expend 2 basic ingredients per serving plus 1 day's rations.",
+    skill: "Survival / Cooking Lore",
     dc: null,
     isRequired: false,
   },
   {
-    id: "set-up-traps",
-    name: "Set Up Traps",
-    description: "Place defensive traps around the campsite perimeter.",
-    skill: "Crafting / Survival",
-    dc: null,
-    isRequired: false,
-  },
-  {
-    id: "tell-campfire-story",
-    name: "Tell Campfire Story",
-    description: "Boost morale with a rousing tale around the fire.",
-    skill: "Performance",
+    id: "cook-special-meal",
+    name: "Cook Special Meal",
+    description:
+      "Spend 2 hours preparing a special meal from a known recipe. Expend required ingredients plus 1 day's rations per serving.",
+    skill: "Survival / Cooking Lore",
     dc: null,
     isRequired: false,
   },
   {
     id: "discover-special-meal",
     name: "Discover Special Meal",
-    description: "Experiment to discover a new recipe for the recipe book.",
-    skill: "Survival / Cooking Lore",
+    description:
+      "Spend 2 hours attempting to discover a special recipe. Expend twice the normal ingredients for 1 serving.",
+    skill: "Cooking Lore",
+    dc: null,
+    isRequired: false,
+  },
+  {
+    id: "hunt-and-gather",
+    name: "Hunt and Gather",
+    description:
+      "Spend 2 hours gathering ingredients. Attempt a Survival check against the Zone DC.",
+    skill: "Survival",
     dc: null,
     isRequired: false,
   },
   {
     id: "learn-from-companion",
     name: "Learn from a Companion",
-    description: "Interact with an NPC companion to gain insights or improve relations.",
-    skill: "Diplomacy / Perception",
+    description:
+      "Spend 2 hours with a companion to learn their special activity. Attempt a DC 20 Perception check. The companion must be Friendly.",
+    skill: "Perception",
+    dc: 20,
+    isRequired: false,
+  },
+  {
+    id: "organize-watch",
+    name: "Organize Watch",
+    description:
+      "Spend 2 hours organizing the watch rotation. Attempt a Perception check against the Zone DC. Requires expert in Perception.",
+    skill: "Perception",
+    dc: null,
+    isRequired: false,
+  },
+  {
+    id: "provide-aid",
+    name: "Provide Aid",
+    description:
+      "Spend 2 hours aiding another character's camping activity. Attempt a skill check (typically DC 20). Bonuses don't stack.",
+    skill: "Variable",
+    dc: 20,
+    isRequired: false,
+  },
+  {
+    id: "relax",
+    name: "Relax",
+    description:
+      "Spend 2 hours relaxing. Gain a +1 circumstance bonus to the next camping activity check this session. Can Relax multiple times.",
+    skill: "None",
+    dc: null,
+    isRequired: false,
+  },
+  {
+    id: "tell-campfire-story",
+    name: "Tell Campfire Story",
+    description:
+      "Spend 2 hours telling a rousing story. Attempt a Performance check against a DC set by your level.",
+    skill: "Performance",
     dc: null,
     isRequired: false,
   },

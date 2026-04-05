@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
     const campaign = await getOrCreateCampaign();
     const body = await req.json();
 
-    const { itemId, characterId, quantity, notes } = body;
+    const { itemId, characterId, bulkCarrierId, quantity, notes } = body;
 
     if (!itemId || typeof itemId !== "string") {
       return NextResponse.json(
@@ -65,6 +65,7 @@ export async function POST(req: NextRequest) {
         campaignId: campaign.id,
         itemId,
         characterId: characterId || null,
+        bulkCarrierId: bulkCarrierId || null,
         quantity: quantity ?? 1,
         notes: notes || null,
       },

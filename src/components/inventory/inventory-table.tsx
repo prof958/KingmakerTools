@@ -209,7 +209,8 @@ export function InventoryTable({
                 <TableHead className="w-[60px] text-center">Bulk</TableHead>
                 <TableHead className="w-[60px] text-center">Qty</TableHead>
                 <TableHead className="w-[100px]">Value</TableHead>
-                <TableHead className="w-[150px]">Owner</TableHead>
+                <TableHead className="w-[140px]">Owner</TableHead>
+                <TableHead className="w-[140px]">Carrier</TableHead>
                 <TableHead className="w-[80px] text-center">Status</TableHead>
                 <TableHead className="w-[60px]"></TableHead>
               </TableRow>
@@ -262,20 +263,13 @@ export function InventoryTable({
                   </TableCell>
                   <TableCell>
                     <Select
-                      value={inv.bulkCarrierId ? `carrier:${inv.bulkCarrierId}` : inv.characterId ?? "shared"}
+                      value={inv.characterId ?? "shared"}
                       onValueChange={(val) => {
-                        if (!val || val === "shared") {
-                          updateItem(inv.id, { characterId: null, bulkCarrierId: null });
-                        } else if (val.startsWith("carrier:")) {
-                          updateItem(inv.id, { bulkCarrierId: val.slice(8) });
-                        } else {
-                          updateItem(inv.id, { characterId: val, bulkCarrierId: null });
-                        }
+                        updateItem(inv.id, { characterId: !val || val === "shared" ? null : val });
                       }}
                       items={{
                         shared: "Shared",
                         ...Object.fromEntries(characters.map((c) => [c.id, c.name])),
-                        ...Object.fromEntries(carriers.map((c) => [`carrier:${c.id}`, c.name])),
                       }}
                     >
                       <SelectTrigger className="h-7 text-xs">
@@ -303,18 +297,36 @@ export function InventoryTable({
                             ))}
                           </SelectGroup>
                         )}
-                        {carriers.length > 0 && (
-                          <SelectGroup>
-                            <SelectLabel>Carriers</SelectLabel>
-                            {carriers.map((c) => (
-                              <SelectItem key={c.id} value={`carrier:${c.id}`} label={c.name}>
-                                {c.name}
-                              </SelectItem>
-                            ))}
-                          </SelectGroup>
-                        )}
                       </SelectContent>
                     </Select>
+                  </TableCell>
+                  <TableCell>
+                    {carriers.length > 0 ? (
+                      <Select
+                        value={inv.bulkCarrierId ?? "none"}
+                        onValueChange={(val) => {
+                          updateItem(inv.id, { bulkCarrierId: !val || val === "none" ? null : val });
+                        }}
+                        items={{
+                          none: "None",
+                          ...Object.fromEntries(carriers.map((c) => [c.id, c.name])),
+                        }}
+                      >
+                        <SelectTrigger className="h-7 text-xs">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none" label="None">None</SelectItem>
+                          {carriers.map((c) => (
+                            <SelectItem key={c.id} value={c.id} label={c.name}>
+                              {c.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">—</span>
+                    )}
                   </TableCell>
                   <TableCell className="text-center">
                     <div className="flex justify-center gap-1">

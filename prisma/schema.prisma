@@ -32,6 +32,7 @@ model Campaign {
   recipes        Recipe[]
   wishListItems  WishListItem[]
   bulkCarriers   BulkCarrier[]
+  customCampActivities CustomCampActivity[]
 
   // Phase 5
   kingdom Kingdom?
@@ -256,6 +257,19 @@ model Recipe {
   campaign Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
 
   @@map("recipes")
+}
+
+model CustomCampActivity {
+  id          String   @id @default(cuid())
+  campaignId  String   @map("campaign_id")
+  name        String
+  description String?
+  skill       String?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  campaign Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  @@map("custom_camp_activities")
 }
 
 // ──────────────────────────────────────────────

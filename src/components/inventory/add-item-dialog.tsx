@@ -36,6 +36,7 @@ import {
   aonToItemPayload,
   type AonItem,
 } from "@/components/inventory/aon-item-search";
+import type { BulkCarrierData } from "@/components/inventory/bulk-carrier-manager";
 
 interface CatalogItem {
   id: string;
@@ -60,9 +61,11 @@ interface Character {
 
 export function AddItemDialog({
   characters,
+  carriers,
   onAdd,
 }: {
   characters: Character[];
+  carriers: BulkCarrierData[];
   onAdd: () => void;
 }) {
   const [open, setOpen] = useState(false);
@@ -70,6 +73,7 @@ export function AddItemDialog({
   const [catalogItems, setCatalogItems] = useState<CatalogItem[]>([]);
   const [isPending, startTransition] = useTransition();
   const [assignTo, setAssignTo] = useState<string>("shared");
+  const [assignCarrier, setAssignCarrier] = useState<string>("none");
   const [quantity, setQuantity] = useState(1);
   const [notes, setNotes] = useState("");
   const [selectedAonItem, setSelectedAonItem] = useState<AonItem | null>(null);
@@ -112,6 +116,7 @@ export function AddItemDialog({
         body: JSON.stringify({
           itemId: item.id,
           characterId: assignTo === "shared" ? null : assignTo,
+          bulkCarrierId: assignCarrier === "none" ? null : assignCarrier,
           quantity,
           notes: notes || null,
         }),
@@ -143,6 +148,7 @@ export function AddItemDialog({
         body: JSON.stringify({
           itemId: newItem.id,
           characterId: assignTo === "shared" ? null : assignTo,
+          bulkCarrierId: assignCarrier === "none" ? null : assignCarrier,
           quantity,
           notes: notes || null,
         }),
@@ -187,6 +193,7 @@ export function AddItemDialog({
         body: JSON.stringify({
           itemId: newItem.id,
           characterId: assignTo === "shared" ? null : assignTo,
+          bulkCarrierId: assignCarrier === "none" ? null : assignCarrier,
           quantity,
           notes: notes || null,
         }),
@@ -203,6 +210,7 @@ export function AddItemDialog({
   function resetForm() {
     setSearch("");
     setAssignTo("shared");
+    setAssignCarrier("none");
     setQuantity(1);
     setNotes("");
     setSelectedAonItem(null);
@@ -459,7 +467,7 @@ export function AddItemDialog({
         <div className="border-t pt-3 mt-1 space-y-2">
           <div className="flex gap-3 items-end">
             <div className="flex-1">
-              <Label className="text-xs text-muted-foreground">Assign to</Label>
+              <Label className="text-xs text-muted-foreground">Owner</Label>
               <Select
                 value={assignTo}
                 onValueChange={(val) => setAssignTo(val ?? "shared")}
@@ -496,6 +504,31 @@ export function AddItemDialog({
                 </SelectContent>
               </Select>
             </div>
+            {carriers.length > 0 && (
+              <div className="flex-1">
+                <Label className="text-xs text-muted-foreground">Carrier</Label>
+                <Select
+                  value={assignCarrier}
+                  onValueChange={(val) => setAssignCarrier(val ?? "none")}
+                  items={{
+                    none: "None",
+                    ...Object.fromEntries(carriers.map((c) => [c.id, c.name])),
+                  }}
+                >
+                  <SelectTrigger className="h-8">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none" label="None">None</SelectItem>
+                    {carriers.map((c) => (
+                      <SelectItem key={c.id} value={c.id} label={c.name}>
+                        {c.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
             <div className="w-16">
               <Label className="text-xs text-muted-foreground">Qty</Label>
               <NumberInput

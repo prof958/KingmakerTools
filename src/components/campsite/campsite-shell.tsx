@@ -55,19 +55,29 @@ interface Character {
   isCompanion: boolean;
 }
 
+export interface CustomCampActivityData {
+  id: string;
+  name: string;
+  description: string | null;
+  skill: string | null;
+}
+
 // ─── Component ───
 
 export function CampsiteShell({
   initialLayouts,
   characters,
   recipes,
+  customActivities: initialCustomActivities,
 }: {
   initialLayouts: LayoutData[];
   characters: Character[];
   recipes: RecipeData[];
+  customActivities: CustomCampActivityData[];
 }) {
   const store = useCampsiteStore();
   const [layouts, setLayouts] = useState<LayoutData[]>(initialLayouts);
+  const [customActivities, setCustomActivities] = useState<CustomCampActivityData[]>(initialCustomActivities);
   const [isPending, startTransition] = useTransition();
 
   // Load active layout into store on mount
@@ -379,6 +389,8 @@ export function CampsiteShell({
           characters={characters}
           layoutId={store.layoutId}
           initialActivities={activityAssignments}
+          customActivities={customActivities}
+          onCustomActivitiesChange={setCustomActivities}
         />
       </TabsContent>
 
