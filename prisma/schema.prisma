@@ -15,10 +15,13 @@ datasource db {
 // ──────────────────────────────────────────────
 
 model Campaign {
-  id        String   @id @default(cuid())
-  name      String
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  id           String   @id @default(cuid())
+  name         String
+  golarionDay   Int      @default(1) @map("golarion_day")
+  golarionMonth Int      @default(3) @map("golarion_month")
+  golarionYear  Int      @default(4710) @map("golarion_year")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
 
   characters     Character[]
   inventoryItems InventoryItem[]

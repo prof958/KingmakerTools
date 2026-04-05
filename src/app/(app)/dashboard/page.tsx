@@ -13,6 +13,7 @@ import {
   ObjectiveTracker,
   QuickLinksManager,
   WealthSummary,
+  GolarionCalendar,
 } from "@/components/dashboard";
 
 export default async function DashboardPage() {
@@ -40,6 +41,13 @@ export default async function DashboardPage() {
         <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
         <p className="text-muted-foreground">Campaign overview at a glance</p>
       </div>
+
+      {/* Golarion Calendar */}
+      <GolarionCalendar
+        initialDay={campaign.golarionDay}
+        initialMonth={campaign.golarionMonth}
+        initialYear={campaign.golarionYear}
+      />
 
       {/* Top row: Wealth + Kingdom placeholder */}
       <div className="grid gap-4 md:grid-cols-2">
