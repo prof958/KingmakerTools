@@ -5,7 +5,7 @@
  * Supports assigning items to characters, marking invested/worn, editing quantity, and deleting.
  */
 
-import { useState, useTransition, useCallback } from "react";
+import { useState, useEffect, useTransition, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { NumberInput } from "@/components/ui/number-input";
@@ -96,6 +96,7 @@ export function InventoryTable({
   onUpdate?: () => void;
 }) {
   const [items, setItems] = useState<InventoryItemData[]>(initialItems);
+  useEffect(() => { setItems(initialItems); }, [initialItems]);
   const [isPending, startTransition] = useTransition();
   const [filter, setFilter] = useState<string>("all");
 

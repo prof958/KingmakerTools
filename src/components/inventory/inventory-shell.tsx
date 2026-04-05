@@ -6,6 +6,7 @@
  */
 
 import { useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CharacterManager } from "./character-manager";
 import { InventoryTable, type InventoryItemData } from "./inventory-table";
@@ -46,35 +47,31 @@ export function InventoryShell({
   initialWishList: WishListItemData[];
   initialCarriers: BulkCarrierData[];
 }) {
-  const [refreshKey, setRefreshKey] = useState(0);
-  const [characters] = useState(initialCharacters);
+  const router = useRouter();
 
-  // Force a page refresh to reload server data
+  // Re-run server component to deliver fresh props to all children
   const refresh = useCallback(() => {
-    setRefreshKey((k) => k + 1);
-    // Full reload to get fresh server data
-    window.location.reload();
-  }, []);
+    router.refresh();
+  }, [router]);
 
   return (
     <div className="space-y-6">
       {/* Stats row */}
       <div className="grid gap-4 md:grid-cols-2">
         <BulkTracker
-          key={`bulk-${refreshKey}`}
           inventoryItems={initialInventory}
-          characters={characters}
+          characters={initialCharacters}
           wallets={initialWallets}
           carriers={initialCarriers}
         />
-        <CharacterManager initialCharacters={characters} />
+        <CharacterManager initialCharacters={initialCharacters} onUpdate={refresh} />
       </div>
 
       {/* Carriers row */}
       <BulkCarrierManager
-        key={`carriers-${refreshKey}`}
         initialCarriers={initialCarriers}
-        characters={characters}
+        characters={initialCharacters}
+        onUpdate={refresh}
       />
 
       <Tabs defaultValue="items" className="space-y-4">
@@ -84,14 +81,13 @@ export function InventoryShell({
             <TabsTrigger value="wallets">Wallets</TabsTrigger>
             <TabsTrigger value="wishlist">Wish List</TabsTrigger>
           </TabsList>
-          <AddItemDialog characters={characters} carriers={initialCarriers} onAdd={refresh} />
+          <AddItemDialog characters={initialCharacters} carriers={initialCarriers} onAdd={refresh} />
         </div>
 
         <TabsContent value="items">
           <InventoryTable
-            key={`inv-${refreshKey}`}
             initialItems={initialInventory}
-            characters={characters}
+            characters={initialCharacters}
             carriers={initialCarriers}
             onUpdate={refresh}
           />
@@ -99,17 +95,15 @@ export function InventoryShell({
 
         <TabsContent value="wallets">
           <WalletManager
-            key={`wal-${refreshKey}`}
             initialWallets={initialWallets}
-            characters={characters}
+            characters={initialCharacters}
           />
         </TabsContent>
 
         <TabsContent value="wishlist">
           <WishList
-            key={`wl-${refreshKey}`}
             initialItems={initialWishList}
-            characters={characters}
+            characters={initialCharacters}
           />
         </TabsContent>
       </Tabs>

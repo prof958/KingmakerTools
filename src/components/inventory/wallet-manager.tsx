@@ -5,7 +5,7 @@
  * Includes a loot-split calculator.
  */
 
-import { useState, useTransition } from "react";
+import { useState, useEffect, useTransition } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { NumberInput } from "@/components/ui/number-input";
@@ -47,6 +47,7 @@ export function WalletManager({
   characters: Character[];
 }) {
   const [wallets, setWallets] = useState<WalletData[]>(initialWallets);
+  useEffect(() => { setWallets(initialWallets); }, [initialWallets]);
   const [isPending, startTransition] = useTransition();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValues, setEditValues] = useState({ cp: 0, sp: 0, gp: 0, pp: 0 });

@@ -175,10 +175,12 @@ export function WatchOrder({
   characters,
   layoutId,
   initialShifts,
+  onSave,
 }: {
   characters: Character[];
   layoutId: string | null;
   initialShifts: WatchShiftData[];
+  onSave?: (shifts: WatchShiftData[]) => void;
 }) {
   const [orderedIds, setOrderedIds] = useState<string[]>(() =>
     flattenShifts(initialShifts),
@@ -238,14 +240,16 @@ export function WatchOrder({
 
   function save() {
     if (!layoutId) return;
+    const shifts = toWatchShifts(orderedIds, shiftCount);
     startTransition(async () => {
-      await fetch(`/api/campsite/${layoutId}`, {
+      const res = await fetch(`/api/campsite/${layoutId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          watchShifts: toWatchShifts(orderedIds, shiftCount),
-        }),
+        body: JSON.stringify({ watchShifts: shifts }),
       });
+      if (res.ok) {
+        onSave?.(shifts);
+      }
     });
   }
 

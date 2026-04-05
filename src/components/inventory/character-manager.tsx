@@ -5,7 +5,7 @@
  * Shows a list of characters with name + STR modifier, plus an add form.
  */
 
-import { useState, useTransition } from "react";
+import { useState, useEffect, useTransition } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { NumberInput } from "@/components/ui/number-input";
@@ -31,10 +31,13 @@ interface Character {
 
 export function CharacterManager({
   initialCharacters,
+  onUpdate,
 }: {
   initialCharacters: Character[];
+  onUpdate?: () => void;
 }) {
   const [characters, setCharacters] = useState<Character[]>(initialCharacters);
+  useEffect(() => { setCharacters(initialCharacters); }, [initialCharacters]);
   const [name, setName] = useState("");
   const [strMod, setStrMod] = useState(0);
   const [isCompanion, setIsCompanion] = useState(false);
@@ -60,6 +63,7 @@ export function CharacterManager({
         setIsCompanion(false);
         setMiscBulk(0);
         setDialogOpen(false);
+        onUpdate?.();
       }
     });
   }
@@ -84,6 +88,7 @@ export function CharacterManager({
         setMiscBulk(0);
         setEditId(null);
         setDialogOpen(false);
+        onUpdate?.();
       }
     });
   }
@@ -93,6 +98,7 @@ export function CharacterManager({
       const res = await fetch(`/api/characters/${id}`, { method: "DELETE" });
       if (res.ok) {
         setCharacters((prev) => prev.filter((c) => c.id !== id));
+        onUpdate?.();
       }
     });
   }

@@ -391,6 +391,27 @@ export function CampsiteShell({
           initialActivities={activityAssignments}
           customActivities={customActivities}
           onCustomActivitiesChange={setCustomActivities}
+          onSave={(saved) =>
+            setLayouts((prev) =>
+              prev.map((l) =>
+                l.id === store.layoutId
+                  ? {
+                      ...l,
+                      campingActivities: saved.map((a) => ({
+                        characterId: a.characterId,
+                        activityType: a.activityType,
+                        skill: a.skill,
+                        result: a.result,
+                        character: {
+                          id: a.characterId,
+                          name: a.characterName,
+                        },
+                      })),
+                    }
+                  : l,
+              ),
+            )
+          }
         />
       </TabsContent>
 
@@ -400,6 +421,15 @@ export function CampsiteShell({
           characters={characters}
           layoutId={store.layoutId}
           initialShifts={watchShifts}
+          onSave={(shifts) =>
+            setLayouts((prev) =>
+              prev.map((l) =>
+                l.id === store.layoutId
+                  ? { ...l, watchShifts: shifts }
+                  : l,
+              ),
+            )
+          }
         />
       </TabsContent>
 

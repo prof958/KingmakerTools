@@ -93,6 +93,7 @@ export function WishList({
   characters: Character[];
 }) {
   const [items, setItems] = useState<WishListItemData[]>(initialItems);
+  useEffect(() => { setItems(initialItems); }, [initialItems]);
   const [isPending, startTransition] = useTransition();
   const [addOpen, setAddOpen] = useState(false);
   const [showAcquired, setShowAcquired] = useState(false);

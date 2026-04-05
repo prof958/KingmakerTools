@@ -55,12 +55,14 @@ export function ActivityPicker({
   initialActivities,
   customActivities,
   onCustomActivitiesChange,
+  onSave: onSaveCallback,
 }: {
   characters: Character[];
   layoutId: string | null;
   initialActivities: ActivityAssignment[];
   customActivities: CustomCampActivityData[];
   onCustomActivitiesChange: (activities: CustomCampActivityData[]) => void;
+  onSave?: (activities: ActivityAssignment[]) => void;
 }) {
   const [activities, setActivities] =
     useState<ActivityAssignment[]>(initialActivities);
@@ -137,7 +139,7 @@ export function ActivityPicker({
   function save() {
     if (!layoutId) return;
     startTransition(async () => {
-      await fetch(`/api/campsite/${layoutId}`, {
+      const res = await fetch(`/api/campsite/${layoutId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -149,6 +151,9 @@ export function ActivityPicker({
           })),
         }),
       });
+      if (res.ok) {
+        onSaveCallback?.(activities);
+      }
     });
   }
 

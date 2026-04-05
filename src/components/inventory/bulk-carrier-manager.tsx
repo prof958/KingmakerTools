@@ -5,7 +5,7 @@
  * Presets populate name/capacity; everything is stored as a regular BulkCarrier row.
  */
 
-import { useState, useTransition } from "react";
+import { useState, useEffect, useTransition } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { NumberInput } from "@/components/ui/number-input";
@@ -99,11 +99,14 @@ interface Character {
 export function BulkCarrierManager({
   initialCarriers,
   characters,
+  onUpdate,
 }: {
   initialCarriers: BulkCarrierData[];
   characters: Character[];
+  onUpdate?: () => void;
 }) {
   const [carriers, setCarriers] = useState<BulkCarrierData[]>(initialCarriers);
+  useEffect(() => { setCarriers(initialCarriers); }, [initialCarriers]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -168,6 +171,7 @@ export function BulkCarrierManager({
           setCarriers((prev) => prev.map((c) => (c.id === editId ? updated : c)));
           setDialogOpen(false);
           resetForm();
+          onUpdate?.();
         }
       } else {
         const res = await fetch("/api/bulk-carriers", {
@@ -180,6 +184,7 @@ export function BulkCarrierManager({
           setCarriers((prev) => [...prev, created]);
           setDialogOpen(false);
           resetForm();
+          onUpdate?.();
         }
       }
     });
@@ -190,6 +195,7 @@ export function BulkCarrierManager({
       const res = await fetch(`/api/bulk-carriers/${id}`, { method: "DELETE" });
       if (res.ok) {
         setCarriers((prev) => prev.filter((c) => c.id !== id));
+        onUpdate?.();
       }
     });
   }
