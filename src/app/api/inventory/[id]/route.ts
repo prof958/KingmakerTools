@@ -26,6 +26,11 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
       data.containerInventoryItemId = body.containerInventoryItemId || null;
     }
 
+    // Assign/unassign to a bulk carrier
+    if ("bulkCarrierId" in body) {
+      data.bulkCarrierId = body.bulkCarrierId || null;
+    }
+
     if (typeof body.quantity === "number" && body.quantity >= 0) {
       data.quantity = body.quantity;
     }

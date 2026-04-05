@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/select";
 import { Trash2, Shield, Sparkles, Package } from "lucide-react";
 import { formatCurrency } from "@/lib/pf2e/currency";
+import type { BulkCarrierData } from "./bulk-carrier-manager";
 
 interface Character {
   id: string;
@@ -58,6 +59,7 @@ export interface InventoryItemData {
   itemId: string;
   characterId: string | null;
   containerInventoryItemId: string | null;
+  bulkCarrierId: string | null;
   quantity: number;
   isInvested: boolean;
   isWorn: boolean;
@@ -85,10 +87,12 @@ function rarityColor(rarity: string): string {
 export function InventoryTable({
   initialItems,
   characters,
+  carriers,
   onUpdate,
 }: {
   initialItems: InventoryItemData[];
   characters: Character[];
+  carriers: BulkCarrierData[];
   onUpdate?: () => void;
 }) {
   const [items, setItems] = useState<InventoryItemData[]>(initialItems);
@@ -97,7 +101,8 @@ export function InventoryTable({
 
   const filteredItems = items.filter((inv) => {
     if (filter === "all") return true;
-    if (filter === "shared") return !inv.characterId;
+    if (filter === "shared") return !inv.characterId && !inv.bulkCarrierId;
+    if (filter.startsWith("carrier:")) return inv.bulkCarrierId === filter.slice(8);
     return inv.characterId === filter;
   });
 
@@ -167,6 +172,16 @@ export function InventoryTable({
                 <SelectLabel>Companions</SelectLabel>
                 {characters.filter((c) => c.isCompanion).map((c) => (
                   <SelectItem key={c.id} value={c.id} label={c.name}>
+                    {c.name}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            )}
+            {carriers.length > 0 && (
+              <SelectGroup>
+                <SelectLabel>Carriers</SelectLabel>
+                {carriers.map((c) => (
+                  <SelectItem key={c.id} value={`carrier:${c.id}`} label={c.name}>
                     {c.name}
                   </SelectItem>
                 ))}
@@ -247,15 +262,20 @@ export function InventoryTable({
                   </TableCell>
                   <TableCell>
                     <Select
-                      value={inv.characterId ?? "shared"}
-                      onValueChange={(val) =>
-                        updateItem(inv.id, {
-                          characterId: !val || val === "shared" ? null : val,
-                        })
-                      }
+                      value={inv.bulkCarrierId ? `carrier:${inv.bulkCarrierId}` : inv.characterId ?? "shared"}
+                      onValueChange={(val) => {
+                        if (!val || val === "shared") {
+                          updateItem(inv.id, { characterId: null, bulkCarrierId: null });
+                        } else if (val.startsWith("carrier:")) {
+                          updateItem(inv.id, { bulkCarrierId: val.slice(8) });
+                        } else {
+                          updateItem(inv.id, { characterId: val, bulkCarrierId: null });
+                        }
+                      }}
                       items={{
                         shared: "Shared",
                         ...Object.fromEntries(characters.map((c) => [c.id, c.name])),
+                        ...Object.fromEntries(carriers.map((c) => [`carrier:${c.id}`, c.name])),
                       }}
                     >
                       <SelectTrigger className="h-7 text-xs">
@@ -278,6 +298,16 @@ export function InventoryTable({
                             <SelectLabel>Companions</SelectLabel>
                             {characters.filter((c) => c.isCompanion).map((c) => (
                               <SelectItem key={c.id} value={c.id} label={c.name}>
+                                {c.name}
+                              </SelectItem>
+                            ))}
+                          </SelectGroup>
+                        )}
+                        {carriers.length > 0 && (
+                          <SelectGroup>
+                            <SelectLabel>Carriers</SelectLabel>
+                            {carriers.map((c) => (
+                              <SelectItem key={c.id} value={`carrier:${c.id}`} label={c.name}>
                                 {c.name}
                               </SelectItem>
                             ))}

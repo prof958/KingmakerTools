@@ -81,6 +81,8 @@ export function AddItemDialog({
   const [customValue, setCustomValue] = useState("0");
   const [customCategory, setCustomCategory] = useState("GEAR");
   const [customDesc, setCustomDesc] = useState("");
+  const [customContainerCapacity, setCustomContainerCapacity] = useState("");
+  const [customContainerReduction, setCustomContainerReduction] = useState("");
 
   // Search catalog
   useEffect(() => {
@@ -168,6 +170,10 @@ export function AddItemDialog({
           category: customCategory,
           valueCp: Math.round(parseFloat(customValue) * 100), // input is in GP
           description: customDesc || null,
+          ...(customCategory === "CONTAINER" && {
+            containerCapacity: parseFloat(customContainerCapacity) || null,
+            containerBulkReduction: parseFloat(customContainerReduction) || null,
+          }),
         }),
       });
 
@@ -206,6 +212,8 @@ export function AddItemDialog({
     setCustomValue("0");
     setCustomCategory("GEAR");
     setCustomDesc("");
+    setCustomContainerCapacity("");
+    setCustomContainerReduction("");
   }
 
   return (
@@ -407,6 +415,36 @@ export function AddItemDialog({
                 rows={2}
               />
             </div>
+            {customCategory === "CONTAINER" && (
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label>Container Capacity (bulk)</Label>
+                  <Input
+                    type="text"
+                    inputMode="decimal"
+                    value={customContainerCapacity}
+                    onChange={(e) => { if (e.target.value === "" || /^\d*\.?\d*$/.test(e.target.value)) setCustomContainerCapacity(e.target.value); }}
+                    placeholder="4"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Max bulk this container can hold
+                  </p>
+                </div>
+                <div>
+                  <Label>Bulk Reduction</Label>
+                  <Input
+                    type="text"
+                    inputMode="decimal"
+                    value={customContainerReduction}
+                    onChange={(e) => { if (e.target.value === "" || /^\d*\.?\d*$/.test(e.target.value)) setCustomContainerReduction(e.target.value); }}
+                    placeholder="2"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Bulk reduced when worn
+                  </p>
+                </div>
+              </div>
+            )}
             <Button
               onClick={addCustomItem}
               disabled={isPending || !customName.trim()}

@@ -14,7 +14,7 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
     const { id } = await params;
     const body = await req.json();
 
-    const data: { name?: string; strModifier?: number; isCompanion?: boolean } = {};
+    const data: { name?: string; strModifier?: number; isCompanion?: boolean; miscBulk?: number } = {};
     if (typeof body.name === "string" && body.name.trim()) {
       data.name = body.name.trim();
     }
@@ -23,6 +23,9 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
     }
     if (typeof body.isCompanion === "boolean") {
       data.isCompanion = body.isCompanion;
+    }
+    if (typeof body.miscBulk === "number" && body.miscBulk >= 0) {
+      data.miscBulk = body.miscBulk;
     }
 
     if (Object.keys(data).length === 0) {

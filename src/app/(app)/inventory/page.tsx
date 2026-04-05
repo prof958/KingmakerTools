@@ -12,7 +12,7 @@ import { InventoryShell } from "@/components/inventory/inventory-shell";
 export default async function InventoryPage() {
   const campaign = await getOrCreateCampaign();
 
-  const [characters, inventoryItems, wallets, wishListItems] = await Promise.all([
+  const [characters, inventoryItems, wallets, wishListItems, bulkCarriers] = await Promise.all([
     prisma.character.findMany({
       where: { campaignId: campaign.id },
       orderBy: { createdAt: "asc" },
@@ -37,6 +37,14 @@ export default async function InventoryPage() {
       include: { item: true, character: true },
       orderBy: [{ isAcquired: "asc" }, { createdAt: "desc" }],
     }),
+    prisma.bulkCarrier.findMany({
+      where: { campaignId: campaign.id },
+      include: {
+        assignedCharacter: true,
+        inventoryItems: { include: { item: true } },
+      },
+      orderBy: { createdAt: "asc" },
+    }),
   ]);
 
   return (
@@ -56,6 +64,7 @@ export default async function InventoryPage() {
         initialInventory={JSON.parse(JSON.stringify(inventoryItems))}
         initialWallets={JSON.parse(JSON.stringify(wallets))}
         initialWishList={JSON.parse(JSON.stringify(wishListItems))}
+        initialCarriers={JSON.parse(JSON.stringify(bulkCarriers))}
       />
     </div>
   );

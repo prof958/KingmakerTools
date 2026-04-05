@@ -90,7 +90,8 @@ export function applyContainerReduction(
 export function calculateBulk(
   items: BulkItem[],
   coinCount: number,
-  strModifier: number
+  strModifier: number,
+  miscBulk: number = 0
 ): BulkCalculation {
   const { numericBulk, lightItems } = sumBulk(items);
 
@@ -101,7 +102,7 @@ export function calculateBulk(
   // Coin bulk: 1,000 coins = 1 Bulk
   const coinBulk = Math.floor(coinCount / 1000);
 
-  const totalBulk = numericBulk + bulkFromLight + coinBulk;
+  const totalBulk = numericBulk + bulkFromLight + coinBulk + miscBulk;
   const encumberedAt = getEncumbranceThreshold(strModifier);
   const maxCarry = getMaxCarry(strModifier);
 

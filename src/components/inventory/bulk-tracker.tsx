@@ -6,16 +6,18 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Backpack, PawPrint } from "lucide-react";
-import { calculateBulk, type BulkItem } from "@/lib/pf2e/bulk";
+import { Backpack, PawPrint, Truck } from "lucide-react";
+import { calculateBulk, sumBulk, type BulkItem } from "@/lib/pf2e/bulk";
 import { totalCoins } from "@/lib/pf2e/currency";
 import type { InventoryItemData } from "./inventory-table";
+import type { BulkCarrierData } from "./bulk-carrier-manager";
 
 interface Character {
   id: string;
   name: string;
   strModifier: number;
   isCompanion: boolean;
+  miscBulk: number;
 }
 
 interface WalletData {
@@ -30,13 +32,15 @@ export function BulkTracker({
   inventoryItems,
   characters,
   wallets,
+  carriers,
 }: {
   inventoryItems: InventoryItemData[];
   characters: Character[];
   wallets: WalletData[];
+  carriers: BulkCarrierData[];
 }) {
-  // Also compute shared items bulk
-  const sharedItems = inventoryItems.filter((i) => !i.characterId);
+  // Shared items: not assigned to a character AND not on a carrier
+  const sharedItems = inventoryItems.filter((i) => !i.characterId && !i.bulkCarrierId);
   const sharedBulkItems: BulkItem[] = sharedItems.map((inv) => ({
     bulkValue: inv.item.bulkValue,
     isBulkLight: inv.item.isBulkLight,
@@ -79,6 +83,20 @@ export function BulkTracker({
               </span>
             </div>
 
+            {/* Carriers */}
+            {carriers.length > 0 && (
+              <>
+                <div className="flex items-center gap-2 pt-1">
+                  <Truck className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Carriers</span>
+                  <div className="flex-1 border-t border-border" />
+                </div>
+                {carriers.map((carrier) => (
+                  <CarrierBulkRow key={carrier.id} carrier={carrier} />
+                ))}
+              </>
+            )}
+
             {characters.some((c) => c.isCompanion) && (
               <>
                 <div className="flex items-center gap-2 pt-1">
@@ -107,7 +125,8 @@ function BulkRow({
   inventoryItems: InventoryItemData[];
   wallets: WalletData[];
 }) {
-  const charItems = inventoryItems.filter((i) => i.characterId === char.id);
+  // Character items: assigned to this character AND not on a bulk carrier
+  const charItems = inventoryItems.filter((i) => i.characterId === char.id && !i.bulkCarrierId);
   const bulkItems: BulkItem[] = charItems.map((inv) => ({
     bulkValue: inv.item.bulkValue,
     isBulkLight: inv.item.isBulkLight,
@@ -122,7 +141,7 @@ function BulkRow({
         pp: charWallet.pp,
       })
     : 0;
-  const bulk = calculateBulk(bulkItems, coinCount, char.strModifier);
+  const bulk = calculateBulk(bulkItems, coinCount, char.strModifier, char.miscBulk);
   const investedCount = charItems.filter((i) => i.isInvested).length;
 
   return (
@@ -133,6 +152,11 @@ function BulkRow({
           {investedCount > 0 && (
             <span className="text-xs text-muted-foreground">
               ✨ {investedCount}/10 invested
+            </span>
+          )}
+          {char.miscBulk > 0 && (
+            <span className="text-xs text-muted-foreground">
+              📦 +{char.miscBulk} misc
             </span>
           )}
         </div>
@@ -157,6 +181,55 @@ function BulkRow({
         ) : bulk.isEncumbered ? (
           <Badge variant="secondary" className="text-xs bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
             Encumbered
+          </Badge>
+        ) : (
+          <Badge variant="outline" className="text-xs">
+            OK
+          </Badge>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function CarrierBulkRow({ carrier }: { carrier: BulkCarrierData }) {
+  const items: BulkItem[] = carrier.inventoryItems.map((inv) => ({
+    bulkValue: inv.item.bulkValue,
+    isBulkLight: inv.item.isBulkLight,
+    quantity: inv.quantity,
+  }));
+  const { numericBulk, lightItems } = sumBulk(items);
+  const bulkFromLight = Math.floor(lightItems / 10);
+  const lightRemainder = lightItems % 10;
+  const total = numericBulk + bulkFromLight;
+  const isOver = total > carrier.bulkCapacity;
+
+  return (
+    <div className="flex items-center justify-between rounded-md border p-3">
+      <div>
+        <span className="font-medium">{carrier.name}</span>
+        {carrier.assignedCharacter && (
+          <span className="text-xs text-muted-foreground ml-2">
+            → {carrier.assignedCharacter.name}
+          </span>
+        )}
+      </div>
+      <div className="flex items-center gap-2">
+        <span className="text-sm tabular-nums">
+          {total}
+          {lightRemainder > 0 && (
+            <span className="text-muted-foreground">
+              +{lightRemainder}L
+            </span>
+          )}
+        </span>
+        <span className="text-sm text-muted-foreground">/</span>
+        <span className="text-sm text-muted-foreground">
+          {carrier.bulkCapacity}
+        </span>
+        {isOver ? (
+          <Badge variant="destructive" className="text-xs">
+            Over
           </Badge>
         ) : (
           <Badge variant="outline" className="text-xs">

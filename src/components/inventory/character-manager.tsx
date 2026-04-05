@@ -26,6 +26,7 @@ interface Character {
   name: string;
   strModifier: number;
   isCompanion: boolean;
+  miscBulk: number;
 }
 
 export function CharacterManager({
@@ -37,6 +38,7 @@ export function CharacterManager({
   const [name, setName] = useState("");
   const [strMod, setStrMod] = useState(0);
   const [isCompanion, setIsCompanion] = useState(false);
+  const [miscBulk, setMiscBulk] = useState(0);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -48,7 +50,7 @@ export function CharacterManager({
       const res = await fetch("/api/characters", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: name.trim(), strModifier: strMod, isCompanion }),
+        body: JSON.stringify({ name: name.trim(), strModifier: strMod, isCompanion, miscBulk }),
       });
       if (res.ok) {
         const character = await res.json();
@@ -56,6 +58,7 @@ export function CharacterManager({
         setName("");
         setStrMod(0);
         setIsCompanion(false);
+        setMiscBulk(0);
         setDialogOpen(false);
       }
     });
@@ -68,7 +71,7 @@ export function CharacterManager({
       const res = await fetch(`/api/characters/${editId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: name.trim(), strModifier: strMod, isCompanion }),
+        body: JSON.stringify({ name: name.trim(), strModifier: strMod, isCompanion, miscBulk }),
       });
       if (res.ok) {
         const updated = await res.json();
@@ -78,6 +81,7 @@ export function CharacterManager({
         setName("");
         setStrMod(0);
         setIsCompanion(false);
+        setMiscBulk(0);
         setEditId(null);
         setDialogOpen(false);
       }
@@ -98,6 +102,7 @@ export function CharacterManager({
     setName(character.name);
     setStrMod(character.strModifier);
     setIsCompanion(character.isCompanion);
+    setMiscBulk(character.miscBulk);
     setDialogOpen(true);
   }
 
@@ -106,6 +111,7 @@ export function CharacterManager({
     setName("");
     setStrMod(0);
     setIsCompanion(false);
+    setMiscBulk(0);
     setDialogOpen(true);
   }
 
@@ -152,6 +158,19 @@ export function CharacterManager({
                 />
                 <p className="text-xs text-muted-foreground mt-1">
                   Used for encumbrance calculation (carry limit: 5+STR / 10+STR)
+                </p>
+              </div>
+              <div>
+                <Label htmlFor="misc-bulk">Misc Bulk</Label>
+                <NumberInput
+                  id="misc-bulk"
+                  value={miscBulk}
+                  fallback={0}
+                  min={0}
+                  onValueChange={setMiscBulk}
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Untracked gear bulk (clothing, rations, etc.)
                 </p>
               </div>
               <div className="flex items-center gap-2">
@@ -229,6 +248,11 @@ function CharacterRow({
           STR {c.strModifier >= 0 ? "+" : ""}
           {c.strModifier}
         </Badge>
+        {c.miscBulk > 0 && (
+          <Badge variant="outline" className="text-xs">
+            +{c.miscBulk} misc
+          </Badge>
+        )}
       </div>
       <div className="flex gap-1">
         <Button size="icon" variant="ghost" onClick={() => onEdit(c)}>

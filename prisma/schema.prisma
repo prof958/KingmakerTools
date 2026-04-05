@@ -28,6 +28,7 @@ model Campaign {
   campsiteLayouts CampsiteLayout[]
   recipes        Recipe[]
   wishListItems  WishListItem[]
+  bulkCarriers   BulkCarrier[]
 
   // Phase 5
   kingdom Kingdom?
@@ -41,6 +42,7 @@ model Character {
   name        String
   strModifier Int      @default(0) @map("str_modifier")
   isCompanion Boolean  @default(false) @map("is_companion")
+  miscBulk    Float    @default(0) @map("misc_bulk")
   createdAt   DateTime @default(now()) @map("created_at")
 
   campaign        Campaign         @relation(fields: [campaignId], references: [id], onDelete: Cascade)
@@ -48,6 +50,7 @@ model Character {
   wallets         Wallet[]
   campingActivities CampingActivity[]
   wishListItems   WishListItem[]
+  bulkCarriers    BulkCarrier[]
 
   // Phase 5
   leadershipRoles LeadershipRole[]
@@ -87,6 +90,7 @@ model InventoryItem {
   itemId                   String   @map("item_id")
   characterId              String?  @map("character_id")              // null = shared party loot
   containerInventoryItemId String?  @map("container_inventory_item_id") // self-ref: item inside container
+  bulkCarrierId            String?  @map("bulk_carrier_id")           // item on a mount/vehicle/storage
   quantity                 Int      @default(1)
   isInvested               Boolean  @default(false) @map("is_invested")
   isWorn                   Boolean  @default(false) @map("is_worn")
@@ -94,9 +98,10 @@ model InventoryItem {
   createdAt                DateTime @default(now()) @map("created_at")
   updatedAt                DateTime @updatedAt @map("updated_at")
 
-  campaign  Campaign  @relation(fields: [campaignId], references: [id], onDelete: Cascade)
-  item      Item      @relation(fields: [itemId], references: [id])
-  character Character? @relation(fields: [characterId], references: [id], onDelete: SetNull)
+  campaign    Campaign    @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  item        Item        @relation(fields: [itemId], references: [id])
+  character   Character?  @relation(fields: [characterId], references: [id], onDelete: SetNull)
+  bulkCarrier BulkCarrier? @relation(fields: [bulkCarrierId], references: [id], onDelete: SetNull)
 
   // Self-referencing container relationship
   container      InventoryItem?  @relation("ContainerContents", fields: [containerInventoryItemId], references: [id], onDelete: SetNull)
@@ -137,6 +142,23 @@ model WishListItem {
   item      Item?      @relation(fields: [itemId], references: [id])
 
   @@map("wish_list_items")
+}
+
+model BulkCarrier {
+  id                  String          @id @default(cuid())
+  campaignId          String          @map("campaign_id")
+  name                String
+  type                BulkCarrierType
+  bulkCapacity        Float           @map("bulk_capacity")
+  notes               String?
+  assignedCharacterId String?         @map("assigned_character_id")
+  createdAt           DateTime        @default(now()) @map("created_at")
+
+  campaign           Campaign        @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  assignedCharacter  Character?      @relation(fields: [assignedCharacterId], references: [id], onDelete: SetNull)
+  inventoryItems     InventoryItem[]
+
+  @@map("bulk_carriers")
 }
 
 // ──────────────────────────────────────────────
@@ -415,4 +437,12 @@ enum SettlementType {
   TOWN
   CITY
   METROPOLIS
+}
+
+enum BulkCarrierType {
+  MOUNT
+  PACK_ANIMAL
+  VEHICLE
+  MAGICAL_STORAGE
+  CUSTOM
 }

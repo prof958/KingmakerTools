@@ -12,6 +12,7 @@ import { InventoryTable, type InventoryItemData } from "./inventory-table";
 import { AddItemDialog } from "./add-item-dialog";
 import { WalletManager } from "./wallet-manager";
 import { BulkTracker } from "./bulk-tracker";
+import { BulkCarrierManager, type BulkCarrierData } from "./bulk-carrier-manager";
 import { WishList, type WishListItemData } from "./wish-list";
 
 interface Character {
@@ -19,6 +20,7 @@ interface Character {
   name: string;
   strModifier: number;
   isCompanion: boolean;
+  miscBulk: number;
 }
 
 interface WalletData {
@@ -36,11 +38,13 @@ export function InventoryShell({
   initialInventory,
   initialWallets,
   initialWishList,
+  initialCarriers,
 }: {
   initialCharacters: Character[];
   initialInventory: InventoryItemData[];
   initialWallets: WalletData[];
   initialWishList: WishListItemData[];
+  initialCarriers: BulkCarrierData[];
 }) {
   const [refreshKey, setRefreshKey] = useState(0);
   const [characters] = useState(initialCharacters);
@@ -61,9 +65,17 @@ export function InventoryShell({
           inventoryItems={initialInventory}
           characters={characters}
           wallets={initialWallets}
+          carriers={initialCarriers}
         />
         <CharacterManager initialCharacters={characters} />
       </div>
+
+      {/* Carriers row */}
+      <BulkCarrierManager
+        key={`carriers-${refreshKey}`}
+        initialCarriers={initialCarriers}
+        characters={characters}
+      />
 
       <Tabs defaultValue="items" className="space-y-4">
         <div className="flex items-center justify-between">
@@ -80,6 +92,7 @@ export function InventoryShell({
             key={`inv-${refreshKey}`}
             initialItems={initialInventory}
             characters={characters}
+            carriers={initialCarriers}
             onUpdate={refresh}
           />
         </TabsContent>
