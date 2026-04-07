@@ -88,9 +88,11 @@ export interface WishListItemData {
 export function WishList({
   initialItems,
   characters,
+  onAcquire,
 }: {
   initialItems: WishListItemData[];
   characters: Character[];
+  onAcquire?: () => void;
 }) {
   const [items, setItems] = useState<WishListItemData[]>(initialItems);
   useEffect(() => { setItems(initialItems); }, [initialItems]);
@@ -200,16 +202,51 @@ export function WishList({
 
   function toggleAcquired(item: WishListItemData) {
     startTransition(async () => {
+      const markingAcquired = !item.isAcquired;
       const res = await fetch(`/api/wishlist/${item.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ isAcquired: !item.isAcquired }),
+        body: JSON.stringify({ isAcquired: markingAcquired }),
       });
       if (res.ok) {
         const updated = await res.json();
         setItems((prev) =>
           prev.map((i) => (i.id === item.id ? updated : i)),
         );
+
+        // When marking acquired, also add the item to inventory
+        if (markingAcquired) {
+          let itemId = item.itemId;
+
+          // Custom items need a catalog entry first
+          if (!itemId && item.customName) {
+            const itemRes = await fetch("/api/items", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                name: item.customName,
+                valueCp: item.customPriceCp ?? 0,
+              }),
+            });
+            if (itemRes.ok) {
+              const created = await itemRes.json();
+              itemId = created.id;
+            }
+          }
+
+          if (itemId) {
+            await fetch("/api/inventory", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                itemId,
+                characterId: item.characterId,
+                notes: item.notes,
+              }),
+            });
+            onAcquire?.();
+          }
+        }
       }
     });
   }

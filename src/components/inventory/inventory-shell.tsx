@@ -85,6 +85,7 @@ export function InventoryShell({
           <WishList
             initialItems={initialWishList}
             characters={initialCharacters}
+            onAcquire={refresh}
           />
         </TabsContent>
       </Tabs>
