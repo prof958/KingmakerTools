@@ -15,11 +15,12 @@ import {
   WealthSummary,
   GolarionCalendar,
 } from "@/components/dashboard";
+import { CharacterManager } from "@/components/inventory/character-manager";
 
 export default async function DashboardPage() {
   const campaign = await getOrCreateCampaign();
 
-  const [objectives, quickLinks, wallets] = await Promise.all([
+  const [objectives, quickLinks, wallets, characters] = await Promise.all([
     prisma.objective.findMany({
       where: { campaignId: campaign.id },
       orderBy: [{ status: "asc" }, { priority: "desc" }, { createdAt: "asc" }],
@@ -32,6 +33,10 @@ export default async function DashboardPage() {
       where: { campaignId: campaign.id },
       include: { character: true },
       orderBy: [{ characterId: "asc" }],
+    }),
+    prisma.character.findMany({
+      where: { campaignId: campaign.id },
+      orderBy: { createdAt: "asc" },
     }),
   ]);
 
@@ -47,6 +52,11 @@ export default async function DashboardPage() {
         initialDay={campaign.golarionDay}
         initialMonth={campaign.golarionMonth}
         initialYear={campaign.golarionYear}
+      />
+
+      {/* Party Members */}
+      <CharacterManager
+        initialCharacters={JSON.parse(JSON.stringify(characters))}
       />
 
       {/* Top row: Wealth + Kingdom placeholder */}

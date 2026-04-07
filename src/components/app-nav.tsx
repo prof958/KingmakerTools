@@ -3,13 +3,14 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { LayoutDashboard, Package, Tent, Crown, LogOut } from "lucide-react";
+import { LayoutDashboard, Package, Tent, Crown, Users, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { useRouter } from "next/navigation";
 
 const tabs = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/party", label: "Party", icon: Users },
   { href: "/inventory", label: "Inventory", icon: Package },
   { href: "/campsite", label: "Campsite", icon: Tent },
   { href: "/kingdom", label: "Kingdom", icon: Crown },

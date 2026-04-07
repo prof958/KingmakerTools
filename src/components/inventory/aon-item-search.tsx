@@ -159,7 +159,7 @@ export function AonItemSearch({ onSelect, disabled }: AonItemSearchProps) {
   }, [search, rarity, levelMin, levelMax, doSearch]);
 
   return (
-    <div className="space-y-3 overflow-hidden">
+    <div className="space-y-3">
       {/* Search input */}
       <div className="relative">
         <Globe className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -227,7 +227,7 @@ export function AonItemSearch({ onSelect, disabled }: AonItemSearchProps) {
         {results.map((item) => (
           <div
             key={item.aonId}
-            className="flex items-center justify-between rounded-md border p-2 hover:bg-muted/50 cursor-pointer transition-colors overflow-hidden"
+            className="flex items-start justify-between rounded-md border p-2 hover:bg-muted/50 cursor-pointer transition-colors"
             onClick={() => !disabled && onSelect(item)}
           >
             <div className="min-w-0 flex-1">
@@ -271,7 +271,7 @@ export function AonItemSearch({ onSelect, disabled }: AonItemSearchProps) {
                 )}
               </div>
               {item.summary && (
-                <p className="text-xs text-muted-foreground truncate mt-0.5">
+                <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">
                   {item.summary}
                 </p>
               )}

@@ -5,10 +5,9 @@
  * Receives server-fetched data as props and manages client-side refreshes.
  */
 
-import { useState, useCallback } from "react";
+import { useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CharacterManager } from "./character-manager";
 import { InventoryTable, type InventoryItemData } from "./inventory-table";
 import { AddItemDialog } from "./add-item-dialog";
 import { WalletManager } from "./wallet-manager";
@@ -56,24 +55,6 @@ export function InventoryShell({
 
   return (
     <div className="space-y-6">
-      {/* Stats row */}
-      <div className="grid gap-4 md:grid-cols-2">
-        <BulkTracker
-          inventoryItems={initialInventory}
-          characters={initialCharacters}
-          wallets={initialWallets}
-          carriers={initialCarriers}
-        />
-        <CharacterManager initialCharacters={initialCharacters} onUpdate={refresh} />
-      </div>
-
-      {/* Carriers row */}
-      <BulkCarrierManager
-        initialCarriers={initialCarriers}
-        characters={initialCharacters}
-        onUpdate={refresh}
-      />
-
       <Tabs defaultValue="items" className="space-y-4">
         <div className="flex items-center justify-between">
           <TabsList>
@@ -107,6 +88,19 @@ export function InventoryShell({
           />
         </TabsContent>
       </Tabs>
+
+      <BulkCarrierManager
+        initialCarriers={initialCarriers}
+        characters={initialCharacters}
+        onUpdate={refresh}
+      />
+
+      <BulkTracker
+        inventoryItems={initialInventory}
+        characters={initialCharacters}
+        wallets={initialWallets}
+        carriers={initialCarriers}
+      />
     </div>
   );
 }
