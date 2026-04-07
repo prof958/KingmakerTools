@@ -37,6 +37,7 @@ import { Eye, Save, Plus, Trash2, GripVertical } from "lucide-react";
 interface Character {
   id: string;
   name: string;
+  emoji: string | null;
   isCompanion: boolean;
 }
 
@@ -112,12 +113,14 @@ function toWatchShifts(
 function SortableWatchItem({
   id,
   name,
+  emoji,
   isCompanion,
   shiftLabel,
   onRemove,
 }: {
   id: string;
   name: string;
+  emoji?: string | null;
   isCompanion: boolean;
   shiftLabel: string;
   onRemove: () => void;
@@ -152,7 +155,7 @@ function SortableWatchItem({
         <GripVertical className="h-4 w-4" />
       </button>
       <span className="flex-1 text-sm truncate">
-        {isCompanion ? `🐾 ${name}` : name}
+        {emoji ?? (isCompanion ? "🐾" : "🧑")} {name}
       </span>
       <span className="text-xs text-muted-foreground whitespace-nowrap">
         {shiftLabel}
@@ -292,7 +295,7 @@ export function WatchOrder({
                       .filter((c) => !c.isCompanion)
                       .map((c) => (
                         <SelectItem key={c.id} value={c.id}>
-                          {c.name}
+                          {c.emoji ?? "🧑"} {c.name}
                         </SelectItem>
                       ))}
                   </>
@@ -303,7 +306,7 @@ export function WatchOrder({
                       .filter((c) => c.isCompanion)
                       .map((c) => (
                         <SelectItem key={c.id} value={c.id}>
-                          🐾 {c.name}
+                          {c.emoji ?? "🐾"} {c.name}
                         </SelectItem>
                       ))}
                   </>
@@ -349,6 +352,7 @@ export function WatchOrder({
                       <SortableWatchItem
                         id={id}
                         name={char.name}
+                        emoji={char.emoji}
                         isCompanion={char.isCompanion}
                         shiftLabel={`Shift ${shiftMap.get(id) ?? 1}`}
                         onRemove={() => removeCharacter(id)}

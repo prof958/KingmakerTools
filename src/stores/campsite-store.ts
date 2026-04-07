@@ -19,6 +19,8 @@ export interface CampElement {
   rotation?: number;
   /** For character elements, links to character ID */
   characterId?: string;
+  /** Custom emoji override for character tokens */
+  emoji?: string;
 }
 
 // ───── Store State ─────

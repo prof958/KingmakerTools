@@ -63,7 +63,7 @@ function ElementShape({ el }: { el: CampElement }) {
   );
 
   const emoji =
-    ELEMENT_PALETTE.find((p) => p.type === el.type)?.emoji ?? "📍";
+    el.emoji ?? ELEMENT_PALETTE.find((p) => p.type === el.type)?.emoji ?? "📍";
 
   return (
     <Group

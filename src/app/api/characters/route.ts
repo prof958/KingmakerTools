@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
     const campaign = await getOrCreateCampaign();
     const body = await req.json();
 
-    const { name, strModifier, isCompanion, miscBulk } = body;
+    const { name, emoji, strModifier, isCompanion, miscBulk } = body;
     if (!name || typeof name !== "string") {
       return NextResponse.json(
         { error: "Name is required" },
@@ -42,6 +42,7 @@ export async function POST(req: NextRequest) {
       data: {
         campaignId: campaign.id,
         name: name.trim(),
+        emoji: typeof emoji === "string" ? emoji : null,
         strModifier: typeof strModifier === "number" ? strModifier : 0,
         isCompanion: typeof isCompanion === "boolean" ? isCompanion : false,
         miscBulk: typeof miscBulk === "number" && miscBulk >= 0 ? miscBulk : 0,

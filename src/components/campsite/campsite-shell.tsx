@@ -52,6 +52,7 @@ interface LayoutData {
 interface Character {
   id: string;
   name: string;
+  emoji: string | null;
   isCompanion: boolean;
 }
 
@@ -249,6 +250,7 @@ export function CampsiteShell({
         id: crypto.randomUUID(),
         type: "character",
         label: char.name,
+        emoji: char.emoji ?? undefined,
         characterId: char.id,
         x: center.x + Math.round(Math.random() * 60 - 30),
         y: center.y + Math.round(Math.random() * 60 - 30),
@@ -366,7 +368,7 @@ export function CampsiteShell({
                     (el) => el.characterId === char.id,
                   )}
                 >
-                  🧑 {char.name}
+                  {char.emoji ?? "🧑"} {char.name}
                 </Button>
               ))}
               {store.selectedId && (

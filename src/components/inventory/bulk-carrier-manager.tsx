@@ -91,6 +91,7 @@ export interface BulkCarrierData {
 interface Character {
   id: string;
   name: string;
+  emoji: string | null;
   isCompanion: boolean;
 }
 

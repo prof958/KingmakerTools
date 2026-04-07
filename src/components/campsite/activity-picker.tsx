@@ -37,6 +37,7 @@ export interface ActivityAssignment {
 interface Character {
   id: string;
   name: string;
+  emoji: string | null;
   isCompanion: boolean;
 }
 
@@ -290,7 +291,7 @@ function ActivityRow({
 
   return (
     <div className="flex flex-col gap-2 rounded-md border p-3 sm:flex-row sm:items-center">
-      <span className="w-28 shrink-0 font-medium text-sm">{char.name}</span>
+      <span className="w-28 shrink-0 font-medium text-sm">{char.emoji && <span className="mr-1">{char.emoji}</span>}{char.name}</span>
 
       <Select
         value={assignment?.activityType ?? ""}

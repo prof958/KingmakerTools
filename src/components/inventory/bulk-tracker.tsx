@@ -15,6 +15,7 @@ import type { BulkCarrierData } from "./bulk-carrier-manager";
 interface Character {
   id: string;
   name: string;
+  emoji: string | null;
   strModifier: number;
   isCompanion: boolean;
   miscBulk: number;

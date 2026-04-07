@@ -26,6 +26,7 @@ import { walletToCp, formatCurrency, formatAsGp, cpToWallet } from "@/lib/pf2e/c
 interface Character {
   id: string;
   name: string;
+  emoji: string | null;
   isCompanion: boolean;
 }
 
@@ -219,6 +220,7 @@ export function WalletManager({
             <WalletRow
               key={w.id}
               label={w.character?.name ?? "Unknown"}
+              emoji={w.character?.emoji}
               wallet={w}
               isEditing={editingId === w.id}
               editValues={editValues}
@@ -244,6 +246,7 @@ export function WalletManager({
                 <WalletRow
                   key={w.id}
                   label={w.character?.name ?? "Unknown"}
+                  emoji={w.character?.emoji}
                   wallet={w}
                   isEditing={editingId === w.id}
                   editValues={editValues}
@@ -269,6 +272,7 @@ export function WalletManager({
 
 function WalletRow({
   label,
+  emoji,
   wallet,
   isEditing,
   editValues,
@@ -280,6 +284,7 @@ function WalletRow({
   isTreasury,
 }: {
   label: string;
+  emoji?: string | null;
   wallet: WalletData;
   isEditing: boolean;
   editValues: { cp: number; sp: number; gp: number; pp: number };
@@ -297,7 +302,7 @@ function WalletRow({
       <div className="rounded-md border p-2 space-y-1.5">
         <div className="flex items-center justify-between">
           <span className="text-sm font-medium">
-            {isTreasury ? "💰" : "🧑"} {label}
+            {isTreasury ? "💰" : emoji ?? "🧑"} {label}
           </span>
           <div className="flex gap-1">
             <Button size="sm" className="h-7 text-xs" onClick={onSave} disabled={isPending}>
@@ -337,7 +342,7 @@ function WalletRow({
       onClick={onStartEdit}
     >
       <span className="text-sm font-medium">
-        {isTreasury ? "💰" : "🧑"} {label}
+        {isTreasury ? "💰" : emoji ?? "🧑"} {label}
       </span>
       <div className="flex items-center gap-2 text-xs text-muted-foreground">
         {wallet.pp > 0 && <span>{wallet.pp} pp</span>}

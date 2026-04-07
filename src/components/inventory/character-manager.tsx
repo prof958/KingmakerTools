@@ -21,9 +21,18 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Plus, Trash2, Pencil, Users, PawPrint } from "lucide-react";
 
+const PEOPLE_EMOJIS = [
+  "🧙", "🧝", "🧛", "🧜", "🧚", "🧞", "🧟",
+  "🦸", "🦹", "🥷", "🤴", "👸", "🤺", "🏹",
+  "👩‍🔬", "🧑‍🎤", "👩‍🎤", "🧑‍🔧", "👩‍🍳", "🧑‍🌾", "🧑‍⚕️",
+  "🐺", "🐻", "🦁", "🐉", "🦅", "🐎", "🐾",
+  "⚔️", "🛡️", "🗡️", "🔮", "📖", "💀", "🌙",
+];
+
 interface Character {
   id: string;
   name: string;
+  emoji: string | null;
   strModifier: number;
   isCompanion: boolean;
   miscBulk: number;
@@ -39,6 +48,7 @@ export function CharacterManager({
   const [characters, setCharacters] = useState<Character[]>(initialCharacters);
   useEffect(() => { setCharacters(initialCharacters); }, [initialCharacters]);
   const [name, setName] = useState("");
+  const [emoji, setEmoji] = useState<string | null>(null);
   const [strMod, setStrMod] = useState(0);
   const [isCompanion, setIsCompanion] = useState(false);
   const [miscBulk, setMiscBulk] = useState(0);
@@ -53,12 +63,13 @@ export function CharacterManager({
       const res = await fetch("/api/characters", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: name.trim(), strModifier: strMod, isCompanion, miscBulk }),
+        body: JSON.stringify({ name: name.trim(), emoji, strModifier: strMod, isCompanion, miscBulk }),
       });
       if (res.ok) {
         const character = await res.json();
         setCharacters((prev) => [...prev, character]);
         setName("");
+        setEmoji(null);
         setStrMod(0);
         setIsCompanion(false);
         setMiscBulk(0);
@@ -75,7 +86,7 @@ export function CharacterManager({
       const res = await fetch(`/api/characters/${editId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: name.trim(), strModifier: strMod, isCompanion, miscBulk }),
+        body: JSON.stringify({ name: name.trim(), emoji, strModifier: strMod, isCompanion, miscBulk }),
       });
       if (res.ok) {
         const updated = await res.json();
@@ -83,6 +94,7 @@ export function CharacterManager({
           prev.map((c) => (c.id === editId ? updated : c))
         );
         setName("");
+        setEmoji(null);
         setStrMod(0);
         setIsCompanion(false);
         setMiscBulk(0);
@@ -106,6 +118,7 @@ export function CharacterManager({
   function openEdit(character: Character) {
     setEditId(character.id);
     setName(character.name);
+    setEmoji(character.emoji);
     setStrMod(character.strModifier);
     setIsCompanion(character.isCompanion);
     setMiscBulk(character.miscBulk);
@@ -115,6 +128,7 @@ export function CharacterManager({
   function openAdd() {
     setEditId(null);
     setName("");
+    setEmoji(null);
     setStrMod(0);
     setIsCompanion(false);
     setMiscBulk(0);
@@ -153,6 +167,23 @@ export function CharacterManager({
                     if (e.key === "Enter") editId ? handleEdit() : handleAdd();
                   }}
                 />
+              </div>
+              <div>
+                <Label>Emoji</Label>
+                <div className="flex flex-wrap gap-1 mt-1">
+                  {PEOPLE_EMOJIS.map((e) => (
+                    <button
+                      key={e}
+                      type="button"
+                      className={`h-8 w-8 rounded text-lg flex items-center justify-center hover:bg-accent transition-colors ${
+                        emoji === e ? "ring-2 ring-primary bg-accent" : ""
+                      }`}
+                      onClick={() => setEmoji(emoji === e ? null : e)}
+                    >
+                      {e}
+                    </button>
+                  ))}
+                </div>
               </div>
               <div>
                 <Label htmlFor="str-mod">STR Modifier</Label>
@@ -249,6 +280,7 @@ function CharacterRow({
   return (
     <div className="flex items-center justify-between rounded-md border p-3">
       <div className="flex items-center gap-3">
+        {c.emoji && <span className="text-lg">{c.emoji}</span>}
         <span className="font-medium">{c.name}</span>
         <Badge variant="secondary" className="text-xs">
           STR {c.strModifier >= 0 ? "+" : ""}

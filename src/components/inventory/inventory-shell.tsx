@@ -18,6 +18,7 @@ import { WishList, type WishListItemData } from "./wish-list";
 interface Character {
   id: string;
   name: string;
+  emoji: string | null;
   strModifier: number;
   isCompanion: boolean;
   miscBulk: number;
@@ -60,7 +61,7 @@ export function InventoryShell({
           <TabsList>
             <TabsTrigger value="items">Inventory</TabsTrigger>
             <TabsTrigger value="wallets">Wallets</TabsTrigger>
-            <TabsTrigger value="wishlist">Wish List</TabsTrigger>
+            <TabsTrigger value="wishlist">Wishlist</TabsTrigger>
           </TabsList>
           <AddItemDialog characters={initialCharacters} carriers={initialCarriers} onAdd={refresh} />
         </div>

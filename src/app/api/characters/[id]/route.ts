@@ -14,9 +14,12 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
     const { id } = await params;
     const body = await req.json();
 
-    const data: { name?: string; strModifier?: number; isCompanion?: boolean; miscBulk?: number } = {};
+    const data: { name?: string; emoji?: string | null; strModifier?: number; isCompanion?: boolean; miscBulk?: number } = {};
     if (typeof body.name === "string" && body.name.trim()) {
       data.name = body.name.trim();
+    }
+    if ("emoji" in body) {
+      data.emoji = typeof body.emoji === "string" ? body.emoji : null;
     }
     if (typeof body.strModifier === "number") {
       data.strModifier = body.strModifier;

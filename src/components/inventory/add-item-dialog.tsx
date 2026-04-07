@@ -56,6 +56,7 @@ interface CatalogItem {
 interface Character {
   id: string;
   name: string;
+  emoji: string | null;
   isCompanion: boolean;
 }
 

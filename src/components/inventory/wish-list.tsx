@@ -59,6 +59,7 @@ import {
 interface Character {
   id: string;
   name: string;
+  emoji: string | null;
   isCompanion: boolean;
 }
 
@@ -283,7 +284,7 @@ export function WishList({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <ShoppingCart className="h-5 w-5" />
-            <CardTitle>Wish List</CardTitle>
+            <CardTitle>Wishlist</CardTitle>
             <Badge variant="secondary">
               {pending.length} pending
             </Badge>
@@ -305,7 +306,7 @@ export function WishList({
               </DialogTrigger>
               <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
                 <DialogHeader>
-                  <DialogTitle>Add to Wish List</DialogTitle>
+                  <DialogTitle>Add to Wishlist</DialogTitle>
                 </DialogHeader>
 
                 {/* Toggle catalog / custom / aon */}
@@ -475,7 +476,7 @@ export function WishList({
                     }
                   >
                     <Plus className="mr-1 h-4 w-4" />
-                    Add to Wish List
+                    Add to Wishlist
                   </Button>
                 )}
               </DialogContent>
@@ -489,7 +490,7 @@ export function WishList({
             <ShoppingCart className="h-10 w-10 text-muted-foreground/40 mb-2" />
             <p className="text-sm text-muted-foreground">
               {showAcquired
-                ? "No wish list items."
+                ? "No wishlist items."
                 : "No pending items. Add items you want to buy!"}
             </p>
           </div>

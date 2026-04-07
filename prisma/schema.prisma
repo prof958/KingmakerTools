@@ -44,6 +44,7 @@ model Character {
   id          String   @id @default(cuid())
   campaignId  String   @map("campaign_id")
   name        String
+  emoji       String?
   strModifier Int      @default(0) @map("str_modifier")
   isCompanion Boolean  @default(false) @map("is_companion")
   miscBulk    Float    @default(0) @map("misc_bulk")
