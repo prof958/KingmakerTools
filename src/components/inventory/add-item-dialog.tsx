@@ -231,7 +231,7 @@ export function AddItemDialog({
       >
         <Plus className="mr-1 h-4 w-4" /> Add Item
       </DialogTrigger>
-      <DialogContent className="sm:max-w-2xl">
+      <DialogContent className="sm:max-w-3xl">
         <DialogHeader>
           <DialogTitle>Add Item to Inventory</DialogTitle>
         </DialogHeader>
