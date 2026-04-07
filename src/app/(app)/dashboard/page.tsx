@@ -54,11 +54,6 @@ export default async function DashboardPage() {
         initialYear={campaign.golarionYear}
       />
 
-      {/* Party Members */}
-      <CharacterManager
-        initialCharacters={JSON.parse(JSON.stringify(characters))}
-      />
-
       {/* Top row: Wealth + Kingdom placeholder */}
       <div className="grid gap-4 md:grid-cols-2">
         <WealthSummary
@@ -96,6 +91,11 @@ export default async function DashboardPage() {
           />
         </div>
       </div>
+
+      {/* Party Members */}
+      <CharacterManager
+        initialCharacters={JSON.parse(JSON.stringify(characters))}
+      />
     </div>
   );
 }

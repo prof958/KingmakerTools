@@ -193,7 +193,7 @@ export function WalletManager({
           </Dialog>
         </div>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-1">
         {/* Party Treasury */}
         {treasury && (
           <WalletRow
@@ -210,7 +210,7 @@ export function WalletManager({
           />
         )}
 
-        {characterWallets.length > 0 && <Separator />}
+        {characterWallets.length > 0 && treasury && <Separator className="my-1" />}
 
         {/* PC Wallets */}
         {characterWallets
@@ -233,9 +233,9 @@ export function WalletManager({
         {/* Companion Wallets */}
         {characterWallets.some((w) => w.character?.isCompanion) && (
           <>
-            <div className="flex items-center gap-2 pt-1">
-              <PawPrint className="h-4 w-4 text-muted-foreground" />
-              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Companions</span>
+            <div className="flex items-center gap-2 pt-0.5">
+              <PawPrint className="h-3 w-3 text-muted-foreground" />
+              <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">Companions</span>
               <div className="flex-1 border-t border-border" />
             </div>
             {characterWallets
@@ -294,24 +294,24 @@ function WalletRow({
 
   if (isEditing) {
     return (
-      <div className="rounded-md border p-3 space-y-2">
+      <div className="rounded-md border p-2 space-y-1.5">
         <div className="flex items-center justify-between">
-          <span className="font-medium">
+          <span className="text-sm font-medium">
             {isTreasury ? "💰" : "🧑"} {label}
           </span>
           <div className="flex gap-1">
-            <Button size="sm" onClick={onSave} disabled={isPending}>
+            <Button size="sm" className="h-7 text-xs" onClick={onSave} disabled={isPending}>
               <Save className="mr-1 h-3 w-3" /> Save
             </Button>
-            <Button size="sm" variant="ghost" onClick={onCancel}>
+            <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={onCancel}>
               Cancel
             </Button>
           </div>
         </div>
-        <div className="grid grid-cols-4 gap-2">
+        <div className="grid grid-cols-4 gap-1.5">
           {(["pp", "gp", "sp", "cp"] as const).map((denom) => (
             <div key={denom}>
-              <Label className="text-xs uppercase">{denom}</Label>
+              <Label className="text-[10px] uppercase">{denom}</Label>
               <NumberInput
                 min={0}
                 fallback={0}
@@ -322,7 +322,7 @@ function WalletRow({
                     [denom]: val,
                   })
                 }
-                className="h-8"
+                className="h-7 text-xs"
               />
             </div>
           ))}
@@ -333,20 +333,18 @@ function WalletRow({
 
   return (
     <div
-      className="flex items-center justify-between rounded-md border p-3 cursor-pointer hover:bg-muted/50 transition-colors"
+      className="flex items-center justify-between rounded-md border px-2.5 py-1.5 cursor-pointer hover:bg-muted/50 transition-colors"
       onClick={onStartEdit}
     >
-      <div className="flex items-center gap-2">
-        <span className="font-medium">
-          {isTreasury ? "💰" : "🧑"} {label}
-        </span>
-      </div>
-      <div className="flex items-center gap-3 text-sm">
+      <span className="text-sm font-medium">
+        {isTreasury ? "💰" : "🧑"} {label}
+      </span>
+      <div className="flex items-center gap-2 text-xs text-muted-foreground">
         {wallet.pp > 0 && <span>{wallet.pp} pp</span>}
         <span>{wallet.gp} gp</span>
         {wallet.sp > 0 && <span>{wallet.sp} sp</span>}
         {wallet.cp > 0 && <span>{wallet.cp} cp</span>}
-        <Badge variant="outline" className="ml-2">
+        <Badge variant="outline" className="ml-1 text-[10px] px-1.5 py-0">
           {formatAsGp(total)}
         </Badge>
       </div>
