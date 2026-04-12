@@ -6,9 +6,8 @@
  */
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Coins, PawPrint } from "lucide-react";
-import { walletToCp, formatAsGp, formatCurrency, sumWallets } from "@/lib/pf2e/currency";
+import { walletToCp, formatAsGp, sumWallets } from "@/lib/pf2e/currency";
 
 interface WalletData {
   id: string;
@@ -51,7 +50,12 @@ export function WealthSummary({
             </div>
             {totalCp > 0 && (
               <p className="text-xs text-muted-foreground mt-0.5">
-                {formatCurrency(totalCp)}
+                {[
+                  totalWallet.pp > 0 && `${totalWallet.pp} pp`,
+                  totalWallet.gp > 0 && `${totalWallet.gp} gp`,
+                  totalWallet.sp > 0 && `${totalWallet.sp} sp`,
+                  totalWallet.cp > 0 && `${totalWallet.cp} cp`,
+                ].filter(Boolean).join(", ")}
               </p>
             )}
           </div>
@@ -128,31 +132,6 @@ export function WealthSummary({
             </div>
           )}
 
-          {/* Coin type breakdown */}
-          {totalCp > 0 && (
-            <div className="flex gap-2 pt-2 border-t">
-              {totalWallet.pp > 0 && (
-                <Badge variant="outline" className="text-xs">
-                  {totalWallet.pp} PP
-                </Badge>
-              )}
-              {totalWallet.gp > 0 && (
-                <Badge variant="outline" className="text-xs">
-                  {totalWallet.gp} GP
-                </Badge>
-              )}
-              {totalWallet.sp > 0 && (
-                <Badge variant="outline" className="text-xs">
-                  {totalWallet.sp} SP
-                </Badge>
-              )}
-              {totalWallet.cp > 0 && (
-                <Badge variant="outline" className="text-xs">
-                  {totalWallet.cp} CP
-                </Badge>
-              )}
-            </div>
-          )}
         </div>
       </CardContent>
     </Card>
