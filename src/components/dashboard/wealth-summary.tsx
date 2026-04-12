@@ -25,9 +25,11 @@ export function WealthSummary({
   wallets: WalletData[];
 }) {
   const treasury = wallets.find((w) => !w.characterId);
-  const personalWallets = wallets.filter((w) => w.characterId);
+  const personalWallets = wallets.filter((w) => w.characterId && w.character);
 
-  const allWalletValues = wallets.map((w) => ({ cp: w.cp, sp: w.sp, gp: w.gp, pp: w.pp }));
+  // Only sum wallets that are actually displayed (treasury + active character wallets)
+  const displayedWallets = [...(treasury ? [treasury] : []), ...personalWallets];
+  const allWalletValues = displayedWallets.map((w) => ({ cp: w.cp, sp: w.sp, gp: w.gp, pp: w.pp }));
   const totalWallet = sumWallets(allWalletValues);
   const totalCp = walletToCp(totalWallet);
 

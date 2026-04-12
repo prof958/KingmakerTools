@@ -58,9 +58,11 @@ export function WalletManager({
   const [splitGp, setSplitGp] = useState("");
 
   const treasury = wallets.find((w) => !w.characterId);
-  const characterWallets = wallets.filter((w) => w.characterId);
+  const characterWallets = wallets.filter((w) => w.characterId && w.character);
 
-  const totalCp = wallets.reduce(
+  // Only sum wallets that are actually displayed (treasury + active character wallets)
+  const displayedWallets = [...(treasury ? [treasury] : []), ...characterWallets];
+  const totalCp = displayedWallets.reduce(
     (sum, w) => sum + walletToCp({ cp: w.cp, sp: w.sp, gp: w.gp, pp: w.pp }),
     0
   );
