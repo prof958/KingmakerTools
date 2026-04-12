@@ -22,15 +22,14 @@ export function walletToCp(wallet: Wallet): number {
 
 /**
  * Convert copper pieces to a wallet with optimal denominations.
+ * Gold is treated as the base coin — no automatic conversion to platinum.
  */
 export function cpToWallet(totalCp: number): Wallet {
-  const pp = Math.floor(totalCp / 1000);
-  totalCp -= pp * 1000;
   const gp = Math.floor(totalCp / 100);
   totalCp -= gp * 100;
   const sp = Math.floor(totalCp / 10);
   const cp = totalCp - sp * 10;
-  return { cp, sp, gp, pp };
+  return { cp, sp, gp, pp: 0 };
 }
 
 /**
