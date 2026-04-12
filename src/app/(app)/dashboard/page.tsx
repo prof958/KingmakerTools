@@ -54,48 +54,43 @@ export default async function DashboardPage() {
         initialYear={campaign.golarionYear}
       />
 
-      {/* Top row: Wealth + Kingdom placeholder */}
+      {/* Top row: Wealth + Objectives */}
       <div className="grid gap-4 md:grid-cols-2">
         <WealthSummary
           wallets={JSON.parse(JSON.stringify(wallets))}
         />
 
-        {/* Kingdom Status — Phase 5 placeholder */}
-        <Card>
-          <CardHeader className="pb-3">
-            <div className="flex items-center gap-2">
-              <Crown className="h-5 w-5" />
-              <CardTitle>Kingdom</CardTitle>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <Badge variant="secondary">Coming Soon</Badge>
-            <p className="mt-2 text-sm text-muted-foreground">
-              Kingdom management will be available in a future update.
-              Track your hex grid, settlements, and kingdom turns here.
-            </p>
-          </CardContent>
-        </Card>
+        <ObjectiveTracker
+          initialObjectives={JSON.parse(JSON.stringify(objectives))}
+        />
       </div>
 
-      {/* Main content: Objectives + Quick Links */}
-      <div className="grid gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2">
-          <ObjectiveTracker
-            initialObjectives={JSON.parse(JSON.stringify(objectives))}
-          />
-        </div>
-        <div>
-          <QuickLinksManager
-            initialLinks={JSON.parse(JSON.stringify(quickLinks))}
-          />
-        </div>
-      </div>
+      {/* Quick Links */}
+      <QuickLinksManager
+        initialLinks={JSON.parse(JSON.stringify(quickLinks))}
+      />
 
       {/* Party Members */}
       <CharacterManager
         initialCharacters={JSON.parse(JSON.stringify(characters))}
       />
+
+      {/* Kingdom Status — Phase 5 placeholder */}
+      <Card>
+        <CardHeader className="pb-3">
+          <div className="flex items-center gap-2">
+            <Crown className="h-5 w-5" />
+            <CardTitle>Kingdom</CardTitle>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <Badge variant="secondary">Coming Soon</Badge>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Kingdom management will be available in a future update.
+            Track your hex grid, settlements, and kingdom turns here.
+          </p>
+        </CardContent>
+      </Card>
     </div>
   );
 }
