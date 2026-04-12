@@ -27,7 +27,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Trash2, Shield, Sparkles, Package } from "lucide-react";
+import { Trash2, Shield, Sparkles, Package, Truck } from "lucide-react";
 import { formatCurrency } from "@/lib/pf2e/currency";
 import type { BulkCarrierData } from "./bulk-carrier-manager";
 
@@ -139,6 +139,26 @@ export function InventoryTable({
     [onUpdate]
   );
 
+  // Group items by carrier
+  const carrierMap = new Map<string | null, InventoryItemData[]>();
+  for (const inv of filteredItems) {
+    const key = inv.bulkCarrierId ?? null;
+    const group = carrierMap.get(key);
+    if (group) group.push(inv);
+    else carrierMap.set(key, [inv]);
+  }
+
+  // Build ordered groups: unassigned first, then carriers in order
+  const groups: { key: string | null; label: string; items: InventoryItemData[] }[] = [];
+  const unassigned = carrierMap.get(null);
+  if (unassigned) groups.push({ key: null, label: "Carried / Unassigned", items: unassigned });
+  for (const c of carriers) {
+    const group = carrierMap.get(c.id);
+    if (group) groups.push({ key: c.id, label: c.name, items: group });
+  }
+
+  const showGroupHeaders = groups.length > 1 || (groups.length === 1 && groups[0].key !== null);
+
   return (
     <div className="space-y-3">
       {/* Filter by owner */}
@@ -218,7 +238,28 @@ export function InventoryTable({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredItems.map((inv) => (
+              {groups.map((group) => (
+                <>
+                  {showGroupHeaders && (
+                    <TableRow key={`header-${group.key ?? "none"}`} className="bg-muted/50 hover:bg-muted/50">
+                      <TableCell colSpan={8} className="py-1.5">
+                        <div className="flex items-center gap-2">
+                          {group.key ? (
+                            <Truck className="h-3.5 w-3.5 text-muted-foreground" />
+                          ) : (
+                            <Package className="h-3.5 w-3.5 text-muted-foreground" />
+                          )}
+                          <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                            {group.label}
+                          </span>
+                          <span className="text-xs text-muted-foreground">
+                            ({group.items.length})
+                          </span>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  )}
+                  {group.items.map((inv) => (
                 <TableRow key={inv.id} className={isPending ? "opacity-60" : ""}>
                   <TableCell>
                     <div>
@@ -372,6 +413,8 @@ export function InventoryTable({
                     </Button>
                   </TableCell>
                 </TableRow>
+              ))}
+              </>
               ))}
             </TableBody>
           </Table>
