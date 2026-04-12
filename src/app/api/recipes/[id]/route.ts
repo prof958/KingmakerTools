@@ -36,6 +36,22 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
       data.effectsFail = body.effectsFail?.trim() || null;
     }
 
+    if ("dcSurvival" in body) {
+      data.dcSurvival = typeof body.dcSurvival === "number" ? body.dcSurvival : null;
+    }
+
+    if ("dcCookingLore" in body) {
+      data.dcCookingLore = typeof body.dcCookingLore === "number" ? body.dcCookingLore : null;
+    }
+
+    if ("effectsCritSuccess" in body) {
+      data.effectsCritSuccess = body.effectsCritSuccess?.trim() || null;
+    }
+
+    if ("effectsCritFail" in body) {
+      data.effectsCritFail = body.effectsCritFail?.trim() || null;
+    }
+
     if (typeof body.isDiscovered === "boolean") {
       data.isDiscovered = body.isDiscovered;
     }

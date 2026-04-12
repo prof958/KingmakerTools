@@ -245,15 +245,19 @@ model CampingActivity {
 }
 
 model Recipe {
-  id             String  @id @default(cuid())
-  campaignId     String  @map("campaign_id")
-  name           String
-  ingredients    String?
-  dc             Int?
-  effectsSuccess String? @map("effects_success")
-  effectsFail    String? @map("effects_fail")
-  isDiscovered   Boolean @default(false) @map("is_discovered")
-  createdAt      DateTime @default(now()) @map("created_at")
+  id                 String  @id @default(cuid())
+  campaignId         String  @map("campaign_id")
+  name               String
+  ingredients        String?
+  dc                 Int?
+  dcSurvival         Int?    @map("dc_survival")
+  dcCookingLore      Int?    @map("dc_cooking_lore")
+  effectsCritSuccess String? @map("effects_crit_success")
+  effectsSuccess     String? @map("effects_success")
+  effectsFail        String? @map("effects_fail")
+  effectsCritFail    String? @map("effects_crit_fail")
+  isDiscovered       Boolean @default(false) @map("is_discovered")
+  createdAt          DateTime @default(now()) @map("created_at")
 
   campaign Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
 

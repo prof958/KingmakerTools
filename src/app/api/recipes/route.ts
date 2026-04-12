@@ -32,7 +32,11 @@ export async function POST(req: NextRequest) {
     const campaign = await getOrCreateCampaign();
     const body = await req.json();
 
-    const { name, ingredients, dc, effectsSuccess, effectsFail, isDiscovered } = body;
+    const {
+      name, ingredients, dc, dcSurvival, dcCookingLore,
+      effectsCritSuccess, effectsSuccess, effectsFail, effectsCritFail,
+      isDiscovered,
+    } = body;
 
     if (!name || typeof name !== "string" || !name.trim()) {
       return NextResponse.json(
@@ -47,8 +51,12 @@ export async function POST(req: NextRequest) {
         name: name.trim(),
         ingredients: ingredients?.trim() || null,
         dc: typeof dc === "number" ? dc : null,
+        dcSurvival: typeof dcSurvival === "number" ? dcSurvival : null,
+        dcCookingLore: typeof dcCookingLore === "number" ? dcCookingLore : null,
+        effectsCritSuccess: effectsCritSuccess?.trim() || null,
         effectsSuccess: effectsSuccess?.trim() || null,
         effectsFail: effectsFail?.trim() || null,
+        effectsCritFail: effectsCritFail?.trim() || null,
         isDiscovered: isDiscovered ?? false,
       },
     });

@@ -26,8 +26,12 @@ export interface RecipeData {
   name: string;
   ingredients: string | null;
   dc: number | null;
+  dcSurvival: number | null;
+  dcCookingLore: number | null;
+  effectsCritSuccess: string | null;
   effectsSuccess: string | null;
   effectsFail: string | null;
+  effectsCritFail: string | null;
   isDiscovered: boolean;
 }
 
@@ -44,16 +48,24 @@ export function RecipeBook({
   const [name, setName] = useState("");
   const [ingredients, setIngredients] = useState("");
   const [dc, setDc] = useState("");
+  const [dcSurvival, setDcSurvival] = useState("");
+  const [dcCookingLore, setDcCookingLore] = useState("");
+  const [effectsCritSuccess, setEffectsCritSuccess] = useState("");
   const [effectsSuccess, setEffectsSuccess] = useState("");
   const [effectsFail, setEffectsFail] = useState("");
+  const [effectsCritFail, setEffectsCritFail] = useState("");
   const [isDiscovered, setIsDiscovered] = useState(false);
 
   function resetForm() {
     setName("");
     setIngredients("");
     setDc("");
+    setDcSurvival("");
+    setDcCookingLore("");
+    setEffectsCritSuccess("");
     setEffectsSuccess("");
     setEffectsFail("");
+    setEffectsCritFail("");
     setIsDiscovered(false);
   }
 
@@ -67,8 +79,12 @@ export function RecipeBook({
           name: name.trim(),
           ingredients: ingredients.trim() || null,
           dc: dc ? parseInt(dc, 10) : null,
+          dcSurvival: dcSurvival ? parseInt(dcSurvival, 10) : null,
+          dcCookingLore: dcCookingLore ? parseInt(dcCookingLore, 10) : null,
+          effectsCritSuccess: effectsCritSuccess.trim() || null,
           effectsSuccess: effectsSuccess.trim() || null,
           effectsFail: effectsFail.trim() || null,
+          effectsCritFail: effectsCritFail.trim() || null,
           isDiscovered,
         }),
       });
@@ -124,7 +140,7 @@ export function RecipeBook({
               <Plus className="mr-1 h-4 w-4" />
               Add Recipe
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="sm:max-w-xl">
               <DialogHeader>
                 <DialogTitle>Add Recipe</DialogTitle>
               </DialogHeader>
@@ -147,16 +163,27 @@ export function RecipeBook({
                     placeholder="2× rations, herbs"
                   />
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-3 gap-4">
                   <div className="space-y-1">
-                    <Label htmlFor="r-dc">DC</Label>
+                    <Label htmlFor="r-dc-s">DC Survival</Label>
                     <Input
-                      id="r-dc"
+                      id="r-dc-s"
                       type="text"
                       inputMode="numeric"
-                      value={dc}
-                      onChange={(e) => { if (e.target.value === "" || /^\d*$/.test(e.target.value)) setDc(e.target.value); }}
+                      value={dcSurvival}
+                      onChange={(e) => { if (e.target.value === "" || /^\d*$/.test(e.target.value)) setDcSurvival(e.target.value); }}
                       placeholder="18"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label htmlFor="r-dc-c">DC Cooking Lore</Label>
+                    <Input
+                      id="r-dc-c"
+                      type="text"
+                      inputMode="numeric"
+                      value={dcCookingLore}
+                      onChange={(e) => { if (e.target.value === "" || /^\d*$/.test(e.target.value)) setDcCookingLore(e.target.value); }}
+                      placeholder="14"
                     />
                   </div>
                   <div className="flex items-end gap-2 pb-0.5">
@@ -176,6 +203,16 @@ export function RecipeBook({
                   </div>
                 </div>
                 <div className="space-y-1">
+                  <Label htmlFor="r-crit-suc">Effects on Critical Success</Label>
+                  <Textarea
+                    id="r-crit-suc"
+                    value={effectsCritSuccess}
+                    onChange={(e) => setEffectsCritSuccess(e.target.value)}
+                    rows={2}
+                    placeholder="Party gains +2 status bonus to saving throws"
+                  />
+                </div>
+                <div className="space-y-1">
                   <Label htmlFor="r-suc">Effects on Success</Label>
                   <Textarea
                     id="r-suc"
@@ -193,6 +230,16 @@ export function RecipeBook({
                     onChange={(e) => setEffectsFail(e.target.value)}
                     rows={2}
                     placeholder="Party becomes sickened 1"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label htmlFor="r-crit-fail">Effects on Critical Failure</Label>
+                  <Textarea
+                    id="r-crit-fail"
+                    value={effectsCritFail}
+                    onChange={(e) => setEffectsCritFail(e.target.value)}
+                    rows={2}
+                    placeholder="Party becomes sickened 2"
                   />
                 </div>
                 <Button
@@ -272,7 +319,17 @@ function RecipeRow({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <span className="font-medium text-sm">{recipe.name}</span>
-          {recipe.dc && (
+          {recipe.dcSurvival && (
+            <Badge variant="outline" className="text-xs">
+              Survival DC {recipe.dcSurvival}
+            </Badge>
+          )}
+          {recipe.dcCookingLore && (
+            <Badge variant="outline" className="text-xs">
+              Cooking Lore DC {recipe.dcCookingLore}
+            </Badge>
+          )}
+          {!recipe.dcSurvival && !recipe.dcCookingLore && recipe.dc && (
             <Badge variant="outline" className="text-xs">
               DC {recipe.dc}
             </Badge>
@@ -312,7 +369,7 @@ function RecipeRow({
       )}
 
       {/* Expandable effects */}
-      {(recipe.effectsSuccess || recipe.effectsFail) && (
+      {(recipe.effectsCritSuccess || recipe.effectsSuccess || recipe.effectsFail || recipe.effectsCritFail) && (
         <>
           <button
             className="text-xs text-blue-400 hover:underline"
@@ -322,6 +379,12 @@ function RecipeRow({
           </button>
           {open && (
             <div className="mt-1 space-y-1 text-xs">
+              {recipe.effectsCritSuccess && (
+                <p>
+                  <span className="font-medium text-emerald-400">Crit Success:</span>{" "}
+                  {recipe.effectsCritSuccess}
+                </p>
+              )}
               {recipe.effectsSuccess && (
                 <p>
                   <span className="font-medium text-green-400">Success:</span>{" "}
@@ -332,6 +395,12 @@ function RecipeRow({
                 <p>
                   <span className="font-medium text-red-400">Failure:</span>{" "}
                   {recipe.effectsFail}
+                </p>
+              )}
+              {recipe.effectsCritFail && (
+                <p>
+                  <span className="font-medium text-rose-400">Crit Failure:</span>{" "}
+                  {recipe.effectsCritFail}
                 </p>
               )}
             </div>
