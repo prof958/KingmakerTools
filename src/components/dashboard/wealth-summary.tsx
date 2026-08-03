@@ -79,7 +79,7 @@ export function WealthSummary({
 
               {/* PC wallets */}
               {personalWallets
-                .filter((w) => !w.character?.isCompanion)
+                .filter((w) => !w.character?.isCompanion && walletToCp(w) > 0)
                 .map((w) => {
                   const cp = walletToCp(w);
                   return (
@@ -91,14 +91,14 @@ export function WealthSummary({
                         {w.character?.name ?? "Unknown"}
                       </span>
                       <span className="font-medium">
-                        {cp > 0 ? formatAsGp(cp) : "0 gp"}
+                        {formatAsGp(cp)}
                       </span>
                     </div>
                   );
                 })}
 
               {/* Companion wallets */}
-              {personalWallets.some((w) => w.character?.isCompanion) && (
+              {personalWallets.some((w) => w.character?.isCompanion && walletToCp(w) > 0) && (
                 <>
                   <div className="flex items-center gap-2 pt-1">
                     <PawPrint className="h-3 w-3 text-muted-foreground" />
@@ -106,7 +106,7 @@ export function WealthSummary({
                     <div className="flex-1 border-t border-border" />
                   </div>
                   {personalWallets
-                    .filter((w) => w.character?.isCompanion)
+                    .filter((w) => w.character?.isCompanion && walletToCp(w) > 0)
                     .map((w) => {
                       const cp = walletToCp(w);
                       return (
@@ -118,7 +118,7 @@ export function WealthSummary({
                             {w.character?.name ?? "Unknown"}
                           </span>
                           <span className="font-medium">
-                            {cp > 0 ? formatAsGp(cp) : "0 gp"}
+                            {formatAsGp(cp)}
                           </span>
                         </div>
                       );

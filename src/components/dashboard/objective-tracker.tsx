@@ -106,7 +106,11 @@ export function ObjectiveTracker({
   const completedCount = objectives.filter((o) => o.status === "COMPLETED").length;
 
   const filtered = objectives
-    .filter((o) => (filter === "ALL" && o.status !== "ARCHIVED") || o.status === filter)
+    .filter((o) => {
+      if (filter === "ALL") return o.status !== "ARCHIVED";
+      if (filter === "COMPLETED") return o.status === "COMPLETED" || o.status === "ARCHIVED";
+      return o.status === filter;
+    })
     .sort((a, b) => b.priority - a.priority);
 
   const addObjective = useCallback(() => {
