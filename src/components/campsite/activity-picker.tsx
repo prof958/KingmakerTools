@@ -18,6 +18,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { UtensilsCrossed, Save, Trash2, PawPrint, Plus, Settings2 } from "lucide-react";
 import {
   CAMPING_ACTIVITIES,
@@ -176,14 +183,23 @@ export function ActivityPicker({
               <CardTitle>Camping Activities</CardTitle>
             </div>
             <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowManager((v) => !v)}
-              >
-                <Settings2 className="mr-1 h-4 w-4" />
-                Custom
-              </Button>
+              <Dialog open={showManager} onOpenChange={setShowManager}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" size="sm">
+                    <Settings2 className="mr-1 h-4 w-4" />
+                    Custom
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Custom Activities</DialogTitle>
+                  </DialogHeader>
+                  <CustomActivityManager
+                    customActivities={customActivities}
+                    onChange={onCustomActivitiesChange}
+                  />
+                </DialogContent>
+              </Dialog>
               <Button size="sm" onClick={save} disabled={isPending || !layoutId}>
                 <Save className="mr-1 h-4 w-4" />
                 {isPending ? "Saving…" : "Save"}
@@ -254,13 +270,6 @@ export function ActivityPicker({
           )}
         </CardContent>
       </Card>
-
-      {showManager && (
-        <CustomActivityManager
-          customActivities={customActivities}
-          onChange={onCustomActivitiesChange}
-        />
-      )}
     </div>
   );
 }
@@ -418,17 +427,12 @@ function CustomActivityManager({
   }
 
   return (
-    <Card>
-      <CardHeader className="pb-3">
-        <div className="flex items-center gap-2">
-          <Settings2 className="h-5 w-5" />
-          <CardTitle>Custom Activities</CardTitle>
-        </div>
-        <p className="text-sm text-muted-foreground">
-          Add learned companion activities or homebrew camping activities here.
-        </p>
-      </CardHeader>
-      <CardContent className="space-y-3">
+    <div className="space-y-4">
+      <p className="text-sm text-muted-foreground">
+        Add learned companion activities or homebrew camping activities here.
+      </p>
+      
+      <div className="space-y-3">
         {/* Existing custom activities */}
         {customActivities.map((act) => (
           <div
@@ -490,7 +494,7 @@ function CustomActivityManager({
             Add Activity
           </Button>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
