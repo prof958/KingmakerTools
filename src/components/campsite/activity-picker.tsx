@@ -45,6 +45,7 @@ interface Character {
   id: string;
   name: string;
   emoji: string | null;
+  imageUrl: string | null;
   isCompanion: boolean;
 }
 
@@ -184,11 +185,9 @@ export function ActivityPicker({
             </div>
             <div className="flex items-center gap-2">
               <Dialog open={showManager} onOpenChange={setShowManager}>
-                <DialogTrigger asChild>
-                  <Button variant="outline" size="sm">
-                    <Settings2 className="mr-1 h-4 w-4" />
-                    Custom
-                  </Button>
+                <DialogTrigger render={<Button variant="outline" size="sm" />}>
+                  <Settings2 className="mr-1 h-4 w-4" />
+                  Custom
                 </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
@@ -300,7 +299,14 @@ function ActivityRow({
 
   return (
     <div className="flex flex-col gap-2 rounded-md border p-3 sm:flex-row sm:items-center">
-      <span className="w-28 shrink-0 font-medium text-sm">{char.emoji && <span className="mr-1">{char.emoji}</span>}{char.name}</span>
+      <span className="w-28 shrink-0 font-medium text-sm flex items-center gap-1.5">
+        {char.imageUrl ? (
+          <img src={char.imageUrl} alt={char.name} className="w-4 h-4 rounded-full object-cover inline-block" />
+        ) : char.emoji ? (
+          <span>{char.emoji}</span>
+        ) : null}
+        {char.name}
+      </span>
 
       <Select
         value={assignment?.activityType ?? ""}

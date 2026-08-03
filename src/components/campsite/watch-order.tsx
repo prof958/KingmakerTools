@@ -38,6 +38,7 @@ interface Character {
   id: string;
   name: string;
   emoji: string | null;
+  imageUrl: string | null;
   isCompanion: boolean;
 }
 
@@ -114,6 +115,7 @@ function SortableWatchItem({
   id,
   name,
   emoji,
+  imageUrl,
   isCompanion,
   shiftLabel,
   onRemove,
@@ -121,6 +123,7 @@ function SortableWatchItem({
   id: string;
   name: string;
   emoji?: string | null;
+  imageUrl?: string | null;
   isCompanion: boolean;
   shiftLabel: string;
   onRemove: () => void;
@@ -154,8 +157,10 @@ function SortableWatchItem({
       >
         <GripVertical className="h-4 w-4" />
       </button>
-      <span className="flex-1 text-sm truncate">
-        {emoji ?? (isCompanion ? "🐾" : "🧑")} {name}
+      <span className="flex-1 text-sm truncate flex items-center gap-1.5">
+        {imageUrl ? (
+          <img src={imageUrl} alt={name} className="w-4 h-4 rounded-full object-cover inline-block" />
+        ) : emoji ?? (isCompanion ? "🐾" : "🧑")} {name}
       </span>
       <span className="text-xs text-muted-foreground whitespace-nowrap">
         {shiftLabel}
@@ -301,7 +306,11 @@ export function WatchOrder({
                       .filter((c) => !c.isCompanion)
                       .map((c) => (
                         <SelectItem key={c.id} value={c.id}>
-                          {c.emoji ?? "🧑"} {c.name}
+                          <div className="flex items-center gap-1.5">
+                            {c.imageUrl ? (
+                              <img src={c.imageUrl} alt={c.name} className="w-4 h-4 rounded-full object-cover inline-block" />
+                            ) : c.emoji ?? "🧑"} {c.name}
+                          </div>
                         </SelectItem>
                       ))}
                   </>
@@ -312,7 +321,11 @@ export function WatchOrder({
                       .filter((c) => c.isCompanion)
                       .map((c) => (
                         <SelectItem key={c.id} value={c.id}>
-                          {c.emoji ?? "🐾"} {c.name}
+                          <div className="flex items-center gap-1.5">
+                            {c.imageUrl ? (
+                              <img src={c.imageUrl} alt={c.name} className="w-4 h-4 rounded-full object-cover inline-block" />
+                            ) : c.emoji ?? "🐾"} {c.name}
+                          </div>
                         </SelectItem>
                       ))}
                   </>
@@ -359,6 +372,7 @@ export function WatchOrder({
                         id={id}
                         name={char.name}
                         emoji={char.emoji}
+                        imageUrl={char.imageUrl}
                         isCompanion={char.isCompanion}
                         shiftLabel={`Shift ${shiftMap.get(id) ?? 1}`}
                         onRemove={() => removeCharacter(id)}

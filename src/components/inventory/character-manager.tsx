@@ -21,18 +21,12 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Plus, Trash2, Pencil, Users, PawPrint } from "lucide-react";
 
-const PEOPLE_EMOJIS = [
-  "🧙", "🧝", "🧛", "🧜", "🧚", "🧞", "🧟",
-  "🦸", "🦹", "🥷", "🤴", "👸", "🤺", "🏹",
-  "👩‍🔬", "🧑‍🎤", "👩‍🎤", "🧑‍🔧", "👩‍🍳", "🧑‍🌾", "🧑‍⚕️",
-  "🐺", "🐻", "🦁", "🐉", "🦅", "🐎", "🐾",
-  "⚔️", "🛡️", "🗡️", "🔮", "📖", "💀", "🌙",
-];
 
 interface Character {
   id: string;
   name: string;
   emoji: string | null;
+  imageUrl: string | null;
   strModifier: number;
   isCompanion: boolean;
   miscBulk: number;
@@ -49,12 +43,52 @@ export function CharacterManager({
   useEffect(() => { setCharacters(initialCharacters); }, [initialCharacters]);
   const [name, setName] = useState("");
   const [emoji, setEmoji] = useState<string | null>(null);
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [strMod, setStrMod] = useState(0);
   const [isCompanion, setIsCompanion] = useState(false);
   const [miscBulk, setMiscBulk] = useState(0);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+
+  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const MAX_WIDTH = 128;
+        const MAX_HEIGHT = 128;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > MAX_WIDTH) {
+            height *= MAX_WIDTH / width;
+            width = MAX_WIDTH;
+          }
+        } else {
+          if (height > MAX_HEIGHT) {
+            width *= MAX_HEIGHT / height;
+            height = MAX_HEIGHT;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        ctx?.drawImage(img, 0, 0, width, height);
+
+        setImageUrl(canvas.toDataURL("image/png"));
+        setEmoji(null);
+      };
+      img.src = event.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+  }
 
   async function handleAdd() {
     if (!name.trim()) return;
@@ -63,13 +97,14 @@ export function CharacterManager({
       const res = await fetch("/api/characters", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: name.trim(), emoji, strModifier: strMod, isCompanion, miscBulk }),
+        body: JSON.stringify({ name: name.trim(), emoji, imageUrl, strModifier: strMod, isCompanion, miscBulk }),
       });
       if (res.ok) {
         const character = await res.json();
         setCharacters((prev) => [...prev, character]);
         setName("");
         setEmoji(null);
+        setImageUrl(null);
         setStrMod(0);
         setIsCompanion(false);
         setMiscBulk(0);
@@ -86,7 +121,7 @@ export function CharacterManager({
       const res = await fetch(`/api/characters/${editId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: name.trim(), emoji, strModifier: strMod, isCompanion, miscBulk }),
+        body: JSON.stringify({ name: name.trim(), emoji, imageUrl, strModifier: strMod, isCompanion, miscBulk }),
       });
       if (res.ok) {
         const updated = await res.json();
@@ -95,6 +130,7 @@ export function CharacterManager({
         );
         setName("");
         setEmoji(null);
+        setImageUrl(null);
         setStrMod(0);
         setIsCompanion(false);
         setMiscBulk(0);
@@ -119,6 +155,7 @@ export function CharacterManager({
     setEditId(character.id);
     setName(character.name);
     setEmoji(character.emoji);
+    setImageUrl(character.imageUrl);
     setStrMod(character.strModifier);
     setIsCompanion(character.isCompanion);
     setMiscBulk(character.miscBulk);
@@ -129,6 +166,7 @@ export function CharacterManager({
     setEditId(null);
     setName("");
     setEmoji(null);
+    setImageUrl(null);
     setStrMod(0);
     setIsCompanion(false);
     setMiscBulk(0);
@@ -169,21 +207,38 @@ export function CharacterManager({
                 />
               </div>
               <div>
-                <Label>Emoji</Label>
-                <div className="flex flex-wrap gap-1 mt-1">
-                  {PEOPLE_EMOJIS.map((e) => (
-                    <button
-                      key={e}
-                      type="button"
-                      className={`h-8 w-8 rounded text-lg flex items-center justify-center hover:bg-accent transition-colors ${
-                        emoji === e ? "ring-2 ring-primary bg-accent" : ""
-                      }`}
-                      onClick={() => setEmoji(emoji === e ? null : e)}
-                    >
-                      {e}
-                    </button>
-                  ))}
+                <Label>Icon (Custom Emoji OR Image Upload)</Label>
+                <div className="flex items-center gap-4 mt-1">
+                  <div className="flex flex-col gap-2">
+                    <Input
+                      value={emoji ?? ""}
+                      onChange={(e) => {
+                        setEmoji(e.target.value);
+                        if (e.target.value) setImageUrl(null);
+                      }}
+                      placeholder="e.g. 🧙"
+                      maxLength={2}
+                      className="w-20 text-center text-lg"
+                    />
+                    <span className="text-[10px] text-muted-foreground">Type emoji</span>
+                  </div>
+                  <span className="text-muted-foreground text-sm font-medium">OR</span>
+                  <div className="flex flex-col gap-2">
+                    <Input
+                      type="file"
+                      accept="image/png, image/jpeg, image/webp"
+                      onChange={handleFileChange}
+                      className="max-w-[200px]"
+                    />
+                    <span className="text-[10px] text-muted-foreground">Upload image (Max 128x128)</span>
+                  </div>
                 </div>
+                {imageUrl && (
+                  <div className="mt-2">
+                    <span className="text-xs text-muted-foreground block mb-1">Preview:</span>
+                    <img src={imageUrl} alt="Preview" className="w-10 h-10 object-cover rounded-full border" />
+                  </div>
+                )}
               </div>
               <div>
                 <Label htmlFor="str-mod">STR Modifier</Label>
@@ -280,7 +335,13 @@ function CharacterRow({
   return (
     <div className="flex items-center justify-between rounded-md border p-3">
       <div className="flex items-center gap-3">
-        {c.emoji && <span className="text-lg">{c.emoji}</span>}
+        {c.imageUrl ? (
+          <img src={c.imageUrl} alt={c.name} className="w-8 h-8 rounded-full object-cover shrink-0" />
+        ) : c.emoji ? (
+          <span className="text-lg w-8 h-8 flex items-center justify-center shrink-0">{c.emoji}</span>
+        ) : (
+          <span className="text-lg w-8 h-8 flex items-center justify-center shrink-0">{c.isCompanion ? "🐾" : "🧑"}</span>
+        )}
         <span className="font-medium">{c.name}</span>
         <Badge variant="secondary" className="text-xs">
           STR {c.strModifier >= 0 ? "+" : ""}

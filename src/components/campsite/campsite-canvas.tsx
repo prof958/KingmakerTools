@@ -6,7 +6,7 @@
  */
 
 import { useRef, useCallback, useState, useEffect } from "react";
-import { Stage, Layer, Rect, Circle, Text, Group } from "react-konva";
+import { Stage, Layer, Rect, Circle, Text, Group, Image as KonvaImage } from "react-konva";
 import type Konva from "konva";
 import {
   useCampsiteStore,
@@ -18,8 +18,32 @@ import {
 const GRID_SIZE = 50;
 
 // Snap a coordinate to the nearest grid cell
-function snapToGrid(val: number): number {
-  return Math.round(val / GRID_SIZE) * GRID_SIZE;
+function snapToGrid(coord: number) {
+  return Math.round(coord / GRID_SIZE) * GRID_SIZE;
+}
+
+// Helper to load and render an image onto the canvas
+function TokenImage({ url, size }: { url: string; size: number }) {
+  const [img, setImg] = useState<HTMLImageElement | null>(null);
+  useEffect(() => {
+    const image = new window.Image();
+    image.src = url;
+    image.onload = () => setImg(image);
+  }, [url]);
+
+  if (!img) return null;
+
+  return (
+    <Group clipFunc={(ctx) => ctx.arc(size / 2, size / 2, size / 2 - 2, 0, Math.PI * 2, false)}>
+      <KonvaImage
+        image={img}
+        width={size}
+        height={size}
+        x={0}
+        y={0}
+      />
+    </Group>
+  );
 }
 
 // Size & colour mapping per element type — sizes are multiples of GRID_SIZE
@@ -107,13 +131,17 @@ function ElementShape({ el }: { el: CampElement }) {
         />
       )}
 
-      {/* Emoji label */}
-      <Text
-        text={emoji}
-        fontSize={Math.min(cfg.w, cfg.h) * 0.5}
-        x={cfg.w / 2 - Math.min(cfg.w, cfg.h) * 0.25}
-        y={cfg.h / 2 - Math.min(cfg.w, cfg.h) * 0.25}
-      />
+      {/* Image or Emoji */}
+      {el.imageUrl ? (
+        <TokenImage url={el.imageUrl} size={cfg.w} />
+      ) : (
+        <Text
+          text={emoji}
+          fontSize={Math.min(cfg.w, cfg.h) * 0.5}
+          x={cfg.w / 2 - Math.min(cfg.w, cfg.h) * 0.25}
+          y={cfg.h / 2 - Math.min(cfg.w, cfg.h) * 0.25}
+        />
+      )}
 
       {/* Name label */}
       <Text

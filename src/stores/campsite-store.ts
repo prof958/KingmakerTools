@@ -21,6 +21,8 @@ export interface CampElement {
   characterId?: string;
   /** Custom emoji override for character tokens */
   emoji?: string;
+  /** Custom image override for character tokens */
+  imageUrl?: string;
 }
 
 // ───── Store State ─────

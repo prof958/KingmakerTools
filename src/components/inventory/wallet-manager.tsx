@@ -27,6 +27,7 @@ interface Character {
   id: string;
   name: string;
   emoji: string | null;
+  imageUrl: string | null;
   isCompanion: boolean;
 }
 
@@ -223,6 +224,7 @@ export function WalletManager({
               key={w.id}
               label={w.character?.name ?? "Unknown"}
               emoji={w.character?.emoji}
+              imageUrl={w.character?.imageUrl}
               wallet={w}
               isEditing={editingId === w.id}
               editValues={editValues}
@@ -249,6 +251,7 @@ export function WalletManager({
                   key={w.id}
                   label={w.character?.name ?? "Unknown"}
                   emoji={w.character?.emoji}
+                  imageUrl={w.character?.imageUrl}
                   wallet={w}
                   isEditing={editingId === w.id}
                   editValues={editValues}
@@ -275,6 +278,7 @@ export function WalletManager({
 export function WalletRow({
   label,
   emoji,
+  imageUrl,
   wallet,
   isEditing,
   editValues,
@@ -287,6 +291,7 @@ export function WalletRow({
 }: {
   label: string;
   emoji?: string | null;
+  imageUrl?: string | null;
   wallet: WalletData;
   isEditing: boolean;
   editValues: { cp: number; sp: number; gp: number; pp: number };
@@ -303,8 +308,10 @@ export function WalletRow({
     return (
       <div className="rounded-md border p-2 space-y-1.5">
         <div className="flex items-center justify-between">
-          <span className="text-sm font-medium">
-            {isTreasury ? "💰" : emoji ?? "🧑"} {label}
+          <span className="text-sm font-medium flex items-center gap-1.5">
+            {isTreasury ? "💰" : imageUrl ? (
+              <img src={imageUrl} alt={label} className="w-4 h-4 rounded-full object-cover inline-block" />
+            ) : emoji ?? "🧑"} {label}
           </span>
           <div className="flex gap-1">
             <Button size="sm" className="h-7 text-xs" onClick={onSave} disabled={isPending}>
@@ -344,8 +351,10 @@ export function WalletRow({
       className="flex items-center justify-between rounded-md border px-2.5 py-1.5 cursor-pointer hover:bg-muted/50 transition-colors"
       onClick={onStartEdit}
     >
-      <span className="text-sm font-medium">
-        {isTreasury ? "💰" : emoji ?? "🧑"} {label}
+      <span className="text-sm font-medium flex items-center gap-1.5">
+        {isTreasury ? "💰" : imageUrl ? (
+          <img src={imageUrl} alt={label} className="w-4 h-4 rounded-full object-cover inline-block" />
+        ) : emoji ?? "🧑"} {label}
       </span>
       <div className="flex items-center gap-2 text-xs text-muted-foreground">
         {wallet.pp > 0 && <span>{wallet.pp} pp</span>}

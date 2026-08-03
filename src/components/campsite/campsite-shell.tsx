@@ -59,6 +59,7 @@ interface Character {
   id: string;
   name: string;
   emoji: string | null;
+  imageUrl: string | null;
   isCompanion: boolean;
 }
 
@@ -257,6 +258,7 @@ export function CampsiteShell({
         type: "character",
         label: char.name,
         emoji: char.emoji ?? undefined,
+        imageUrl: char.imageUrl ?? undefined,
         characterId: char.id,
         x: center.x + Math.round(Math.random() * 60 - 30),
         y: center.y + Math.round(Math.random() * 60 - 30),
@@ -355,11 +357,9 @@ export function CampsiteShell({
             {/* Element palette toolbar */}
             <div className="flex flex-wrap items-center gap-2">
               <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm">
-                    <Plus className="mr-2 h-4 w-4" />
-                    Add Item
-                  </Button>
+                <DropdownMenuTrigger render={<Button variant="outline" size="sm" />}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add Item
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="start">
                   {ELEMENT_PALETTE.map((p) => (
@@ -374,11 +374,9 @@ export function CampsiteShell({
               </DropdownMenu>
 
               <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm">
-                    <UserPlus className="mr-2 h-4 w-4" />
-                    Add Character
-                  </Button>
+                <DropdownMenuTrigger render={<Button variant="outline" size="sm" />}>
+                  <UserPlus className="mr-2 h-4 w-4" />
+                  Add Character
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="start">
                   {characters.map((char) => {
@@ -391,7 +389,11 @@ export function CampsiteShell({
                           if (!isDisabled) addCharacterToken(char);
                         }}
                       >
-                        {char.emoji ?? "🧑"} {char.name}
+                        <div className="flex items-center gap-1.5">
+                          {char.imageUrl ? (
+                            <img src={char.imageUrl} alt={char.name} className="w-4 h-4 rounded-full object-cover inline-block" />
+                          ) : char.emoji ?? "🧑"} {char.name}
+                        </div>
                       </DropdownMenuItem>
                     );
                   })}

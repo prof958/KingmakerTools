@@ -35,6 +35,7 @@ interface Character {
   id: string;
   name: string;
   emoji: string | null;
+  imageUrl: string | null;
   strModifier: number;
   isCompanion: boolean;
 }
