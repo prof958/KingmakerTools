@@ -120,10 +120,14 @@ function ElementShape({ el }: { el: CampElement }) {
         text={el.label}
         fontSize={11}
         fill="#fff"
-        x={0}
-        y={cfg.h + 2}
-        width={cfg.w}
+        x={-cfg.w / 2}
+        y={cfg.h + 4}
+        width={cfg.w * 2}
         align="center"
+        shadowColor="black"
+        shadowBlur={2}
+        shadowOffset={{ x: 1, y: 1 }}
+        shadowOpacity={0.8}
       />
     </Group>
   );
@@ -241,9 +245,20 @@ export default function CampsiteCanvas() {
         ))}
 
         {/* Elements */}
-        {elements.map((el) => (
-          <ElementShape key={el.id} el={el} />
-        ))}
+        {elements
+          .slice()
+          .sort((a, b) => {
+            const getZ = (type: ElementType) => {
+              if (type === "tent") return 0;
+              if (type === "bedroll") return 1;
+              if (type === "campfire") return 2;
+              return 10; // character, marker, trap on top
+            };
+            return getZ(a.type) - getZ(b.type);
+          })
+          .map((el) => (
+            <ElementShape key={el.id} el={el} />
+          ))}
       </Layer>
     </Stage>
     </div>

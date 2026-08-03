@@ -12,7 +12,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Tent, Save, Plus, Trash2, RotateCcw } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Tent, Save, Plus, Trash2, RotateCcw, UserPlus } from "lucide-react";
 import {
   useCampsiteStore,
   ELEMENT_PALETTE,
@@ -347,30 +353,51 @@ export function CampsiteShell({
             </div>
 
             {/* Element palette toolbar */}
-            <div className="flex flex-wrap gap-2">
-              {ELEMENT_PALETTE.map((p) => (
-                <Button
-                  key={p.type}
-                  variant="outline"
-                  size="sm"
-                  onClick={() => addCanvasElement(p.type)}
-                >
-                  {p.emoji} {p.label}
-                </Button>
-              ))}
-              {characters.map((char) => (
-                <Button
-                  key={char.id}
-                  variant="outline"
-                  size="sm"
-                  onClick={() => addCharacterToken(char)}
-                  disabled={store.elements.some(
-                    (el) => el.characterId === char.id,
-                  )}
-                >
-                  {char.emoji ?? "🧑"} {char.name}
-                </Button>
-              ))}
+            <div className="flex flex-wrap items-center gap-2">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm">
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add Item
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start">
+                  {ELEMENT_PALETTE.map((p) => (
+                    <DropdownMenuItem
+                      key={p.type}
+                      onClick={() => addCanvasElement(p.type)}
+                    >
+                      {p.emoji} {p.label}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm">
+                    <UserPlus className="mr-2 h-4 w-4" />
+                    Add Character
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start">
+                  {characters.map((char) => {
+                    const isDisabled = store.elements.some((el) => el.characterId === char.id);
+                    return (
+                      <DropdownMenuItem
+                        key={char.id}
+                        disabled={isDisabled}
+                        onClick={() => {
+                          if (!isDisabled) addCharacterToken(char);
+                        }}
+                      >
+                        {char.emoji ?? "🧑"} {char.name}
+                      </DropdownMenuItem>
+                    );
+                  })}
+                </DropdownMenuContent>
+              </DropdownMenu>
+
               {store.selectedId && (
                 <Button variant="destructive" size="sm" onClick={removeSelected}>
                   <Trash2 className="mr-1 h-4 w-4" />
