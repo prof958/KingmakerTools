@@ -11,6 +11,7 @@ interface NumberInputProps
   max?: number;
   step?: number;
   fallback?: number;
+  commitOnChange?: boolean;
 }
 
 function NumberInput({
@@ -20,6 +21,7 @@ function NumberInput({
   max,
   step,
   fallback,
+  commitOnChange,
   onBlur,
   onFocus,
   ...props
@@ -65,6 +67,14 @@ function NumberInput({
         // Allow empty, minus sign, digits, and decimal point only
         if (raw === "" || /^-?\d*\.?\d*$/.test(raw)) {
           setDisplay(raw);
+          if (commitOnChange) {
+            const trimmed = raw.trim();
+            if (trimmed === "") {
+              onValueChange(fallback ?? min ?? 0);
+            } else if (trimmed !== "-" && !isNaN(Number(trimmed))) {
+              onValueChange(clamp(Number(trimmed)));
+            }
+          }
         }
       }}
       onFocus={(e) => {

@@ -272,7 +272,7 @@ export function WalletManager({
   );
 }
 
-function WalletRow({
+export function WalletRow({
   label,
   emoji,
   wallet,
@@ -290,7 +290,7 @@ function WalletRow({
   wallet: WalletData;
   isEditing: boolean;
   editValues: { cp: number; sp: number; gp: number; pp: number };
-  onEditValues: (val: { cp: number; sp: number; gp: number; pp: number }) => void;
+  onEditValues: React.Dispatch<React.SetStateAction<{ cp: number; sp: number; gp: number; pp: number }>>;
   onStartEdit: () => void;
   onSave: () => void;
   onCancel: () => void;
@@ -323,11 +323,12 @@ function WalletRow({
                 min={0}
                 fallback={0}
                 value={editValues[denom]}
+                commitOnChange={true}
                 onValueChange={(val) =>
-                  onEditValues({
-                    ...editValues,
+                  onEditValues((prev) => ({
+                    ...prev,
                     [denom]: val,
-                  })
+                  }))
                 }
                 className="h-7 text-xs"
               />
