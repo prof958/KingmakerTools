@@ -199,19 +199,24 @@ export function WatchOrder({
     [characters],
   );
 
+  const validOrderedIds = useMemo(
+    () => orderedIds.filter((id) => charMap.has(id)),
+    [orderedIds, charMap]
+  );
+
   const shiftMap = useMemo(
-    () => buildShiftMap(orderedIds, shiftCount),
-    [orderedIds, shiftCount],
+    () => buildShiftMap(validOrderedIds, shiftCount),
+    [validOrderedIds, shiftCount],
   );
 
   const boundaries = useMemo(
-    () => shiftBoundaries(orderedIds, shiftCount),
-    [orderedIds, shiftCount],
+    () => shiftBoundaries(validOrderedIds, shiftCount),
+    [validOrderedIds, shiftCount],
   );
 
   const unusedChars = useMemo(
-    () => characters.filter((c) => !orderedIds.includes(c.id)),
-    [characters, orderedIds],
+    () => characters.filter((c) => !validOrderedIds.includes(c.id)),
+    [characters, validOrderedIds],
   );
 
   /* sensors */
@@ -224,9 +229,10 @@ export function WatchOrder({
     const { active, over } = event;
     if (over && active.id !== over.id) {
       setOrderedIds((prev) => {
-        const oldIndex = prev.indexOf(active.id as string);
-        const newIndex = prev.indexOf(over.id as string);
-        return arrayMove(prev, oldIndex, newIndex);
+        const clean = prev.filter((id) => charMap.has(id));
+        const oldIndex = clean.indexOf(active.id as string);
+        const newIndex = clean.indexOf(over.id as string);
+        return arrayMove(clean, oldIndex, newIndex);
       });
     }
   }
@@ -243,7 +249,7 @@ export function WatchOrder({
 
   function save() {
     if (!layoutId) return;
-    const shifts = toWatchShifts(orderedIds, shiftCount);
+    const shifts = toWatchShifts(validOrderedIds, shiftCount);
     startTransition(async () => {
       const res = await fetch(`/api/campsite/${layoutId}`, {
         method: "PATCH",
@@ -320,7 +326,7 @@ export function WatchOrder({
         )}
 
         {/* Sortable list */}
-        {orderedIds.length === 0 ? (
+        {validOrderedIds.length === 0 ? (
           <p className="text-sm text-muted-foreground">
             Add characters to assign watch duty.
           </p>
@@ -331,11 +337,11 @@ export function WatchOrder({
             onDragEnd={handleDragEnd}
           >
             <SortableContext
-              items={orderedIds}
+              items={validOrderedIds}
               strategy={verticalListSortingStrategy}
             >
               <div className="space-y-1">
-                {orderedIds.map((id, idx) => {
+                {validOrderedIds.map((id, idx) => {
                   const char = charMap.get(id);
                   if (!char) return null;
                   return (
@@ -365,7 +371,7 @@ export function WatchOrder({
           </DndContext>
         )}
 
-        {orderedIds.length > 0 && (
+        {validOrderedIds.length > 0 && (
           <p className="text-xs text-muted-foreground">
             Drag to reorder. Characters are split evenly across {shiftCount}{" "}
             shift{shiftCount !== 1 ? "s" : ""}.
