@@ -26,7 +26,7 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
 
     if (
       typeof body.status === "string" &&
-      ["ACTIVE", "COMPLETED", "FAILED"].includes(body.status)
+      ["ACTIVE", "COMPLETED", "FAILED", "ARCHIVED"].includes(body.status)
     ) {
       data.status = body.status;
     }

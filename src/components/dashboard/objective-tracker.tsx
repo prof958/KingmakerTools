@@ -40,13 +40,14 @@ import {
   RotateCcw,
   Pencil,
   Trash2,
+  Archive,
 } from "lucide-react";
 
 export interface ObjectiveData {
   id: string;
   title: string;
   description: string | null;
-  status: "ACTIVE" | "COMPLETED" | "FAILED";
+  status: "ACTIVE" | "COMPLETED" | "FAILED" | "ARCHIVED";
   priority: number;
   createdAt: string;
   updatedAt: string;
@@ -60,6 +61,8 @@ function statusBadge(status: ObjectiveData["status"]) {
       return <Badge className="bg-green-600 hover:bg-green-700 text-white">Completed</Badge>;
     case "FAILED":
       return <Badge variant="destructive">Failed</Badge>;
+    case "ARCHIVED":
+      return <Badge variant="secondary" className="text-muted-foreground">Archived</Badge>;
   }
 }
 
@@ -97,13 +100,13 @@ export function ObjectiveTracker({
   const [editPriority, setEditPriority] = useState("0");
 
   // Filter
-  const [filter, setFilter] = useState<"ALL" | "ACTIVE" | "COMPLETED" | "FAILED">("ALL");
+  const [filter, setFilter] = useState<"ALL" | "ACTIVE" | "COMPLETED" | "FAILED" | "ARCHIVED">("ALL");
 
   const activeCount = objectives.filter((o) => o.status === "ACTIVE").length;
   const completedCount = objectives.filter((o) => o.status === "COMPLETED").length;
 
   const filtered = objectives
-    .filter((o) => filter === "ALL" || o.status === filter)
+    .filter((o) => (filter === "ALL" && o.status !== "ARCHIVED") || o.status === filter)
     .sort((a, b) => b.priority - a.priority);
 
   const addObjective = useCallback(() => {
@@ -210,7 +213,7 @@ export function ObjectiveTracker({
               onValueChange={(val) =>
                 setFilter((val as typeof filter) ?? "ALL")
               }
-              items={{ ALL: "All", ACTIVE: "Active", COMPLETED: "Completed", FAILED: "Failed" }}
+              items={{ ALL: "All", ACTIVE: "Active", COMPLETED: "Completed", FAILED: "Failed", ARCHIVED: "Archived" }}
             >
               <SelectTrigger className="w-[120px] h-8 text-xs">
                 <SelectValue />
@@ -220,6 +223,7 @@ export function ObjectiveTracker({
                 <SelectItem value="ACTIVE" label="Active">Active</SelectItem>
                 <SelectItem value="COMPLETED" label="Completed">Completed</SelectItem>
                 <SelectItem value="FAILED" label="Failed">Failed</SelectItem>
+                <SelectItem value="ARCHIVED" label="Archived">Archived</SelectItem>
               </SelectContent>
             </Select>
 
@@ -367,11 +371,25 @@ export function ObjectiveTracker({
                         </DropdownMenuItem>
                       </>
                     )}
-                    {obj.status !== "ACTIVE" && (
+                    {obj.status !== "ACTIVE" && obj.status !== "ARCHIVED" && (
                       <DropdownMenuItem
                         onClick={() => updateStatus(obj.id, "ACTIVE")}
                       >
                         <RotateCcw className="mr-2 h-3.5 w-3.5" /> Reactivate
+                      </DropdownMenuItem>
+                    )}
+                    {(obj.status === "COMPLETED" || obj.status === "FAILED") && (
+                      <DropdownMenuItem
+                        onClick={() => updateStatus(obj.id, "ARCHIVED")}
+                      >
+                        <Archive className="mr-2 h-3.5 w-3.5" /> Archive
+                      </DropdownMenuItem>
+                    )}
+                    {obj.status === "ARCHIVED" && (
+                      <DropdownMenuItem
+                        onClick={() => updateStatus(obj.id, "COMPLETED")}
+                      >
+                        <RotateCcw className="mr-2 h-3.5 w-3.5" /> Unarchive
                       </DropdownMenuItem>
                     )}
                     <DropdownMenuItem

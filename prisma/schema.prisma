@@ -445,6 +445,7 @@ enum ObjectiveStatus {
   ACTIVE
   COMPLETED
   FAILED
+  ARCHIVED
 }
 
 enum HexState {
