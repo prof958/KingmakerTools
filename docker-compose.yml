@@ -3,9 +3,9 @@ services:
     image: 'postgres:16-alpine'
     restart: unless-stopped
     environment:
-      POSTGRES_DB: kingdomtools
-      POSTGRES_USER: '${POSTGRES_USER:-kingdomtools}'
-      POSTGRES_PASSWORD: '${POSTGRES_PASSWORD}'
+      DATABASE_URL: postgresql://${POSTGRES_USER:-kingdomtools}:${POSTGRES_PASSWORD}@db:5432/kingdomtools
+      APP_PASSWORD_HASH: ${APP_PASSWORD_HASH}
+      SESSION_SECRET: ${SESSION_SECRET}
     volumes:
       - '/opt/kingdomtools/pgdata:/var/lib/postgresql/data'
     healthcheck:
