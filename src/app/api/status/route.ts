@@ -76,13 +76,7 @@ export async function GET() {
     })) || [];
 
     // Calculate total party cash (explicitly only coins, not item values)
-    const treasuryWallets = allWallets.filter(w => w.characterId === null);
-    const treasuryWallet = treasuryWallets.length > 0 ? {
-      cp: treasuryWallets.reduce((sum, w) => sum + w.cp, 0),
-      sp: treasuryWallets.reduce((sum, w) => sum + w.sp, 0),
-      gp: treasuryWallets.reduce((sum, w) => sum + w.gp, 0),
-      pp: treasuryWallets.reduce((sum, w) => sum + w.pp, 0),
-    } : null;
+    const treasuryWallet = allWallets.find(w => w.characterId === null);
     const totalPartyCp = allWallets.reduce((acc, w) => acc + w.cp + (w.sp * 10) + (w.gp * 100) + (w.pp * 1000), 0);
     const totalPartyGoldEquivalent = (totalPartyCp / 100).toFixed(2);
 
