@@ -41,7 +41,8 @@ export async function GET() {
         take: 3
       }),
       prisma.wallet.findMany({
-        where: { campaignId: campaign.id }
+        where: { campaignId: campaign.id },
+        orderBy: [{ characterId: "asc" }]
       }),
       prisma.kingdom.findUnique({
         where: { campaignId: campaign.id }
