@@ -77,7 +77,15 @@ export async function GET() {
 
     // Calculate total party cash (explicitly only coins, not item values)
     const treasuryWallet = allWallets.find(w => w.characterId === null);
-    const totalPartyCp = allWallets.reduce((acc, w) => acc + w.cp + (w.sp * 10) + (w.gp * 100) + (w.pp * 1000), 0);
+    
+    // Mimic the webapp: include the primary treasury and all active character wallets
+    const characterIds = new Set(characters.map(c => c.id));
+    const validWallets = [
+      ...(treasuryWallet ? [treasuryWallet] : []),
+      ...allWallets.filter(w => w.characterId !== null && characterIds.has(w.characterId))
+    ];
+
+    const totalPartyCp = validWallets.reduce((acc, w) => acc + w.cp + (w.sp * 10) + (w.gp * 100) + (w.pp * 1000), 0);
     const totalPartyGoldEquivalent = (totalPartyCp / 100).toFixed(2);
 
     // Construct the enriched JSON payload
