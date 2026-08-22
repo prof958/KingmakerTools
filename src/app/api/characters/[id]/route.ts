@@ -59,6 +59,30 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
 export async function DELETE(_req: NextRequest, { params }: RouteParams) {
   try {
     const { id } = await params;
+    
+    // First, merge their wallet into the party treasury to avoid orphaned null wallets
+    const character = await prisma.character.findUnique({ where: { id }, include: { wallets: true } });
+    if (character && character.wallets.length > 0) {
+      const charWallet = character.wallets[0];
+      const treasury = await prisma.wallet.findFirst({
+        where: { campaignId: character.campaignId, characterId: null },
+        orderBy: { id: "asc" }
+      });
+      
+      if (treasury) {
+        await prisma.wallet.update({
+          where: { id: treasury.id },
+          data: {
+            cp: treasury.cp + charWallet.cp,
+            sp: treasury.sp + charWallet.sp,
+            gp: treasury.gp + charWallet.gp,
+            pp: treasury.pp + charWallet.pp,
+          }
+        });
+        await prisma.wallet.delete({ where: { id: charWallet.id } });
+      }
+    }
+    
     await prisma.character.delete({ where: { id } });
     return NextResponse.json({ ok: true });
   } catch (error) {
