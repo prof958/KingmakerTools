@@ -17,7 +17,7 @@ export async function GET() {
       characters, 
       objectives, 
       recentVictories,
-      treasuryWallet, 
+      allWallets, 
       kingdom,
       bulkCarriers,
       wishlistCount,
@@ -40,8 +40,8 @@ export async function GET() {
         orderBy: { updatedAt: "desc" },
         take: 3
       }),
-      prisma.wallet.findFirst({
-        where: { campaignId: campaign.id, characterId: null } // The party's shared treasury
+      prisma.wallet.findMany({
+        where: { campaignId: campaign.id }
       }),
       prisma.kingdom.findUnique({
         where: { campaignId: campaign.id }
@@ -75,6 +75,11 @@ export async function GET() {
       guards: shift.characterIds.map(id => characterMap.get(id) || "Unknown")
     })) || [];
 
+    // Calculate total party cash (explicitly only coins, not item values)
+    const treasuryWallet = allWallets.find(w => w.characterId === null);
+    const totalPartyCp = allWallets.reduce((acc, w) => acc + w.cp + (w.sp * 10) + (w.gp * 100) + (w.pp * 1000), 0);
+    const totalPartyGoldEquivalent = (totalPartyCp / 100).toFixed(2);
+
     // Construct the enriched JSON payload
     const statusPayload = {
       campaignName: campaign.name,
@@ -82,17 +87,20 @@ export async function GET() {
       availableParty: characters.map(c => c.name),
       activeQuests: objectives.map(o => o.title),
       recentVictories: recentVictories.map(o => o.title),
-      treasury: {
-        copper: treasuryWallet?.cp || 0,
-        silver: treasuryWallet?.sp || 0,
-        gold: treasuryWallet?.gp || 0,
-        platinum: treasuryWallet?.pp || 0,
-        totalGoldEquivalent: (
-          (treasuryWallet?.cp || 0) / 100 +
-          (treasuryWallet?.sp || 0) / 10 +
-          (treasuryWallet?.gp || 0) +
-          (treasuryWallet?.pp || 0) * 10
-        ).toFixed(2)
+      wealth: {
+        totalPartyCashInGold: totalPartyGoldEquivalent,
+        sharedTreasury: {
+          copper: treasuryWallet?.cp || 0,
+          silver: treasuryWallet?.sp || 0,
+          gold: treasuryWallet?.gp || 0,
+          platinum: treasuryWallet?.pp || 0,
+          goldEquivalent: (
+            (treasuryWallet?.cp || 0) / 100 +
+            (treasuryWallet?.sp || 0) / 10 +
+            (treasuryWallet?.gp || 0) +
+            (treasuryWallet?.pp || 0) * 10
+          ).toFixed(2)
+        }
       },
       logistics: {
         bulkCarriers: bulkCarriers.map(b => ({
