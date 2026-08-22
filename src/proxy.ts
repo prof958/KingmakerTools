@@ -24,6 +24,20 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
+  // API Status route: bypass cookie auth, require API token instead
+  if (pathname === "/api/status") {
+    const authHeader = request.headers.get("authorization");
+    const apiSecret = process.env.API_SECRET_TOKEN;
+
+    if (!apiSecret || authHeader !== `Bearer ${apiSecret}`) {
+      return NextResponse.json(
+        { error: "Unauthorized. Invalid or missing secret token." },
+        { status: 401 }
+      );
+    }
+    return NextResponse.next();
+  }
+
   // Check for valid session
   const token = request.cookies.get(SESSION_COOKIE)?.value;
 
