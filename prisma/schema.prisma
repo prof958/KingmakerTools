@@ -15,23 +15,23 @@ datasource db {
 // ──────────────────────────────────────────────
 
 model Campaign {
-  id           String   @id @default(cuid())
-  name         String
+  id            String   @id @default(cuid())
+  name          String
   golarionDay   Int      @default(1) @map("golarion_day")
   golarionMonth Int      @default(3) @map("golarion_month")
   golarionYear  Int      @default(4710) @map("golarion_year")
-  createdAt    DateTime @default(now()) @map("created_at")
-  updatedAt    DateTime @updatedAt @map("updated_at")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
 
-  characters     Character[]
-  inventoryItems InventoryItem[]
-  wallets        Wallet[]
-  objectives     Objective[]
-  quickLinks     QuickLink[]
-  campsiteLayouts CampsiteLayout[]
-  recipes        Recipe[]
-  wishListItems  WishListItem[]
-  bulkCarriers   BulkCarrier[]
+  characters           Character[]
+  inventoryItems       InventoryItem[]
+  wallets              Wallet[]
+  objectives           Objective[]
+  quickLinks           QuickLink[]
+  campsiteLayouts      CampsiteLayout[]
+  recipes              Recipe[]
+  wishListItems        WishListItem[]
+  bulkCarriers         BulkCarrier[]
   customCampActivities CustomCampActivity[]
 
   // Phase 5
@@ -51,12 +51,12 @@ model Character {
   miscBulk    Float    @default(0) @map("misc_bulk")
   createdAt   DateTime @default(now()) @map("created_at")
 
-  campaign        Campaign         @relation(fields: [campaignId], references: [id], onDelete: Cascade)
-  inventoryItems  InventoryItem[]
-  wallets         Wallet[]
+  campaign          Campaign          @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  inventoryItems    InventoryItem[]
+  wallets           Wallet[]
   campingActivities CampingActivity[]
-  wishListItems   WishListItem[]
-  bulkCarriers    BulkCarrier[]
+  wishListItems     WishListItem[]
+  bulkCarriers      BulkCarrier[]
 
   // Phase 5
   leadershipRoles LeadershipRole[]
@@ -69,20 +69,20 @@ model Character {
 // ──────────────────────────────────────────────
 
 model Item {
-  id                     String   @id @default(cuid())
+  id                     String       @id @default(cuid())
   name                   String
-  bulkValue              Float    @default(0) @map("bulk_value")       // numeric bulk (1, 2, etc.)
-  isBulkLight            Boolean  @default(false) @map("is_bulk_light") // "L" bulk item
-  level                  Int      @default(0)
-  rarity                 Rarity   @default(COMMON)
-  traits                 String[] @default([])
+  bulkValue              Float        @default(0) @map("bulk_value") // numeric bulk (1, 2, etc.)
+  isBulkLight            Boolean      @default(false) @map("is_bulk_light") // "L" bulk item
+  level                  Int          @default(0)
+  rarity                 Rarity       @default(COMMON)
+  traits                 String[]     @default([])
   category               ItemCategory @default(GEAR)
-  valueCp                Int      @default(0) @map("value_cp")         // price in copper pieces
-  isInvestable           Boolean  @default(false) @map("is_investable")
-  containerCapacity      Float?   @map("container_capacity")           // max bulk the container can hold
-  containerBulkReduction Float?   @map("container_bulk_reduction")     // bulk reduction when worn
+  valueCp                Int          @default(0) @map("value_cp") // price in copper pieces
+  isInvestable           Boolean      @default(false) @map("is_investable")
+  containerCapacity      Float?       @map("container_capacity") // max bulk the container can hold
+  containerBulkReduction Float?       @map("container_bulk_reduction") // bulk reduction when worn
   description            String?
-  createdAt              DateTime @default(now()) @map("created_at")
+  createdAt              DateTime     @default(now()) @map("created_at")
 
   inventoryItems InventoryItem[]
   wishListItems  WishListItem[]
@@ -94,9 +94,9 @@ model InventoryItem {
   id                       String   @id @default(cuid())
   campaignId               String   @map("campaign_id")
   itemId                   String   @map("item_id")
-  characterId              String?  @map("character_id")              // null = shared party loot
+  characterId              String?  @map("character_id") // null = shared party loot
   containerInventoryItemId String?  @map("container_inventory_item_id") // self-ref: item inside container
-  bulkCarrierId            String?  @map("bulk_carrier_id")           // item on a mount/vehicle/storage
+  bulkCarrierId            String?  @map("bulk_carrier_id") // item on a mount/vehicle/storage
   quantity                 Int      @default(1)
   isInvested               Boolean  @default(false) @map("is_invested")
   isWorn                   Boolean  @default(false) @map("is_worn")
@@ -104,9 +104,9 @@ model InventoryItem {
   createdAt                DateTime @default(now()) @map("created_at")
   updatedAt                DateTime @updatedAt @map("updated_at")
 
-  campaign    Campaign    @relation(fields: [campaignId], references: [id], onDelete: Cascade)
-  item        Item        @relation(fields: [itemId], references: [id])
-  character   Character?  @relation(fields: [characterId], references: [id], onDelete: SetNull)
+  campaign    Campaign     @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  item        Item         @relation(fields: [itemId], references: [id])
+  character   Character?   @relation(fields: [characterId], references: [id], onDelete: SetNull)
   bulkCarrier BulkCarrier? @relation(fields: [bulkCarrierId], references: [id], onDelete: SetNull)
 
   // Self-referencing container relationship
@@ -133,15 +133,15 @@ model Wallet {
 }
 
 model WishListItem {
-  id           String   @id @default(cuid())
-  campaignId   String   @map("campaign_id")
-  characterId  String?  @map("character_id")  // null = group wish
-  itemId       String?  @map("item_id")       // null = custom item
-  customName   String?  @map("custom_name")
-  customPriceCp Int?    @map("custom_price_cp")
-  notes        String?
-  isAcquired   Boolean  @default(false) @map("is_acquired")
-  createdAt    DateTime @default(now()) @map("created_at")
+  id            String   @id @default(cuid())
+  campaignId    String   @map("campaign_id")
+  characterId   String?  @map("character_id") // null = group wish
+  itemId        String?  @map("item_id") // null = custom item
+  customName    String?  @map("custom_name")
+  customPriceCp Int?     @map("custom_price_cp")
+  notes         String?
+  isAcquired    Boolean  @default(false) @map("is_acquired")
+  createdAt     DateTime @default(now()) @map("created_at")
 
   campaign  Campaign   @relation(fields: [campaignId], references: [id], onDelete: Cascade)
   character Character? @relation(fields: [characterId], references: [id], onDelete: SetNull)
@@ -160,9 +160,9 @@ model BulkCarrier {
   assignedCharacterId String?         @map("assigned_character_id")
   createdAt           DateTime        @default(now()) @map("created_at")
 
-  campaign           Campaign        @relation(fields: [campaignId], references: [id], onDelete: Cascade)
-  assignedCharacter  Character?      @relation(fields: [assignedCharacterId], references: [id], onDelete: SetNull)
-  inventoryItems     InventoryItem[]
+  campaign          Campaign        @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  assignedCharacter Character?      @relation(fields: [assignedCharacterId], references: [id], onDelete: SetNull)
+  inventoryItems    InventoryItem[]
 
   @@map("bulk_carriers")
 }
@@ -204,25 +204,25 @@ model QuickLink {
 // ──────────────────────────────────────────────
 
 model CampsiteLayout {
-  id         String  @id @default(cuid())
-  campaignId String  @map("campaign_id")
+  id         String   @id @default(cuid())
+  campaignId String   @map("campaign_id")
   name       String
-  isActive   Boolean @default(false) @map("is_active")
-  elements   Json    @default("[]") // JSONB: positions of tents, fire, PCs, traps
+  isActive   Boolean  @default(false) @map("is_active")
+  elements   Json     @default("[]") // JSONB: positions of tents, fire, PCs, traps
   createdAt  DateTime @default(now()) @map("created_at")
   updatedAt  DateTime @updatedAt @map("updated_at")
 
-  campaign         Campaign          @relation(fields: [campaignId], references: [id], onDelete: Cascade)
-  watchShifts      WatchShift[]
+  campaign          Campaign          @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  watchShifts       WatchShift[]
   campingActivities CampingActivity[]
 
   @@map("campsite_layouts")
 }
 
 model WatchShift {
-  id               String @id @default(cuid())
-  campsiteLayoutId String @map("campsite_layout_id")
-  shiftNumber      Int    @map("shift_number")
+  id               String   @id @default(cuid())
+  campsiteLayoutId String   @map("campsite_layout_id")
+  shiftNumber      Int      @map("shift_number")
   characterIds     String[] @map("character_ids") // array of character IDs on this shift
 
   campsiteLayout CampsiteLayout @relation(fields: [campsiteLayoutId], references: [id], onDelete: Cascade)
@@ -246,18 +246,18 @@ model CampingActivity {
 }
 
 model Recipe {
-  id                 String  @id @default(cuid())
-  campaignId         String  @map("campaign_id")
+  id                 String   @id @default(cuid())
+  campaignId         String   @map("campaign_id")
   name               String
   ingredients        String?
   dc                 Int?
-  dcSurvival         Int?    @map("dc_survival")
-  dcCookingLore      Int?    @map("dc_cooking_lore")
-  effectsCritSuccess String? @map("effects_crit_success")
-  effectsSuccess     String? @map("effects_success")
-  effectsFail        String? @map("effects_fail")
-  effectsCritFail    String? @map("effects_crit_fail")
-  isDiscovered       Boolean @default(false) @map("is_discovered")
+  dcSurvival         Int?     @map("dc_survival")
+  dcCookingLore      Int?     @map("dc_cooking_lore")
+  effectsCritSuccess String?  @map("effects_crit_success")
+  effectsSuccess     String?  @map("effects_success")
+  effectsFail        String?  @map("effects_fail")
+  effectsCritFail    String?  @map("effects_crit_fail")
+  isDiscovered       Boolean  @default(false) @map("is_discovered")
   createdAt          DateTime @default(now()) @map("created_at")
 
   campaign Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
@@ -283,11 +283,27 @@ model CustomCampActivity {
 // ──────────────────────────────────────────────
 
 model Kingdom {
-  id         String @id @default(cuid())
-  campaignId String @unique @map("campaign_id")
-  name       String
-  level      Int    @default(1)
-  xp         Int    @default(0)
+  id         String         @id @default(cuid())
+  campaignId String         @unique @map("campaign_id")
+  name       String         @default("Unnamed Kingdom")
+  ruleset    KingdomRuleset @default(VK)
+
+  // Progression
+  level    Int      @default(1)
+  xp       Int      @default(0)
+  size     Int      @default(1) // total hexes; drives the Size table
+  fame     Int      @default(1)
+  fameType FameType @default(FAME)
+  fameMax  Int      @default(3) @map("fame_max")
+  atWar    Boolean  @default(false) @map("at_war")
+
+  // Founding choices (Kingdom Creation steps 2-5)
+  charter             String?
+  charterFreeBoost    String?  @map("charter_free_boost")
+  heartland           String?
+  government          String?
+  governmentFreeBoost String?  @map("government_free_boost")
+  finalizeBoosts      String[] @default([]) @map("finalize_boosts")
 
   // Ability scores
   culture   Int @default(10)
@@ -295,38 +311,105 @@ model Kingdom {
   loyalty   Int @default(10)
   stability Int @default(10)
 
-  // Negative tracks
-  unrest     Int @default(0)
-  corruption Int @default(0)
-  crime      Int @default(0)
-  decay      Int @default(0)
-  strife     Int @default(0)
+  // Unrest
+  unrest Int @default(0)
+
+  // Ruin — points / threshold / penalty per category
+  corruptionPoints    Int @default(0) @map("corruption_points")
+  corruptionThreshold Int @default(10) @map("corruption_threshold")
+  corruptionPenalty   Int @default(0) @map("corruption_penalty")
+  crimePoints         Int @default(0) @map("crime_points")
+  crimeThreshold      Int @default(10) @map("crime_threshold")
+  crimePenalty        Int @default(0) @map("crime_penalty")
+  decayPoints         Int @default(0) @map("decay_points")
+  decayThreshold      Int @default(10) @map("decay_threshold")
+  decayPenalty        Int @default(0) @map("decay_penalty")
+  strifePoints        Int @default(0) @map("strife_points")
+  strifeThreshold     Int @default(10) @map("strife_threshold")
+  strifePenalty       Int @default(0) @map("strife_penalty")
 
   // Resources
-  rp       Int @default(0) // resource points
-  food     Int @default(0)
-  lumber   Int @default(0)
-  luxuries Int @default(0)
-  ore      Int @default(0)
-  stone    Int @default(0)
+  rp                Int @default(0) // resource points, rolled each turn
+  resourceDiceBonus Int @default(0) @map("resource_dice_bonus") // carryover bonus/penalty dice
+  food              Int @default(0)
+  lumber            Int @default(0)
+  luxuries          Int @default(0)
+  ore               Int @default(0)
+  stone             Int @default(0)
+
+  // Turn tracking
+  currentTurn Int @default(0) @map("current_turn")
+
+  notes     String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   campaign        Campaign         @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  skills          KingdomSkill[]
+  feats           KingdomFeat[]
+  leadershipRoles LeadershipRole[]
   hexes           Hex[]
   settlements     Settlement[]
-  leadershipRoles LeadershipRole[]
-  kingdomTurns    KingdomTurn[]
+  turns           KingdomTurn[]
 
   @@map("kingdoms")
 }
 
+model KingdomSkill {
+  id        String @id @default(cuid())
+  kingdomId String @map("kingdom_id")
+  skill     String // one of the 16 kingdom skills
+  rank      Int    @default(0) // 0 untrained .. 4 legendary
+
+  kingdom Kingdom @relation(fields: [kingdomId], references: [id], onDelete: Cascade)
+
+  @@unique([kingdomId, skill])
+  @@map("kingdom_skills")
+}
+
+model KingdomFeat {
+  id           String   @id @default(cuid())
+  kingdomId    String   @map("kingdom_id")
+  name         String
+  takenAtLevel Int?     @map("taken_at_level")
+  isBonus      Boolean  @default(false) @map("is_bonus") // granted by government
+  notes        String?
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  kingdom Kingdom @relation(fields: [kingdomId], references: [id], onDelete: Cascade)
+
+  @@map("kingdom_feats")
+}
+
+model LeadershipRole {
+  id          String  @id @default(cuid())
+  kingdomId   String  @map("kingdom_id")
+  role        String // ruler, counselor, general, emissary, magister, treasurer, viceroy, warden
+  characterId String? @map("character_id")
+  npcName     String? @map("npc_name") // role held by an NPC instead of a party character
+  invested    Boolean @default(false)
+
+  kingdom   Kingdom    @relation(fields: [kingdomId], references: [id], onDelete: Cascade)
+  character Character? @relation(fields: [characterId], references: [id], onDelete: SetNull)
+
+  @@unique([kingdomId, role])
+  @@map("leadership_roles")
+}
+
 model Hex {
-  id         String    @id @default(cuid())
-  kingdomId  String    @map("kingdom_id")
-  q          Int       // axial coordinate
-  r          Int       // axial coordinate
-  terrain    String    @default("plains")
-  state      HexState  @default(UNEXPLORED)
-  improvement String?
+  id            String   @id @default(cuid())
+  kingdomId     String   @map("kingdom_id")
+  q             Int // axial coordinate
+  r             Int // axial coordinate
+  terrain       String   @default("plains")
+  state         HexState @default(UNCLAIMED)
+  reconnoitered Boolean  @default(false)
+  hasRoads      Boolean  @default(false) @map("has_roads")
+  fortified     Boolean  @default(false)
+  workSite      String?  @map("work_site") // farmland, lumber, mine, quarry
+  features      String[] @default([]) // landmark, refuge, resource, bridge, ruins, freehold
+  label         String?
+  notes         String?
 
   kingdom    Kingdom     @relation(fields: [kingdomId], references: [id], onDelete: Cascade)
   settlement Settlement?
@@ -336,80 +419,55 @@ model Hex {
 }
 
 model Settlement {
-  id         String         @id @default(cuid())
-  kingdomId  String         @map("kingdom_id")
-  hexId      String         @unique @map("hex_id")
-  name       String
-  type       SettlementType @default(VILLAGE)
+  id          String         @id @default(cuid())
+  kingdomId   String         @map("kingdom_id")
+  hexId       String?        @unique @map("hex_id")
+  name        String
+  type        SettlementType @default(VILLAGE)
+  isCapital   Boolean        @default(false) @map("is_capital")
+  level       Int            @default(1)
+  overcrowded Boolean        @default(false)
+  grid        Json           @default("{}") // JSONB urban grid: blocks, lots, structures, borders
+  notes       String?
+  createdAt   DateTime       @default(now()) @map("created_at")
+  updatedAt   DateTime       @updatedAt @map("updated_at")
 
   kingdom Kingdom @relation(fields: [kingdomId], references: [id], onDelete: Cascade)
-  hex     Hex     @relation(fields: [hexId], references: [id], onDelete: Cascade)
-  blocks  Block[]
+  hex     Hex?    @relation(fields: [hexId], references: [id], onDelete: SetNull)
 
   @@map("settlements")
 }
 
-model Block {
-  id           String @id @default(cuid())
-  settlementId String @map("settlement_id")
-  position     Int
+model KingdomStructure {
+  id           String   @id @default(cuid())
+  name         String
+  level        Int      @default(1)
+  lots         Int      @default(1)
+  costRp       Int      @default(0) @map("cost_rp")
+  costLumber   Int      @default(0) @map("cost_lumber")
+  costLuxuries Int      @default(0) @map("cost_luxuries")
+  costOre      Int      @default(0) @map("cost_ore")
+  costStone    Int      @default(0) @map("cost_stone")
+  itemBonus    Int?     @map("item_bonus")
+  itemBonusTo  String?  @map("item_bonus_to") // activity the item bonus applies to
+  traits       String[] @default([])
+  effects      String?
+  description  String?
+  isVkAddition Boolean  @default(false) @map("is_vk_addition") // added by the V&K house rules
 
-  settlement Settlement @relation(fields: [settlementId], references: [id], onDelete: Cascade)
-  lots       Lot[]
-
-  @@unique([settlementId, position])
-  @@map("blocks")
-}
-
-model Lot {
-  id          String  @id @default(cuid())
-  blockId     String  @map("block_id")
-  position    Int     // 1-4
-  structureId String? @map("structure_id")
-
-  block     Block      @relation(fields: [blockId], references: [id], onDelete: Cascade)
-  structure Structure? @relation(fields: [structureId], references: [id])
-
-  @@unique([blockId, position])
-  @@map("lots")
-}
-
-model Structure {
-  id            String @id @default(cuid())
-  name          String
-  lotsRequired  Int    @default(1) @map("lots_required")
-  costRp        Int    @default(0) @map("cost_rp")
-  costs         Json?  // JSONB: { food: 0, lumber: 0, luxuries: 0, ore: 0, stone: 0 }
-  buildTime     Int    @default(1) @map("build_time") // in kingdom turns
-  itemBonus     Int?   @map("item_bonus")
-  effects       Json?  // JSONB: flexible effects
-  description   String?
-
-  lots Lot[]
-
-  @@map("structures")
-}
-
-model LeadershipRole {
-  id          String  @id @default(cuid())
-  kingdomId   String  @map("kingdom_id")
-  role        String  // "ruler", "counselor", "general", etc.
-  characterId String? @map("character_id")
-  ability     String? // "culture", "economy", "loyalty", "stability"
-
-  kingdom   Kingdom    @relation(fields: [kingdomId], references: [id], onDelete: Cascade)
-  character Character? @relation(fields: [characterId], references: [id], onDelete: SetNull)
-
-  @@unique([kingdomId, role])
-  @@map("leadership_roles")
+  @@map("kingdom_structures")
 }
 
 model KingdomTurn {
   id         String   @id @default(cuid())
   kingdomId  String   @map("kingdom_id")
   turnNumber Int      @map("turn_number")
-  phaseLog   Json?    @map("phase_log") // JSONB: audit trail of actions
+  status     String   @default("in_progress") // in_progress, complete
+  phaseData  Json     @default("{}") @map("phase_data") // per-step state + activity log
+  rpRolled   Int?     @map("rp_rolled")
+  summary    String?
   createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
 
   kingdom Kingdom @relation(fields: [kingdomId], references: [id], onDelete: Cascade)
 
@@ -449,11 +507,20 @@ enum ObjectiveStatus {
   ARCHIVED
 }
 
+enum KingdomRuleset {
+  RAW
+  VK
+}
+
+enum FameType {
+  FAME
+  INFAMY
+}
+
 enum HexState {
-  UNEXPLORED
-  EXPLORED
+  UNCLAIMED
+  RECONNOITERED
   CLAIMED
-  CLEARED
 }
 
 enum SettlementType {
