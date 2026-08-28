@@ -5,4 +5,5 @@ RUN npm ci
 COPY . .
 RUN npx prisma generate
 RUN npm run build
-CMD ["npm", "start"]
+# Apply any pending DB migrations, then start the server.
+CMD ["sh", "-c", "npx prisma migrate deploy && npm start"]

@@ -1,0 +1,58 @@
+{
+  "sheet-1": {
+    "file": "/kingdom/map/sheet-1.jpg",
+    "height": 1636,
+    "hex": {
+      "colPitch": 175,
+      "cols": 7,
+      "orientation": "pointy",
+      "originX": 168,
+      "originY": 0,
+      "rowPitch": 152,
+      "rows": 11
+    },
+    "width": 1261
+  },
+  "sheet-2": {
+    "file": "/kingdom/map/sheet-2.jpg",
+    "height": 1636,
+    "hex": {
+      "colPitch": 175,
+      "cols": 7,
+      "orientation": "pointy",
+      "originX": 146,
+      "originY": 80,
+      "rowPitch": 152,
+      "rows": 11
+    },
+    "width": 1261
+  },
+  "sheet-3": {
+    "file": "/kingdom/map/sheet-3.jpg",
+    "height": 1636,
+    "hex": {
+      "colPitch": 175,
+      "cols": 7,
+      "orientation": "pointy",
+      "originX": 9,
+      "originY": 7,
+      "rowPitch": 152,
+      "rows": 11
+    },
+    "width": 1262
+  },
+  "sheet-4": {
+    "file": "/kingdom/map/sheet-4.jpg",
+    "height": 1636,
+    "hex": {
+      "colPitch": 175,
+      "cols": 7,
+      "orientation": "pointy",
+      "originX": 157,
+      "originY": 0,
+      "rowPitch": 152,
+      "rows": 11
+    },
+    "width": 1261
+  }
+}

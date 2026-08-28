@@ -1,0 +1,485 @@
+{
+  "academy": {
+    "file": "/kingdom/structures/academy.png",
+    "height": 106,
+    "lots": 2,
+    "name": "Academy",
+    "width": 210
+  },
+  "alchemy-lab": {
+    "file": "/kingdom/structures/alchemy-lab.png",
+    "height": 98,
+    "lots": 1,
+    "name": "Alchemy Lab",
+    "width": 98
+  },
+  "arcanist-tower": {
+    "file": "/kingdom/structures/arcanist-tower.png",
+    "height": 98,
+    "lots": 1,
+    "name": "Arcanist Tower",
+    "width": 98
+  },
+  "arena": {
+    "file": "/kingdom/structures/arena.png",
+    "height": 207,
+    "lots": 4,
+    "name": "Arena",
+    "width": 207
+  },
+  "bank": {
+    "file": "/kingdom/structures/bank.png",
+    "height": 98,
+    "lots": 1,
+    "name": "Bank",
+    "width": 98
+  },
+  "barracks": {
+    "file": "/kingdom/structures/barracks.png",
+    "height": 98,
+    "lots": 1,
+    "name": "Barracks",
+    "width": 98
+  },
+  "brewery": {
+    "file": "/kingdom/structures/brewery.png",
+    "height": 98,
+    "lots": 1,
+    "name": "Brewery",
+    "width": 98
+  },
+  "castle": {
+    "file": "/kingdom/structures/castle.png",
+    "height": 207,
+    "lots": 4,
+    "name": "Castle",
+    "width": 207
+  },
+  "cathedral": {
+    "file": "/kingdom/structures/cathedral.png",
+    "height": 207,
+    "lots": 4,
+    "name": "Cathedral",
+    "width": 207
+  },
+  "cemetery": {
+    "file": "/kingdom/structures/cemetery.png",
+    "height": 98,
+    "lots": 1,
+    "name": "Cemetery",
+    "width": 98
+  },
+  "construction-yard": {
+    "file": "/kingdom/structures/construction-yard.png",
+    "height": 207,
+    "lots": 4,
+    "name": "Construction Yard",
+    "width": 207
+  },
+  "dump": {
+    "file": "/kingdom/structures/dump.png",
+    "height": 98,
+    "lots": 1,
+    "name": "Dump",
+    "width": 98
+  },
+  "embassy": {
+    "file": "/kingdom/structures/embassy.png",
+    "height": 106,
+    "lots": 2,
+    "name": "Embassy",
+    "width": 210
+  },
+  "festival-hall": {
+    "file": "/kingdom/structures/festival-hall.png",
+    "height": 98,
+    "lots": 1,
+    "name": "Festival Hall",
+    "width": 98
+  },
+  "foundry": {
+    "file": "/kingdom/structures/foundry.png",
+    "height": 106,
+    "lots": 2,
+    "name": "Foundry",
+    "width": 210
+  },
+  "garrison": {
+    "file": "/kingdom/structures/garrison.png",
+    "height": 106,
+    "lots": 2,
+    "name": "Garrison",
+    "width": 210
+  },
+  "general-store": {
+    "file": "/kingdom/structures/general-store.png",
+    "height": 98,
+    "lots": 1,
+    "name": "General Store",
+    "width": 98
+  },
+  "granary": {
+    "file": "/kingdom/structures/granary.png",
+    "height": 98,
+    "lots": 1,
+    "name": "Granary",
+    "width": 98
+  },
+  "guildhall": {
+    "file": "/kingdom/structures/guildhall.png",
+    "height": 106,
+    "lots": 2,
+    "name": "Guildhall",
+    "width": 210
+  },
+  "herbalist": {
+    "file": "/kingdom/structures/herbalist.png",
+    "height": 98,
+    "lots": 1,
+    "name": "Herbalist",
+    "width": 98
+  },
+  "hospital": {
+    "file": "/kingdom/structures/hospital.png",
+    "height": 106,
+    "lots": 2,
+    "name": "Hospital",
+    "width": 210
+  },
+  "houses": {
+    "file": "/kingdom/structures/houses.png",
+    "height": 98,
+    "lots": 1,
+    "name": "Houses",
+    "width": 98
+  },
+  "illicit-market": {
+    "file": "/kingdom/structures/illicit-market.png",
+    "height": 98,
+    "lots": 1,
+    "name": "Illicit Market",
+    "width": 98
+  },
+  "inn": {
+    "file": "/kingdom/structures/inn.png",
+    "height": 98,
+    "lots": 1,
+    "name": "Inn",
+    "width": 98
+  },
+  "jail": {
+    "file": "/kingdom/structures/jail.png",
+    "height": 98,
+    "lots": 1,
+    "name": "Jail",
+    "width": 98
+  },
+  "keep": {
+    "file": "/kingdom/structures/keep.png",
+    "height": 106,
+    "lots": 2,
+    "name": "Keep",
+    "width": 210
+  },
+  "library": {
+    "file": "/kingdom/structures/library.png",
+    "height": 98,
+    "lots": 1,
+    "name": "Library",
+    "width": 98
+  },
+  "lumberyard": {
+    "file": "/kingdom/structures/lumberyard.png",
+    "height": 106,
+    "lots": 2,
+    "name": "Lumberyard",
+    "width": 210
+  },
+  "luxury-store": {
+    "file": "/kingdom/structures/luxury-store.png",
+    "height": 98,
+    "lots": 1,
+    "name": "Luxury Store",
+    "width": 98
+  },
+  "magic-shop": {
+    "file": "/kingdom/structures/magic-shop.png",
+    "height": 98,
+    "lots": 1,
+    "name": "Magic Shop",
+    "width": 98
+  },
+  "mansion": {
+    "file": "/kingdom/structures/mansion.png",
+    "height": 98,
+    "lots": 1,
+    "name": "Mansion",
+    "width": 98
+  },
+  "marketplace": {
+    "file": "/kingdom/structures/marketplace.png",
+    "height": 106,
+    "lots": 2,
+    "name": "Marketplace",
+    "width": 210
+  },
+  "menagerie": {
+    "file": "/kingdom/structures/menagerie.png",
+    "height": 207,
+    "lots": 4,
+    "name": "Menagerie",
+    "width": 207
+  },
+  "military-academy": {
+    "file": "/kingdom/structures/military-academy.png",
+    "height": 106,
+    "lots": 2,
+    "name": "Military Academy",
+    "width": 210
+  },
+  "mill": {
+    "file": "/kingdom/structures/mill.png",
+    "height": 98,
+    "lots": 1,
+    "name": "Mill",
+    "width": 98
+  },
+  "mint": {
+    "file": "/kingdom/structures/mint.png",
+    "height": 98,
+    "lots": 1,
+    "name": "Mint",
+    "width": 98
+  },
+  "monument": {
+    "file": "/kingdom/structures/monument.png",
+    "height": 98,
+    "lots": 1,
+    "name": "Monument",
+    "width": 98
+  },
+  "museum": {
+    "file": "/kingdom/structures/museum.png",
+    "height": 106,
+    "lots": 2,
+    "name": "Museum",
+    "width": 210
+  },
+  "noble-villa": {
+    "file": "/kingdom/structures/noble-villa.png",
+    "height": 106,
+    "lots": 2,
+    "name": "Noble Villa",
+    "width": 210
+  },
+  "occult-shop": {
+    "file": "/kingdom/structures/occult-shop.png",
+    "height": 98,
+    "lots": 1,
+    "name": "Occult Shop",
+    "width": 98
+  },
+  "opera-house": {
+    "file": "/kingdom/structures/opera-house.png",
+    "height": 106,
+    "lots": 2,
+    "name": "Opera House",
+    "width": 210
+  },
+  "orphanage": {
+    "file": "/kingdom/structures/orphanage.png",
+    "height": 98,
+    "lots": 1,
+    "name": "Orphanage",
+    "width": 98
+  },
+  "palace": {
+    "file": "/kingdom/structures/palace.png",
+    "height": 207,
+    "lots": 4,
+    "name": "Palace",
+    "width": 207
+  },
+  "park": {
+    "file": "/kingdom/structures/park.png",
+    "height": 98,
+    "lots": 1,
+    "name": "Park",
+    "width": 98
+  },
+  "pier": {
+    "file": "/kingdom/structures/pier.png",
+    "height": 98,
+    "lots": 1,
+    "name": "Pier",
+    "width": 98
+  },
+  "rubble": {
+    "file": "/kingdom/structures/rubble.png",
+    "height": 98,
+    "lots": 1,
+    "name": "Rubble",
+    "width": 98
+  },
+  "sacred-grove": {
+    "file": "/kingdom/structures/sacred-grove.png",
+    "height": 98,
+    "lots": 1,
+    "name": "Sacred Grove",
+    "width": 98
+  },
+  "secure-warehouse": {
+    "file": "/kingdom/structures/secure-warehouse.png",
+    "height": 106,
+    "lots": 2,
+    "name": "Secure Warehouse",
+    "width": 210
+  },
+  "shrine": {
+    "file": "/kingdom/structures/shrine.png",
+    "height": 98,
+    "lots": 1,
+    "name": "Shrine",
+    "width": 98
+  },
+  "smithy": {
+    "file": "/kingdom/structures/smithy.png",
+    "height": 98,
+    "lots": 1,
+    "name": "Smithy",
+    "width": 98
+  },
+  "special-artisan": {
+    "file": "/kingdom/structures/special-artisan.png",
+    "height": 98,
+    "lots": 1,
+    "name": "Special Artisan",
+    "width": 98
+  },
+  "stable": {
+    "file": "/kingdom/structures/stable.png",
+    "height": 98,
+    "lots": 1,
+    "name": "Stable",
+    "width": 98
+  },
+  "stockyard": {
+    "file": "/kingdom/structures/stockyard.png",
+    "height": 207,
+    "lots": 4,
+    "name": "Stockyard",
+    "width": 207
+  },
+  "stonemason": {
+    "file": "/kingdom/structures/stonemason.png",
+    "height": 106,
+    "lots": 2,
+    "name": "Stonemason",
+    "width": 210
+  },
+  "tannery": {
+    "file": "/kingdom/structures/tannery.png",
+    "height": 98,
+    "lots": 1,
+    "name": "Tannery",
+    "width": 98
+  },
+  "tavern-dive": {
+    "file": "/kingdom/structures/tavern-dive.png",
+    "height": 98,
+    "lots": 1,
+    "name": "Tavern, Dive",
+    "width": 98
+  },
+  "tavern-luxury": {
+    "file": "/kingdom/structures/tavern-luxury.png",
+    "height": 106,
+    "lots": 2,
+    "name": "Tavern, Luxury",
+    "width": 210
+  },
+  "tavern-popular": {
+    "file": "/kingdom/structures/tavern-popular.png",
+    "height": 98,
+    "lots": 1,
+    "name": "Tavern, Popular",
+    "width": 98
+  },
+  "tavern-world-class": {
+    "file": "/kingdom/structures/tavern-world-class.png",
+    "height": 106,
+    "lots": 2,
+    "name": "Tavern, World-Class",
+    "width": 210
+  },
+  "temple": {
+    "file": "/kingdom/structures/temple.png",
+    "height": 106,
+    "lots": 2,
+    "name": "Temple",
+    "width": 210
+  },
+  "tenement": {
+    "file": "/kingdom/structures/tenement.png",
+    "height": 98,
+    "lots": 1,
+    "name": "Tenement",
+    "width": 98
+  },
+  "theater": {
+    "file": "/kingdom/structures/theater.png",
+    "height": 106,
+    "lots": 2,
+    "name": "Theater",
+    "width": 210
+  },
+  "thieves-guild": {
+    "file": "/kingdom/structures/thieves-guild.png",
+    "height": 98,
+    "lots": 1,
+    "name": "Thieves\u2019 Guild",
+    "width": 98
+  },
+  "town-hall": {
+    "file": "/kingdom/structures/town-hall.png",
+    "height": 106,
+    "lots": 2,
+    "name": "Town Hall",
+    "width": 210
+  },
+  "trade-shop": {
+    "file": "/kingdom/structures/trade-shop.png",
+    "height": 98,
+    "lots": 1,
+    "name": "Trade Shop",
+    "width": 98
+  },
+  "university": {
+    "file": "/kingdom/structures/university.png",
+    "height": 207,
+    "lots": 4,
+    "name": "University",
+    "width": 207
+  },
+  "watchtower": {
+    "file": "/kingdom/structures/watchtower.png",
+    "height": 98,
+    "lots": 1,
+    "name": "Watchtower",
+    "width": 98
+  },
+  "waterfront-corner": {
+    "file": "/kingdom/structures/waterfront-corner.png",
+    "height": 207,
+    "lots": 4,
+    "name": "Waterfront (corner)",
+    "width": 207
+  },
+  "waterfront-side": {
+    "file": "/kingdom/structures/waterfront-side.png",
+    "height": 207,
+    "lots": 4,
+    "name": "Waterfront (side)",
+    "width": 207
+  }
+}
