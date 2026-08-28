@@ -1,8 +1,10 @@
 /**
  * Kingdom Page — Server Component
- * Loads the campaign's kingdom (creating it on first visit) and hands it to the
- * client shell. Hex map, settlement Urban Grids, and the turn wizard land in
- * later Phase 5 slices.
+ *
+ * Loads the campaign's kingdom, creating it on first visit. An unfounded
+ * kingdom gets the founding wizard instead of the dashboard; the dashboard has
+ * nothing meaningful to show until the founding choices exist. Hex map,
+ * settlement Urban Grids, and the turn tracker land in later Phase 5 slices.
  */
 export const dynamic = "force-dynamic";
 
@@ -10,7 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { prisma } from "@/lib/db";
 import { getOrCreateCampaign } from "@/lib/campaign";
 import { getOrCreateKingdom } from "@/lib/kingdom";
-import { KingdomShell } from "@/components/kingdom";
+import { FoundingWizard, KingdomShell } from "@/components/kingdom";
 
 export default async function KingdomPage() {
   const campaign = await getOrCreateCampaign();
@@ -22,6 +24,13 @@ export default async function KingdomPage() {
       select: { id: true, name: true, emoji: true, isCompanion: true },
     }),
   ]);
+
+  const kingdomData = JSON.parse(JSON.stringify(kingdom));
+  const characterData = JSON.parse(JSON.stringify(characters));
+
+  if (!kingdom.founded) {
+    return <FoundingWizard kingdom={kingdomData} characters={characterData} />;
+  }
 
   return (
     <div className="space-y-6">
@@ -35,10 +44,7 @@ export default async function KingdomPage() {
         </Badge>
       </div>
 
-      <KingdomShell
-        kingdom={JSON.parse(JSON.stringify(kingdom))}
-        characters={JSON.parse(JSON.stringify(characters))}
-      />
+      <KingdomShell kingdom={kingdomData} characters={characterData} />
     </div>
   );
 }

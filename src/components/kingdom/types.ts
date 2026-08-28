@@ -43,7 +43,6 @@ export interface KingdomData {
   name: string;
   ruleset: "RAW" | "VK";
   level: number;
-  xp: number;
   size: number;
   fame: number;
   fameType: "FAME" | "INFAMY";
@@ -56,6 +55,8 @@ export interface KingdomData {
   government: string | null;
   governmentFreeBoost: string | null;
   finalizeBoosts: string[];
+  skillPicks: string[];
+  founded: boolean;
 
   culture: number;
   economy: number;

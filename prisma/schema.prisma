@@ -288,9 +288,8 @@ model Kingdom {
   name       String         @default("Unnamed Kingdom")
   ruleset    KingdomRuleset @default(VK)
 
-  // Progression
+  // Progression — levelling is by milestone, so no XP is tracked
   level    Int      @default(1)
-  xp       Int      @default(0)
   size     Int      @default(1) // total hexes; drives the Size table
   fame     Int      @default(1)
   fameType FameType @default(FAME)
@@ -304,6 +303,12 @@ model Kingdom {
   government          String?
   governmentFreeBoost String?  @map("government_free_boost")
   finalizeBoosts      String[] @default([]) @map("finalize_boosts")
+  /// Free trained-skill picks. The skills the founding choices grant outright
+  /// are derived from them; only the player's own picks need storing.
+  skillPicks          String[] @default([]) @map("skill_picks")
+  /// False until the founding wizard is completed, which is what decides
+  /// whether the Kingdom tab shows onboarding or the dashboard.
+  founded             Boolean  @default(false)
 
   // Ability scores
   culture   Int @default(10)

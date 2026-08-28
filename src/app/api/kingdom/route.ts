@@ -7,7 +7,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getOrCreateKingdom } from "@/lib/kingdom";
-import { KINGDOM_ABILITIES } from "@/lib/pf2e/kingdom";
+import { KINGDOM_ABILITIES, getKingdomSkill } from "@/lib/pf2e/kingdom";
 
 export async function GET() {
   try {
@@ -22,7 +22,6 @@ export async function GET() {
 /** Integer fields that accept a plain numeric assignment. */
 const INT_FIELDS = [
   "level",
-  "xp",
   "size",
   "fame",
   "fameMax",
@@ -102,6 +101,18 @@ export async function PATCH(req: NextRequest) {
         (a: unknown): a is string =>
           typeof a === "string" && (KINGDOM_ABILITIES as readonly string[]).includes(a),
       );
+    }
+
+    if ("skillPicks" in body && Array.isArray(body.skillPicks)) {
+      // Order matters: startingSkills() fills the free slots in this order and
+      // rejects anything past the allowance.
+      data.skillPicks = body.skillPicks.filter(
+        (s: unknown): s is string => typeof s === "string" && Boolean(getKingdomSkill(s)),
+      );
+    }
+
+    if (typeof body.founded === "boolean") {
+      data.founded = body.founded;
     }
 
     if (Object.keys(data).length === 0) {
