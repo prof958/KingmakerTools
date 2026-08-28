@@ -23,8 +23,6 @@ import {
   resourceDiceCount,
   sizeBracket,
   untrainedImprovisation,
-  xpToNextLevel,
-  XP_PER_LEVEL,
   type KingdomAbility,
   type Commodity,
 } from "@/lib/pf2e/kingdom";
@@ -52,7 +50,6 @@ export function KingdomOverview({
   const nextLevelFeatures = advancementTable(kingdom.ruleset)[
     Math.min(19, Math.max(0, kingdom.level))
   ];
-  const xpInLevel = ((kingdom.xp % XP_PER_LEVEL) + XP_PER_LEVEL) % XP_PER_LEVEL;
 
   return (
     <div className="space-y-6">
@@ -62,7 +59,7 @@ export function KingdomOverview({
           <CardTitle className="text-base">Progression</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
             <label className="space-y-1">
               <span className="text-xs text-muted-foreground">Level</span>
               <NumberInput
@@ -82,30 +79,12 @@ export function KingdomOverview({
                 onValueChange={set("size")}
               />
             </label>
-            <label className="space-y-1">
-              <span className="text-xs text-muted-foreground">XP toward next level</span>
-              <NumberInput
-                className="h-8"
-                value={xpInLevel}
-                min={0}
-                onValueChange={(v) =>
-                  onPatch({ xp: Math.floor(kingdom.xp / XP_PER_LEVEL) * XP_PER_LEVEL + v })
-                }
-              />
-            </label>
             <div className="space-y-1">
-              <span className="text-xs text-muted-foreground">Next level in</span>
-              <div className="flex h-8 items-center font-medium tabular-nums">
-                {xpToNextLevel(kingdom.xp)} XP
+              <span className="text-xs text-muted-foreground">Advancement</span>
+              <div className="flex h-8 items-center text-sm text-muted-foreground">
+                Milestone — the GM sets the level
               </div>
             </div>
-          </div>
-
-          <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
-            <div
-              className="h-full rounded-full bg-primary transition-all"
-              style={{ width: `${(xpInLevel / XP_PER_LEVEL) * 100}%` }}
-            />
           </div>
 
           {nextLevelFeatures && kingdom.level < 20 && (

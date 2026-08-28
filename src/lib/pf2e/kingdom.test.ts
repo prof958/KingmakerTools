@@ -21,7 +21,7 @@ import {
   sizeBracket,
   skillModifier,
   untrainedImprovisation,
-  xpToNextLevel,
+  startingSkills,
 } from "./kingdom";
 
 describe("abilityModifier", () => {
@@ -181,13 +181,65 @@ describe("controlDC", () => {
   });
 });
 
-describe("xpToNextLevel", () => {
-  it("counts down within the 1000 XP band", () => {
-    expect(xpToNextLevel(0)).toBe(1000);
-    expect(xpToNextLevel(250)).toBe(750);
-    expect(xpToNextLevel(999)).toBe(1);
-    expect(xpToNextLevel(1000)).toBe(1000);
-    expect(xpToNextLevel(1500)).toBe(500);
+describe("startingSkills", () => {
+  it("RAW trains only the government's two skills", () => {
+    const r = startingSkills({
+      ruleset: "RAW",
+      charter: "conquest",
+      heartland: "hill_plain",
+      government: "despotism",
+    });
+    expect(r.trained.sort()).toEqual(["intrigue", "warfare"]);
+    expect(r.freePicks).toBe(0);
+  });
+
+  it("VK adds a charter and heartland skill plus a free pick for each", () => {
+    const r = startingSkills({
+      ruleset: "VK",
+      charter: "grant", // Industry
+      heartland: "lake_river", // Boating
+      government: "despotism", // Intrigue + Warfare
+    });
+    expect(r.granted.map((g) => g.skill).sort()).toEqual([
+      "boating",
+      "industry",
+      "intrigue",
+      "warfare",
+    ]);
+    expect(r.freePicks).toBe(2);
+    expect(r.remaining).toBe(2);
+  });
+
+  it("turns a duplicated grant into another free pick", () => {
+    // Conquest grants Warfare; Despotism already trained it.
+    const r = startingSkills({
+      ruleset: "VK",
+      charter: "conquest",
+      heartland: "hill_plain",
+      government: "despotism",
+    });
+    expect(r.trained).toContain("warfare");
+    expect(r.granted.filter((g) => g.skill === "warfare")).toHaveLength(1);
+    expect(r.freePicks).toBe(3);
+  });
+
+  it("gives the open charter a free pick instead of a granted skill", () => {
+    const r = startingSkills({ ruleset: "VK", charter: "open", government: "republic" });
+    expect(r.freePicks).toBe(2);
+    expect(r.granted.map((g) => g.skill).sort()).toEqual(["engineering", "politics"]);
+  });
+
+  it("accepts valid picks and rejects unknown, duplicate, and excess ones", () => {
+    const r = startingSkills({
+      ruleset: "VK",
+      charter: "grant",
+      heartland: "lake_river",
+      government: "despotism",
+      picks: ["magic", "industry", "not-a-skill", "arts", "trade"],
+    });
+    expect(r.picks).toEqual(["magic", "arts"]);
+    expect(r.rejected).toEqual(["industry", "not-a-skill", "trade"]);
+    expect(r.remaining).toBe(0);
   });
 });
 

@@ -73,6 +73,11 @@ export interface CharterDef {
   flaw: KingdomAbility | null;
   /** Every charter also grants one free boost. */
   freeBoost: true;
+  /**
+   * VK only — the Kingdom skill this charter trains. RAW charters grant no
+   * skills at all. null means the player picks freely (the open charter).
+   */
+  grantedSkill: string | null;
   description: string;
 }
 
@@ -83,6 +88,7 @@ export const CHARTERS: CharterDef[] = [
     boost: "loyalty",
     flaw: "culture",
     freeBoost: true,
+    grantedSkill: "warfare",
     description:
       "Your sponsors conquered the area and command you to hold and pacify it. The people are devoted (partly from fear), but the threat of war hinders the arts.",
   },
@@ -92,6 +98,7 @@ export const CHARTERS: CharterDef[] = [
     boost: "culture",
     flaw: "stability",
     freeBoost: true,
+    grantedSkill: "exploration",
     description:
       "Your patron places you in charge of a domain adjacent to settled lands. Greater support bolsters your society, but reliance on your ally can impede your security.",
   },
@@ -101,6 +108,7 @@ export const CHARTERS: CharterDef[] = [
     boost: "stability",
     flaw: "economy",
     freeBoost: true,
+    grantedSkill: "wilderness",
     description:
       "Your sponsor wants you to explore, clear, and settle a wilderness. Your charter secures initial structures at the cost of financial debt.",
   },
@@ -110,6 +118,7 @@ export const CHARTERS: CharterDef[] = [
     boost: "economy",
     flaw: "loyalty",
     freeBoost: true,
+    grantedSkill: "industry",
     description:
       "Your patron grants funding and resources with no restriction, but requires you to employ many of their citizens, splitting some residents' allegiance.",
   },
@@ -119,6 +128,7 @@ export const CHARTERS: CharterDef[] = [
     boost: null,
     flaw: null,
     freeBoost: true,
+    grantedSkill: null,
     description:
       "You stake your own claim with no restrictions and no direct support. A single free ability boost and no built-in flaw.",
   },
@@ -138,13 +148,15 @@ export interface HeartlandDef {
   boost: KingdomAbility;
   /** Terrain(s) this heartland represents — drives the Favored Land ability. */
   terrain: string[];
+  /** VK only — the Kingdom skill this heartland trains. RAW grants none. */
+  grantedSkill: string;
 }
 
 export const HEARTLANDS: HeartlandDef[] = [
-  { id: "forest_swamp", name: "Forest or Swamp", boost: "culture", terrain: ["forest", "swamp"] },
-  { id: "hill_plain", name: "Hill or Plain", boost: "loyalty", terrain: ["hills", "plains"] },
-  { id: "lake_river", name: "Lake or River", boost: "economy", terrain: ["lake", "river"] },
-  { id: "mountain_ruins", name: "Mountain or Ruins", boost: "stability", terrain: ["mountains", "ruins"] },
+  { id: "forest_swamp", name: "Forest or Swamp", boost: "culture", terrain: ["forest", "swamp"], grantedSkill: "wilderness" },
+  { id: "hill_plain", name: "Hill or Plain", boost: "loyalty", terrain: ["hills", "plains"], grantedSkill: "agriculture" },
+  { id: "lake_river", name: "Lake or River", boost: "economy", terrain: ["lake", "river"], grantedSkill: "boating" },
+  { id: "mountain_ruins", name: "Mountain or Ruins", boost: "stability", terrain: ["mountains", "ruins"], grantedSkill: "defense" },
 ];
 
 export function getHeartland(id: string | null | undefined): HeartlandDef | undefined {
@@ -548,14 +560,6 @@ export function controlDC(level: number, size = 1): number {
   return CONTROL_DC_BY_LEVEL[clampLevel(level)] + sizeBracket(size).controlDCModifier;
 }
 
-export const XP_PER_LEVEL = 1000;
-
-/** XP still needed to reach the next level, given a running XP total. */
-export function xpToNextLevel(xp: number): number {
-  const into = ((xp % XP_PER_LEVEL) + XP_PER_LEVEL) % XP_PER_LEVEL;
-  return XP_PER_LEVEL - into;
-}
-
 /** Number of Resource Dice rolled at the start of a Kingdom turn. */
 export function resourceDiceCount(level: number, carryoverBonusDice = 0): number {
   return Math.max(0, clampLevel(level) + 4 + carryoverBonusDice);
@@ -823,6 +827,103 @@ export function computeAbilityScores(choices: FoundingChoices): AbilityScoreResu
   };
 
   return { scores, modifiers, ledger };
+}
+
+// ──────────────────────────────────────────────
+// Starting trained skills
+// ──────────────────────────────────────────────
+
+/**
+ * Where a starting trained skill came from. Used to explain the roster in the
+ * founding wizard rather than presenting an unsourced list.
+ */
+export type SkillSource = "charter" | "heartland" | "government";
+
+export interface StartingSkillsInput {
+  ruleset: KingdomRuleset;
+  charter?: string | null;
+  heartland?: string | null;
+  government?: string | null;
+  /** Skills the player chose for the free slots, in any order. */
+  picks?: string[];
+}
+
+export interface StartingSkillsResult {
+  /** Skills trained automatically, with the choice responsible for each. */
+  granted: { skill: string; source: SkillSource }[];
+  /** How many skills the player chooses freely, after duplicates are folded in. */
+  freePicks: number;
+  /** Valid picks, in input order, capped at `freePicks`. */
+  picks: string[];
+  /** Every skill the kingdom starts trained in. */
+  trained: string[];
+  /** Picks that were unknown, already trained, or beyond the allowance. */
+  rejected: string[];
+  /** Free slots still waiting on a choice. */
+  remaining: number;
+}
+
+/**
+ * Resolve a kingdom's starting trained skills from its founding choices.
+ *
+ * RAW trains only the government's two skills. VK additionally trains one skill
+ * from the charter and one from the heartland, and grants a free pick alongside
+ * each of those. A granted skill the kingdom is already trained in converts to
+ * another free pick, per the V&K text.
+ */
+export function startingSkills(input: StartingSkillsInput): StartingSkillsResult {
+  const granted: { skill: string; source: SkillSource }[] = [];
+  const trained = new Set<string>();
+  let freePicks = 0;
+
+  const grant = (skill: string | null | undefined, source: SkillSource) => {
+    // A null grant is a "choose any" slot; a duplicate becomes one too.
+    if (!skill || trained.has(skill)) {
+      freePicks += 1;
+      return;
+    }
+    trained.add(skill);
+    granted.push({ skill, source });
+  };
+
+  const government = getGovernment(input.government);
+  if (government) {
+    grant(government.skills[0], "government");
+    grant(government.skills[1], "government");
+  }
+
+  if (input.ruleset === "VK") {
+    const charter = getCharter(input.charter);
+    if (charter) {
+      grant(charter.grantedSkill, "charter");
+      freePicks += 1; // the charter's free skill
+    }
+    const heartland = getHeartland(input.heartland);
+    if (heartland) {
+      grant(heartland.grantedSkill, "heartland");
+      freePicks += 1; // the heartland's free skill
+    }
+  }
+
+  const picks: string[] = [];
+  const rejected: string[] = [];
+  for (const pick of input.picks ?? []) {
+    if (picks.length >= freePicks || !getKingdomSkill(pick) || trained.has(pick)) {
+      rejected.push(pick);
+      continue;
+    }
+    trained.add(pick);
+    picks.push(pick);
+  }
+
+  return {
+    granted,
+    freePicks,
+    picks,
+    trained: [...trained],
+    rejected,
+    remaining: freePicks - picks.length,
+  };
 }
 
 // ──────────────────────────────────────────────
