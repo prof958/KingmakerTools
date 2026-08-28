@@ -404,6 +404,9 @@ model LeadershipRole {
 model Hex {
   id            String   @id @default(cuid())
   kingdomId     String   @map("kingdom_id")
+  /// Which Stolen Lands map sheet (1-4) this hex belongs to. The four sheets
+  /// are separate maps, so coordinates are only unique within one.
+  sheet         Int      @default(1)
   q             Int // axial coordinate
   r             Int // axial coordinate
   terrain       String   @default("plains")
@@ -419,7 +422,7 @@ model Hex {
   kingdom    Kingdom     @relation(fields: [kingdomId], references: [id], onDelete: Cascade)
   settlement Settlement?
 
-  @@unique([kingdomId, q, r])
+  @@unique([kingdomId, sheet, q, r])
   @@map("hexes")
 }
 

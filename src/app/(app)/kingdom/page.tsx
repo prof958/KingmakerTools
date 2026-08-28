@@ -16,17 +16,22 @@ import { FoundingWizard, KingdomShell } from "@/components/kingdom";
 
 export default async function KingdomPage() {
   const campaign = await getOrCreateCampaign();
-  const [kingdom, characters] = await Promise.all([
-    getOrCreateKingdom(),
+  const kingdom = await getOrCreateKingdom();
+  const [characters, hexes] = await Promise.all([
     prisma.character.findMany({
       where: { campaignId: campaign.id },
       orderBy: { createdAt: "asc" },
       select: { id: true, name: true, emoji: true, isCompanion: true },
     }),
+    prisma.hex.findMany({
+      where: { kingdomId: kingdom.id },
+      orderBy: [{ sheet: "asc" }, { r: "asc" }, { q: "asc" }],
+    }),
   ]);
 
   const kingdomData = JSON.parse(JSON.stringify(kingdom));
   const characterData = JSON.parse(JSON.stringify(characters));
+  const hexData = JSON.parse(JSON.stringify(hexes));
 
   if (!kingdom.founded) {
     return <FoundingWizard kingdom={kingdomData} characters={characterData} />;
@@ -44,7 +49,7 @@ export default async function KingdomPage() {
         </Badge>
       </div>
 
-      <KingdomShell kingdom={kingdomData} characters={characterData} />
+      <KingdomShell kingdom={kingdomData} characters={characterData} hexes={hexData} />
     </div>
   );
 }

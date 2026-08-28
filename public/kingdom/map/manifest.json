@@ -6,8 +6,8 @@
       "colPitch": 175,
       "cols": 7,
       "orientation": "pointy",
-      "originX": 168,
-      "originY": 0,
+      "originX": 80,
+      "originY": 55,
       "rowPitch": 152,
       "rows": 11
     },
@@ -20,8 +20,8 @@
       "colPitch": 175,
       "cols": 7,
       "orientation": "pointy",
-      "originX": 146,
-      "originY": 80,
+      "originX": 67,
+      "originY": 60,
       "rowPitch": 152,
       "rows": 11
     },
@@ -34,8 +34,8 @@
       "colPitch": 175,
       "cols": 7,
       "orientation": "pointy",
-      "originX": 9,
-      "originY": 7,
+      "originX": 98,
+      "originY": 64,
       "rowPitch": 152,
       "rows": 11
     },
@@ -48,8 +48,8 @@
       "colPitch": 175,
       "cols": 7,
       "orientation": "pointy",
-      "originX": 157,
-      "originY": 0,
+      "originX": 76,
+      "originY": 59,
       "rowPitch": 152,
       "rows": 11
     },

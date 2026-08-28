@@ -30,6 +30,22 @@ export interface KingdomFeatData {
   notes: string | null;
 }
 
+export interface HexData {
+  id: string;
+  sheet: number;
+  q: number;
+  r: number;
+  terrain: string;
+  state: "UNCLAIMED" | "RECONNOITERED" | "CLAIMED";
+  reconnoitered: boolean;
+  hasRoads: boolean;
+  fortified: boolean;
+  workSite: string | null;
+  features: string[];
+  label: string | null;
+  notes: string | null;
+}
+
 export interface SettlementLite {
   id: string;
   name: string;
