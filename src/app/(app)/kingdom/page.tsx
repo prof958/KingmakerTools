@@ -44,9 +44,6 @@ export default async function KingdomPage() {
           <h1 className="text-3xl font-bold tracking-tight">Kingdom</h1>
           <p className="text-muted-foreground">Stats, skills, leadership, and founding choices</p>
         </div>
-        <Badge variant="outline" className="text-sm">
-          Phase 5
-        </Badge>
       </div>
 
       <KingdomShell kingdom={kingdomData} characters={characterData} hexes={hexData} />

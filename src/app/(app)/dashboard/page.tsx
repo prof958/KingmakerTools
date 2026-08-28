@@ -74,23 +74,6 @@ export default async function DashboardPage() {
       <CharacterManager
         initialCharacters={JSON.parse(JSON.stringify(characters))}
       />
-
-      {/* Kingdom Status — Phase 5 placeholder */}
-      <Card>
-        <CardHeader className="pb-3">
-          <div className="flex items-center gap-2">
-            <Crown className="h-5 w-5" />
-            <CardTitle>Kingdom</CardTitle>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <Badge variant="secondary">Coming Soon</Badge>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Kingdom management will be available in a future update.
-            Track your hex grid, settlements, and kingdom turns here.
-          </p>
-        </CardContent>
-      </Card>
     </div>
   );
 }
