@@ -6,7 +6,59 @@ import { Select as SelectPrimitive } from "@base-ui/react/select"
 import { cn } from "@/lib/utils"
 import { ChevronDownIcon, CheckIcon, ChevronUpIcon } from "lucide-react"
 
-const Select = SelectPrimitive.Root
+/**
+ * base-ui's `<Select.Value>` does NOT read the `label` prop on each
+ * `<Select.Item>` to decide what the closed trigger displays — it only uses
+ * that `label` for typeahead. The trigger's text comes from a *separate*
+ * `items` map/array that has to be passed to `<Select.Root>` explicitly; without
+ * it, `<Select.Value>` falls back to showing the raw `value` (see base-ui's
+ * `resolveSelectedLabel`). Every call site in this app already passes `label`
+ * on each `SelectItem` expecting it to "just work" for the trigger too — so
+ * rather than fix that misunderstanding at every one of them, this wrapper
+ * derives `items` automatically by walking the same children the consumer
+ * already wrote, and only if they have not passed `items` themselves.
+ */
+function collectSelectItems(
+  node: React.ReactNode,
+): { value: unknown; label: React.ReactNode }[] {
+  const found: { value: unknown; label: React.ReactNode }[] = []
+  React.Children.forEach(node, (child) => {
+    if (!React.isValidElement(child)) return
+    const props = child.props as {
+      value?: unknown
+      label?: React.ReactNode
+      children?: React.ReactNode
+    }
+    if (props.label !== undefined && "value" in props) {
+      found.push({ value: props.value, label: props.label })
+    }
+    if (props.children !== undefined) {
+      found.push(...collectSelectItems(props.children))
+    }
+  })
+  return found
+}
+
+function Select<Value, Multiple extends boolean | undefined = false>({
+  children,
+  items,
+  ...props
+}: SelectPrimitive.Root.Props<Value, Multiple>) {
+  // `props` (and so its onValueChange, value, multiple, ...) stays typed on
+  // `Value`/`Multiple` same as a bare `SelectPrimitive.Root` would — this has
+  // to stay a generic function component, not something typed via
+  // `React.ComponentProps<typeof SelectPrimitive.Root>`, or every call site's
+  // `value`/`onValueChange` collapses to the generic's unhelpful defaults.
+  const derivedItems = React.useMemo(
+    () => items ?? collectSelectItems(children),
+    [children, items]
+  )
+  return (
+    <SelectPrimitive.Root items={derivedItems} {...props}>
+      {children}
+    </SelectPrimitive.Root>
+  )
+}
 
 function SelectGroup({ className, ...props }: SelectPrimitive.Group.Props) {
   return (
