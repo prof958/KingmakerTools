@@ -5,4 +5,5 @@ export { LeadershipRoster } from "./leadership-roster";
 export { FoundingChoices } from "./founding-choices";
 export { FoundingWizard } from "./founding-wizard";
 export { KingdomMap } from "./kingdom-map";
+export { SettlementsTab } from "./settlements-tab";
 export type * from "./types";

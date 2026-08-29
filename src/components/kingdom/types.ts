@@ -1,4 +1,5 @@
 import type { KingdomAbility } from "@/lib/pf2e/kingdom";
+import type { UrbanGridData } from "@/lib/urban-grid";
 
 export interface CharacterLite {
   id: string;
@@ -52,6 +53,18 @@ export interface SettlementLite {
   type: string;
   isCapital: boolean;
   level: number;
+}
+
+export interface SettlementData {
+  id: string;
+  hexId: string | null;
+  name: string;
+  type: "VILLAGE" | "TOWN" | "CITY" | "METROPOLIS";
+  isCapital: boolean;
+  level: number;
+  overcrowded: boolean;
+  grid: UrbanGridData;
+  notes: string | null;
 }
 
 export interface KingdomData {

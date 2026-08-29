@@ -1407,3 +1407,12 @@ export function structuresUpToLevel(level: number): KingdomStructureDef[] {
 export function structuresFitting(lots: number): KingdomStructureDef[] {
   return KINGDOM_STRUCTURES.filter((s) => s.lots <= lots);
 }
+
+/**
+ * Whether a structure counts toward a settlement's Residential-lot
+ * requirement (KPG 48) — the single place that trait check lives, so the
+ * Urban Grid API routes stay in agreement about what counts.
+ */
+export function isResidentialStructure(id: string): boolean {
+  return getKingdomStructure(id)?.traits.includes("RESIDENTIAL") ?? false;
+}

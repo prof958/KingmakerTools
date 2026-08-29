@@ -15,16 +15,19 @@ import { KingdomSkills } from "./kingdom-skills";
 import { LeadershipRoster } from "./leadership-roster";
 import { FoundingChoices } from "./founding-choices";
 import { KingdomMap } from "./kingdom-map";
-import type { CharacterLite, HexData, KingdomData } from "./types";
+import { SettlementsTab } from "./settlements-tab";
+import type { CharacterLite, HexData, KingdomData, SettlementData } from "./types";
 
 export function KingdomShell({
   kingdom,
   characters,
   hexes,
+  settlements,
 }: {
   kingdom: KingdomData;
   characters: CharacterLite[];
   hexes: HexData[];
+  settlements: SettlementData[];
 }) {
   const router = useRouter();
   const [saving, setSaving] = useState(false);
@@ -73,6 +76,7 @@ export function KingdomShell({
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="map">Map</TabsTrigger>
+          <TabsTrigger value="settlements">Settlements</TabsTrigger>
           <TabsTrigger value="skills">Skills</TabsTrigger>
           <TabsTrigger value="leadership">Leadership</TabsTrigger>
           <TabsTrigger value="founding">Founding</TabsTrigger>
@@ -83,6 +87,9 @@ export function KingdomShell({
         </TabsContent>
         <TabsContent value="map">
           <KingdomMap hexes={hexes} />
+        </TabsContent>
+        <TabsContent value="settlements">
+          <SettlementsTab settlements={settlements} hexes={hexes} kingdomLevel={kingdom.level} />
         </TabsContent>
         <TabsContent value="skills">
           <KingdomSkills kingdom={kingdom} onRefresh={refresh} />
