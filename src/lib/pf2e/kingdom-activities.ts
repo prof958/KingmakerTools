@@ -50,10 +50,12 @@ export interface KingdomActivityDef {
   description: string;
   outcomes: ActivityOutcomes;
   /**
-   * Where the skill comes from when `skills` is empty: "any" lets the player
-   * pick a Kingdom skill, "structure" takes it from the structure being built.
+   * Where the skill comes from when `skills` is empty. "any" lets the player
+   * pick a Kingdom skill, "structure" takes it from the structure being built,
+   * "varies" from a table the activity points at, and "none" means the
+   * activity resolves without a check.
    */
-  skillChoice?: "any" | "structure";
+  skillChoice?: "any" | "structure" | "varies" | "none";
   /** Lowest rank that qualifies when `skillChoice` is "any". */
   anyMinRank?: ProficiencyRank;
   /** Set when the activity exists only under the V&K house rules. */
@@ -195,6 +197,27 @@ export const KINGDOM_ACTIVITIES: KingdomActivityDef[] = [
     outcomes: { criticalSuccess: "Choose one of the following effects: you demolish an entire multiple-lot structure all at once and clear all of the lots it occupied, or you recover 1d6 Commodities (chosen from lumber, stone, and ore) from the Rubble of a single-lot demolition.", success: "You demolish the lot successfully.", failure: "You fail to demolish the lot. It remains in Rubble and cannot be used for further construction until you successfully Demolish it.", criticalFailure: "As failure, but accidents during the demolition cost you the lives of some of your workers. Gain 1 Unrest." },
   },
   {
+    id: "deploy-army",
+    name: "Deploy Army",
+    phase: "army",
+    skills: [{ skill: "boating", minRank: 0 }, { skill: "exploration", minRank: 0 }, { skill: "magic", minRank: 0 }],
+    traits: ["DOWNTIME", "ARMY"],
+    requirements: null,
+    description: "The army moves through your kingdom or beyond. Since this travel occurs over the course of the entire month that preceded the Kingdom turn, the ground an army covers when it deploys can be quite extensive. You can Deploy an Army with an Exploration, Boating, or Magic check. When you use an Exploration check, choose a location within 20 hexes of the army's current hex. If the army's starting point and ending point are connected by a road, increase the result one degree of success. Count roadless hexes that contain swamps or mountains, or each hex where you must cross a river or lake without the aid of a bridge, as two hexes.. You can issue orders to force march. Doing so grants a +4 circumstance bonus on the check, but causes the army to increase its weary condition by 1 (or by 2, if you fail the check). When you use a Boating check, the army's starting point and ending point must be connected by a body of water; choose any location within 20 hexes along this route. You must be at least master in Magic to attempt a Magic check. When you do so, choose any location within 30 hexes of the army's current hex, then roll your check. If the army's deployment causes it to cross your kingdom's border, the DC increases by 5. If the army's deployment causes it to cross an enemy kingdom's border, the DC instead increases by 10.",
+    outcomes: { criticalSuccess: "The army arrives much more quickly than you anticipated; it arrives at its destination and then becomes efficient.", success: "The army arrives at its destination.", failure: "The army arrives at its destination, but ran into some sort of trouble along the way. Increase the army's weary condition by 1 and attempt a DC 6 flat check; on a failure, reduce the army's HP by 1.", criticalFailure: "Rather than arriving at its destination, the army becomes lost until it recovers from this condition. Increase Unrest by 1d4, and attempt a DC 11 flat check; on a failure, reduce the army's HP by 1." },
+  },
+  {
+    id: "disband-army",
+    name: "Disband Army",
+    phase: "army",
+    skills: [],
+    traits: ["DOWNTIME", "ARMY"],
+    requirements: null,
+    description: "You can choose to disband an army with no check needed. If the army consisted of conscripts from your kingdom, the soldiers revert to being citizens. If the army was recruited from creatures encountered in the wilds, they return to their homes. A disbanded army no longer contributes to your kingdom's Consumption.",
+    outcomes: {},
+    skillChoice: "none",
+  },
+  {
     id: "establish-farmland",
     name: "Establish Farmland",
     phase: "region",
@@ -255,6 +278,16 @@ export const KINGDOM_ACTIVITIES: KingdomActivityDef[] = [
     requirements: "The target hex must be claimed by your kingdom and must not have a settlement in it.",
     description: "Your command your engineers to construct a protected encampment, such as a fort or barbican, to serve as a defensive post in the hex. Spend RP as determined by the hex's most inhospitable terrain (see the Building on Rough Terrain sidebar on page 23). Then attempt a basic check. A fortified hex grants an additional bonus in warfare (see the appendix starting on page 71), but also gives traveling PCs a place to rest that prevents wandering monsters from interrupting their rest.",
     outcomes: { criticalSuccess: "You find a defensible position for your fortification and finish construction efficiently. Gain a refund of half the RP you spent to build in the hex, then reduce Unrest by 1.", success: "You establish your fortification in the hex. Reduce Unrest by 1.", failure: "You fail to fortify the hex.", criticalFailure: "Your attempt ends in disaster. Not only do you fail to build a structure, but you lose several workers to an accident, banditry, a vicious monster, or some other unforeseen occurrence. Gain 1 Unrest." },
+  },
+  {
+    id: "garrison-army",
+    name: "Garrison Army",
+    phase: "army",
+    skills: [{ skill: "defense", minRank: 0 }, { skill: "engineering", minRank: 0 }, { skill: "politics", minRank: 0 }],
+    traits: ["DOWNTIME", "ARMY"],
+    requirements: "The army is in the same hex as a Refuge, Settlement, or Work Site.",
+    description: "You move an army into a fortification and assign them to guard it. In order to garrison, the army must be located in a hex that contains a Refuge, Settlement, or Work Site. If you're garrisoning the army in a Refuge hex, attempt a basic Defense check. If you're garrisoning the army in a settlement, attempt a basic Politics check. If you're garrisoning the army in a Work Site hex, attempt a basic Engineering check. This check's DC increases by 5 if the hex is not part of your kingdom, or by 10 if the location is part of an enemy kingdom.",
+    outcomes: { criticalSuccess: "The army becomes fortified until it is deployed. Additionally, the efficiency of the garrisoning reduces this army's Consumption by 2 (to a minimum of 1) until it is deployed.", success: "The army becomes fortified until it is deployed.", failure: "The army becomes fortified until the next Kingdom turn begins, at which point you must use this activity again to maintain the fortified condition.", criticalFailure: "Your army clashes with local citizens, abuses their authority, lets their watchful readiness slack, and/or provokes confrontations where they are not needed. It does not become fortified, and you cannot attempt to garrison that army at this location again for 4 Kingdom turns. Increase Unrest by 1." },
   },
   {
     id: "gather-livestock",
@@ -347,6 +380,27 @@ export const KINGDOM_ACTIVITIES: KingdomActivityDef[] = [
     outcomes: { criticalSuccess: "The people love the new leader. The leader immediately provides the benefits tied to occupying the new role and gains a +1 circumstance bonus to all Kingdom skill checks they attempt before the end of the next Kingdom turn.", success: "The people accept the new leader. The leader immediately provides the benefits tied to occupying the new role.", failure: "The people are unsure about the new leader. The leader takes a -1 circumstance penalty to all checks they attempt as part of their activities during the Activity phase of each Kingdom turn. At the end of the next Kingdom turn, the leader can attempt any Loyalty‑based basic skill check to ingratiate themselves with the populace. The leader may attempt this check at the end of each Kingdom turn until they succeed. Success removes this penalty, but a critical failure results in the development detailed in Critical Failure below.", criticalFailure: "The people reject the new leader. The leadership role is treated as vacant and you must attempt to reassign it using the New Leadership activity at the start of the next Kingdom turn. Unrest increases by 1." },
   },
   {
+    id: "offensive-gambit",
+    name: "Offensive Gambit",
+    phase: "army",
+    skills: [{ skill: "intrigue", minRank: 0 }, { skill: "warfare", minRank: 0 }],
+    traits: ["DOWNTIME", "ARMY"],
+    requirements: "You have at least one army in the same hex as an enemy army.",
+    description: "You order an attack against an enemy army, causing a war encounter to begin after this Kingdom turn ends. No check is necessary if you wish to engage the enemy without attempting to gain an advantage in initiative. If you want to gain an advantage by surprising the enemy, attempt an Intrigue check. If you want to gain an advantage by intimidating the enemy, attempt a Warfare check. In either case, the DC is equal to the enemy army's Scouting DC.",
+    outcomes: { criticalSuccess: "Your approach surprises or intimidates the enemy. Your armies in this hex gain a +2 circumstance bonus on their initiative checks, and one enemy army of the party's choice in this hex becomes shaken 1.", success: "Your approach gives you an advantage. Your armies in this hex gain a +2 circumstance bonus on their initiative checks.", failure: "You gain no advantage in the battle.", criticalFailure: "Not only do you fail to gain advantage, but the enemy forces have anticipated the attack. Enemy armies in this hex at the time of the Offensive Gambit gain a +4 circumstance bonus on their initiative checks in any resulting war encounters." },
+  },
+  {
+    id: "outfit-army",
+    name: "Outfit Army",
+    phase: "army",
+    skills: [],
+    traits: ["DOWNTIME", "ARMY"],
+    requirements: null,
+    description: "You provide your army with better gear. Choose what sort of gear you wish to provide your army with from the list beginning on page 67. The level of the gear chosen must be equal to or less than the army's level. If you're crafting or purchasing gear, the level of the gear chosen must be equal to or less than your kingdom level. If you're distributing resources gained from battle, the level of the gear chosen must be equal to or less than the highest level of an enemy army defeated in that battle. If you're purchasing the gear, this activity requires a basic Trade check and costs the standard amount of RP for the gear; you cannot purchase magic gear unless your kingdom is at least expert rank in Magic. If you're distributing gear gained from battle, this activity requires a basic Warfare check and does not cost RP.",
+    outcomes: { criticalSuccess: "The gear proved particularly easy to outfit, and the army becomes efficient.", success: "The gear is sufficient, and your army becomes outfitted with it immediately.", failure: "The gear proves to be unusable and the attempt to outfit the army fails. If you spent RP on the check, it is refunded. Trained Activities — Recover Weary Army (expert) — — — — — — — — Recover Damaged Army (expert) — Deploy Army (master) Recover Mired or Pinned Army (expert) Recover Defeated Army (master) — — — Recover Defeated Army (expert) Recover Shaken Army (expert) — — Recover Lost Army (expert)", criticalFailure: "As failure, but spent RP is not refunded." },
+    skillChoice: "none",
+  },
+  {
     id: "pledge-of-fealty",
     name: "Pledge of Fealty",
     phase: "leadership",
@@ -408,6 +462,27 @@ export const KINGDOM_ACTIVITIES: KingdomActivityDef[] = [
     source: "VK",
   },
   {
+    id: "recover-army",
+    name: "Recover Army",
+    phase: "army",
+    skills: [],
+    traits: ["DOWNTIME", "ARMY"],
+    requirements: null,
+    description: "When an army endures ill fortune, it can become afflicted by negative conditions. You can use the Recover Army activity to work at removing an affliction with a basic skill check (this DC increases by 5 if you are attempting to Recover from the defeated condition); the skill required for the check depends on the affliction (see the table on page 64).",
+    outcomes: { criticalSuccess: "You reduce the affliction's value by 2 (or in the case of a damaged army, increase its HP by 2 up to its maximum). If the affliction does not have a value, it is removed.", success: "As critical success but you reduce the affliction's value by 1 (or in the case of a damaged army, increase its HP by 1 up to its maximum).", failure: "You fail to remove the affliction.", criticalFailure: "You fail to remove the affliction and your soldier's lowered morale spreads discontent; increase Unrest by 1. If you were attempting to recover a defeated army, the army is destroyed." },
+    skillChoice: "varies",
+  },
+  {
+    id: "recruit-army",
+    name: "Recruit Army",
+    phase: "leadership",
+    skills: [{ skill: "statecraft", minRank: 0 }, { skill: "warfare", minRank: 0 }],
+    traits: ["DOWNTIME", "LEADERSHIP"],
+    requirements: null,
+    description: "Note that you pursue this activity during the Leadership step of the Activity phase. Either you recruit an army from your kingdom's citizens, or you secure the allegiance of a specialized army you encountered in the Stolen Lands. If you're recruiting an army from your kingdom's citizens, choose one of the basic armies listed at the start of page 66 and attempt a Warfare check against the army's Recruitment DC. If you're securing a specialized army, you must attempt a Statecraft check against the Recruitment DC; statistics for these armies are available to your GM and will be revealed during play.",
+    outcomes: { criticalSuccess: "You recruit the army; it becomes efficient.", success: "You recruit the army.", failure: "You fail to recruit the army.", criticalFailure: "Many of the individuals in the army you attempted to recruit took offense at the attempt. Gain 1 Unrest, and you cannot attempt to recruit an army again until the next Kingdom turn." },
+  },
+  {
     id: "relocate-capital",
     name: "Relocate Capital",
     phase: "leadership",
@@ -421,7 +496,7 @@ export const KINGDOM_ACTIVITIES: KingdomActivityDef[] = [
     id: "repair-reputation",
     name: "Repair Reputation",
     phase: "leadership",
-    skills: [{ skill: "arts", minRank: 0 }],
+    skills: [{ skill: "arts", minRank: 0 }, { skill: "engineering", minRank: 0 }, { skill: "intrigue", minRank: 0 }, { skill: "trade", minRank: 0 }],
     traits: ["DOWNTIME", "LEADERSHIP"],
     requirements: null,
     description: "When things have gotten out of hand in the kingdom and the nation's reputation has become damaged, you can focus efforts on a campaign to reassure the citizens and bring them closer together, stamp down crime, organize repairs and maintenance of public structures, or strive to adjust poor public opinions. The skill used to Repair Reputation depends on which Ruin total you wish to reduce. If you wish to reduce your Corruption, you attempt an Arts check. If you wish to reduce your Crime, you attempt a Trade check. If you wish to reduce your Decay, you attempt an Engineering check. If you wish to reduce your Strife, you attempt an Intrigue check. In all cases, the DC is your Control DC + 2.",
@@ -500,6 +575,16 @@ export const KINGDOM_ACTIVITIES: KingdomActivityDef[] = [
     requirements: null,
     description: "There are five different categories of Commodities: Food, Lumber, Luxuries, Ore, and Stone. When you Trade Commodities, select one Commodity that your kingdom currently stockpiles and reduce that Commodity's stockpile by up to 4. Then attempt a basic check. If you trade with a group that you've established diplomatic relations with, you gain a +1 circumstance bonus to the check.",
     outcomes: { criticalSuccess: "At the beginning of the next Kingdom turn, you gain 2 bonus Resource Dice per point of stockpile expended from your Commodity now.", success: "At the beginning of your next Kingdom turn, you gain 1 bonus Resource Die per point of stockpile expended from your Commodity now.", failure: "You gain 1 bonus Resource Die at the beginning of your next Kingdom turn.", criticalFailure: "You gain no bonus Resource Dice (though the Commodity remains depleted). If you Traded Commodities the previous turn, gain 1 Unrest." },
+  },
+  {
+    id: "train-army",
+    name: "Train Army",
+    phase: "army",
+    skills: [{ skill: "scholarship", minRank: 0 }, { skill: "warfare", minRank: 0 }],
+    traits: ["DOWNTIME", "ARMY"],
+    requirements: null,
+    description: "You train an army in the use of a tactic. Choose one of the tactics from those listed starting on page 68, then attempt a Scholarship or Warfare check against the tactic's Training DC. If your army has already learned its maximum number of tactics, the newly learned tactic replaces a previously learned tactic of your choice.",
+    outcomes: { criticalSuccess: "The army learns the tactic and then becomes efficient.", success: "The army learns the tactic.", failure: "The army fails to learn the tactic.", criticalFailure: "The army not only fails to learn the tactic but becomes frustrated and exhausted from the training; increase the army's weary condition by 1." },
   },
 ];
 

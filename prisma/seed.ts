@@ -1,10 +1,15 @@
 /**
  * Database seed script
- * Run with: npx tsx prisma/seed.ts
+ * Run with: npm run db:seed  (or directly: npx tsx prisma/seed.ts)
  *
  * Seeds the catalog items table with common PF2e items.
  * Also creates the default campaign and treasury wallet.
  */
+
+// Run outside the Prisma CLI (which loads .env itself via prisma.config.ts),
+// so this file has to load it directly or DATABASE_URL is undefined and pg
+// fails with an opaque "client password must be a string".
+import "dotenv/config";
 
 import { PrismaClient } from "../src/generated/prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";

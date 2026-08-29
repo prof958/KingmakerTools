@@ -1,0 +1,47 @@
+# Local development database ONLY.
+#
+# This is never used by production. Production is deployed straight from
+# docker-compose.yml on the VPS (see docs/DEPLOY.md) via a plain
+# `docker compose up -d`, which reads only the default `docker-compose.yml` —
+# this file has a different name specifically so it is never picked up by
+# that command, or by Coolify, by accident.
+#
+# It also does not share anything with the prod stack: separate compose file,
+# separate named Docker volume (not the VPS's /opt/kingdomtools/pgdata bind
+# mount), and it binds to 127.0.0.1 only. Deleting this volume only deletes
+# your local dev data.
+#
+# The credentials below are fixed literals, not ${VARS} pulled from .env: this
+# database is throwaway and never leaves your machine, so there is nothing to
+# gain from making them configurable. The db:* npm scripts also pass
+# `--env-file docker-compose.dev.env` (an intentionally empty file) so Compose
+# never touches the app's real .env for interpolation at all — by default it
+# auto-loads it from the working directory regardless of which compose file
+# you asked for, and .env's APP_PASSWORD_HASH is a bcrypt hash full of `$`
+# characters that Compose's parser reads as more variable references and
+# mangles (the same landmine DEPLOY.md warns about for the prod compose file).
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: kingdomtools-dev-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: kingdomtools
+      POSTGRES_PASSWORD: localdev
+      POSTGRES_DB: kingdomtools
+    ports:
+      # Bound to localhost only — never exposed beyond this machine.
+      - '127.0.0.1:5432:5432'
+    volumes:
+      - kingdomtools_dev_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U kingdomtools']
+      interval: 2s
+      timeout: 5s
+      retries: 15
+
+volumes:
+  # Named and namespaced so it can never collide with, or be confused for,
+  # the production data directory.
+  kingdomtools_dev_pgdata:
+    name: kingdomtools_dev_pgdata

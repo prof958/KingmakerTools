@@ -309,15 +309,19 @@ export function KingdomOverview({
                       onValueChange={set("level")}
                     />
                   </label>
-                  <label className="space-y-1">
+                  {/*
+                    Size is counted from the claimed hexes on the map, not typed
+                    in. It drives the Size table, Control DC, and resource dice,
+                    so an editable copy here would silently disagree with the
+                    map the moment either changed.
+                  */}
+                  <div className="space-y-1">
                     <span className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Size (Hexes)</span>
-                    <NumberInput
-                      className="h-10 text-lg font-bold"
-                      value={kingdom.size}
-                      min={1}
-                      onValueChange={set("size")}
-                    />
-                  </label>
+                    <div className="flex h-10 items-baseline gap-2">
+                      <span className="text-lg font-bold tabular-nums">{kingdom.size}</span>
+                      <span className="text-xs text-muted-foreground">from the map</span>
+                    </div>
+                  </div>
                 </div>
 
                 <div className="rounded-lg bg-muted/50 p-3">

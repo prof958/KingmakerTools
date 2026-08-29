@@ -18,9 +18,12 @@ ROOT = Path(__file__).resolve().parent.parent
 PDF = ROOT / "docs" / "Kingmaker+Players+Guide.pdf"
 OUT = ROOT / "src" / "lib" / "pf2e" / "kingdom-activities.ts"
 
-# Through the first feats page: the last activity's text spills onto it, and
-# the feat entries that follow carry no turn-phase trait, so they drop out.
-ACTIVITY_PAGES = range(21, 36)
+# Two ranges rather than one span. The skill activities run to the first feats
+# page, because the last one's text spills onto it and the feats that follow
+# carry no turn-phase trait so they drop out anyway. The Army activities sit
+# separately in the warfare chapter; the structure entries in between are
+# skipped outright rather than relied on to filter themselves out.
+ACTIVITY_PAGES = [*range(21, 36), *range(60, 64)]
 SKILL_TABLE_PAGE = 19
 HEADER_STYLE = (12.0, "GoodOT-CondBold")
 TRAIT_STYLE = (7.0, "GoodOT-CondBold")
@@ -164,6 +167,11 @@ VK_NEW = [
 SKILL_CHOICE = {
     "focused-attention": {"skillChoice": "any", "anyMinRank": 0},
     "build-structure": {"skillChoice": "structure"},
+    # These resolve without a kingdom skill check of their own.
+    "disband-army": {"skillChoice": "none"},
+    "outfit-army": {"skillChoice": "none"},
+    # The skill depends on which affliction is being recovered from.
+    "recover-army": {"skillChoice": "varies"},
 }
 
 # Activities V&K amends rather than replaces.
@@ -412,13 +420,24 @@ def split_outcomes(text):
     return description, requirements, outcomes
 
 
+# The guide names an activity's skills in more than one way: "attempt a basic
+# Exploration check", but also "you can Deploy an Army with an Exploration,
+# Boating, or Magic check". Matching only the first phrasing, and only its first
+# occurrence, drops skills an activity really does allow.
+SKILL_PHRASE = re.compile(
+    r"(?:attempt|with|using|make)\s+(?:a|an)\s+(?:basic\s+)?([A-Za-z,\s]+?)\s+check"
+)
+
+
 def skills_from_text(text):
-    """Skills named in a phrase like 'attempt a basic Exploration or Magic check'."""
-    m = re.search(r"attempt (?:a|an)\s+(?:basic\s+)?([A-Za-z,\s]+?)\s+check", text)
-    if not m:
-        return []
-    words = [w.lower() for w in re.findall(r"[A-Z][a-z]+", m.group(1))]
-    return [s for s in words if s in SKILL_IDS]
+    """Every kingdom skill the entry names as usable for its check."""
+    found = []
+    for match in SKILL_PHRASE.finditer(text):
+        for word in re.findall(r"[A-Z][a-z]+", match.group(1)):
+            skill = word.lower()
+            if skill in SKILL_IDS and skill not in found:
+                found.append(skill)
+    return found
 
 
 def ts(value):
@@ -497,10 +516,12 @@ export interface KingdomActivityDef {
   description: string;
   outcomes: ActivityOutcomes;
   /**
-   * Where the skill comes from when `skills` is empty: "any" lets the player
-   * pick a Kingdom skill, "structure" takes it from the structure being built.
+   * Where the skill comes from when `skills` is empty. "any" lets the player
+   * pick a Kingdom skill, "structure" takes it from the structure being built,
+   * "varies" from a table the activity points at, and "none" means the
+   * activity resolves without a check.
    */
-  skillChoice?: "any" | "structure";
+  skillChoice?: "any" | "structure" | "varies" | "none";
   /** Lowest rank that qualifies when `skillChoice` is "any". */
   anyMinRank?: ProficiencyRank;
   /** Set when the activity exists only under the V&K house rules. */

@@ -1,8 +1,10 @@
 /**
  * Kingdom API — the campaign's single kingdom
  *
- * GET   /api/kingdom  — full kingdom with skills, feats, leadership, settlements
- * PATCH /api/kingdom  — update scalar fields (stats, resources, founding choices)
+ * GET    /api/kingdom  — full kingdom with skills, feats, leadership, settlements
+ * PATCH  /api/kingdom  — update scalar fields (stats, resources, founding choices)
+ * DELETE /api/kingdom  — erase the kingdom (hexes, settlements, everything) and
+ *                        start over from the founding wizard
  */
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
@@ -19,10 +21,42 @@ export async function GET() {
   }
 }
 
+export async function DELETE(req: NextRequest) {
+  try {
+    const kingdom = await getOrCreateKingdom();
+    const body = await req.json().catch(() => ({}));
+
+    // The client is expected to make the player type the kingdom's name, but
+    // that is a UI nicety, not the safeguard — this check is what actually
+    // stops a stray or scripted DELETE from wiping the map, the leadership
+    // roster, and every founding choice in one request.
+    if (body.name !== kingdom.name) {
+      return NextResponse.json(
+        { error: "Type the kingdom's name exactly to confirm deletion." },
+        { status: 400 },
+      );
+    }
+
+    // Everything hangs off Kingdom with onDelete: Cascade (skills, feats,
+    // leadership roles, hexes, settlements, turns), so removing this one row
+    // takes the rest of the kingdom with it. Campaign keeps a bare, unfounded
+    // Kingdom the next time getOrCreateKingdom() runs, which is what sends the
+    // player back to the founding wizard.
+    await prisma.kingdom.delete({ where: { id: kingdom.id } });
+
+    return NextResponse.json({ ok: true });
+  } catch (error) {
+    console.error("Failed to delete kingdom:", error);
+    return NextResponse.json({ error: "Failed to delete kingdom" }, { status: 500 });
+  }
+}
+
 /** Integer fields that accept a plain numeric assignment. */
 const INT_FIELDS = [
   "level",
-  "size",
+  // "size" is deliberately absent: it is counted from the claimed hexes by
+  // PATCH /api/kingdom/hexes. Accepting it here would let the two disagree,
+  // and Size feeds the Size table, Control DC, and the resource dice.
   "fame",
   "fameMax",
   "unrest",

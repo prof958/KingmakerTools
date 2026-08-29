@@ -8,7 +8,14 @@
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "db:up": "docker compose --env-file docker-compose.dev.env -f docker-compose.dev.yml up -d --wait",
+    "db:down": "docker compose --env-file docker-compose.dev.env -f docker-compose.dev.yml down",
+    "db:reset": "docker compose --env-file docker-compose.dev.env -f docker-compose.dev.yml down -v && npm run db:up && npm run db:migrate",
+    "db:migrate": "prisma migrate dev",
+    "db:seed": "tsx prisma/seed.ts",
+    "db:studio": "prisma studio",
+    "dev:setup": "npm run db:up && npm run db:migrate"
   },
   "dependencies": {
     "@base-ui/react": "^1.3.0",
@@ -20,6 +27,7 @@
     "bcryptjs": "^3.0.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "dotenv": "^17.3.1",
     "jose": "^6.2.2",
     "konva": "^10.2.3",
     "lucide-react": "^1.7.0",
@@ -42,10 +50,10 @@
     "@types/pg": "^8.20.0",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "dotenv": "^17.3.1",
     "eslint": "^9",
     "eslint-config-next": "16.2.1",
     "tailwindcss": "^4",
+    "tsx": "^4.23.12",
     "typescript": "^5",
     "vitest": "^4.1.2"
   }

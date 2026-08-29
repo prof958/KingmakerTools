@@ -49,4 +49,11 @@ src/generated/
 next-env.d.ts
 
 /src/generated/prisma
-.env.example
+
+# local dev database data, if a bind-mounted volume is ever used here instead
+# of the named Docker volume
+/.devdata/
+
+# python bytecode cache from the docs/ extraction scripts
+__pycache__/
+*.pyc

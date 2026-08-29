@@ -38,16 +38,17 @@ describe("the generated catalog", () => {
     }
   });
 
-  it("gives every activity its degree outcomes, bar the one flat check", () => {
-    // Focused Attention is resolved by a plain DC 20 check described inline,
-    // so it is the only entry the guide writes without four degrees.
+  it("gives every activity its degree outcomes, bar the ones with no check", () => {
+    // Focused Attention resolves on a plain DC 20 check described inline, and
+    // Disband Army takes no check at all, so neither is written with degrees.
+    const NO_DEGREES = ["disband-army", "focused-attention"];
     const withoutOutcomes = KINGDOM_ACTIVITIES.filter(
       (a) => Object.keys(a.outcomes).length === 0,
     );
-    expect(withoutOutcomes.map((a) => a.id)).toEqual(["focused-attention"]);
+    expect(withoutOutcomes.map((a) => a.id).sort()).toEqual(NO_DEGREES);
 
     for (const activity of KINGDOM_ACTIVITIES) {
-      if (activity.id === "focused-attention") continue;
+      if (NO_DEGREES.includes(activity.id)) continue;
       expect(Object.keys(activity.outcomes), activity.id).toContain("success");
       expect(Object.keys(activity.outcomes), activity.id).toContain("failure");
     }

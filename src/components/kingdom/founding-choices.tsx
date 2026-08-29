@@ -6,10 +6,12 @@
  * choices imply and lets the player write them onto the kingdom in one click.
  */
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
+import { Loader2, TriangleAlert } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -72,9 +74,12 @@ function AbilitySelect({
 export function FoundingChoices({
   kingdom,
   onPatch,
+  onDeleted,
 }: {
   kingdom: KingdomData;
   onPatch: (patch: Record<string, unknown>) => void;
+  /** Called after the kingdom is deleted, so the parent can reload into the founding wizard. */
+  onDeleted?: () => void;
 }) {
   const boostCount = finalizeBoostCount(kingdom.ruleset);
   const charter = getCharter(kingdom.charter);
@@ -297,6 +302,93 @@ export function FoundingChoices({
           </div>
         </CardContent>
       </Card>
+
+      <DangerZone kingdom={kingdom} onDeleted={onDeleted} />
     </div>
+  );
+}
+
+/**
+ * Erase the kingdom and start over. Deletion cascades to hexes, settlements,
+ * leadership, skills, and turns — everything hangs off the Kingdom row in the
+ * schema — so this is asked for like the one-way action it is: the player
+ * types the kingdom's name before the button will even enable.
+ */
+function DangerZone({
+  kingdom,
+  onDeleted,
+}: {
+  kingdom: KingdomData;
+  onDeleted?: () => void;
+}) {
+  const [confirmText, setConfirmText] = useState("");
+  const [deleting, setDeleting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const matches = confirmText.trim() === kingdom.name;
+
+  async function handleDelete() {
+    if (!matches || deleting) return;
+    setDeleting(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/kingdom", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: confirmText.trim() }),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        setError(body.error ?? "Could not delete the kingdom.");
+        setDeleting(false);
+        return;
+      }
+      onDeleted?.();
+      // Deliberately not resetting `deleting`: the parent is about to swap
+      // this whole tree out for the founding wizard, and re-enabling the
+      // button in the meantime would just invite a second click.
+    } catch {
+      setError("Could not reach the server.");
+      setDeleting(false);
+    }
+  }
+
+  return (
+    <Card className="border-destructive/40">
+      <CardHeader className="pb-3">
+        <CardTitle className="flex items-center gap-2 text-base text-destructive">
+          <TriangleAlert className="h-4 w-4" />
+          Danger zone
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <p className="text-sm text-muted-foreground">
+          Permanently deletes <span className="font-medium text-foreground">{kingdom.name}</span>{" "}
+          — the hex map, every settlement, leadership assignments, skill ranks, and turn
+          history. This cannot be undone. To start over, type the kingdom&apos;s name below.
+        </p>
+        <div className="flex flex-wrap items-center gap-2">
+          <Input
+            className="h-9 w-64"
+            placeholder={kingdom.name}
+            value={confirmText}
+            onChange={(e) => {
+              setConfirmText(e.target.value);
+              if (error) setError(null);
+            }}
+            disabled={deleting}
+          />
+          <Button
+            variant="destructive"
+            disabled={!matches || deleting}
+            onClick={handleDelete}
+          >
+            {deleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <TriangleAlert className="h-4 w-4" />}
+            Delete kingdom
+          </Button>
+        </div>
+        {error && <p className="text-sm text-destructive">{error}</p>}
+      </CardContent>
+    </Card>
   );
 }

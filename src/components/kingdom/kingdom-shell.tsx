@@ -91,7 +91,7 @@ export function KingdomShell({
           <LeadershipRoster kingdom={kingdom} characters={characters} onRefresh={refresh} />
         </TabsContent>
         <TabsContent value="founding">
-          <FoundingChoices kingdom={kingdom} onPatch={patchKingdom} />
+          <FoundingChoices kingdom={kingdom} onPatch={patchKingdom} onDeleted={refresh} />
         </TabsContent>
       </Tabs>
     </div>
