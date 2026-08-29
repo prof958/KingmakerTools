@@ -13,6 +13,7 @@ import {
   investedStatusBonus,
   KINGDOM_ABILITIES,
   KINGDOM_SKILLS,
+  KINGDOM_TURN_PHASES,
   LEADERSHIP_ROLES,
   proficiencyBonus,
   resolveRuin,
@@ -21,6 +22,7 @@ import {
   sizeBracket,
   skillModifier,
   untrainedImprovisation,
+  unrestStatusPenalty,
   startingSkills,
 } from "./kingdom";
 
@@ -361,5 +363,34 @@ describe("computeAbilityScores", () => {
 describe("anarchy threshold constant", () => {
   it("is 20 per the Player's Guide", () => {
     expect(ANARCHY_UNREST).toBe(20);
+  });
+});
+
+describe("unrestStatusPenalty", () => {
+  it("is zero with no Unrest", () => {
+    expect(unrestStatusPenalty(0)).toBe(0);
+  });
+
+  it("steps through the four Unrest tiers", () => {
+    expect(unrestStatusPenalty(1)).toBe(1);
+    expect(unrestStatusPenalty(4)).toBe(1);
+    expect(unrestStatusPenalty(5)).toBe(2);
+    expect(unrestStatusPenalty(9)).toBe(2);
+    expect(unrestStatusPenalty(10)).toBe(3);
+    expect(unrestStatusPenalty(14)).toBe(3);
+    expect(unrestStatusPenalty(15)).toBe(4);
+  });
+
+  it("does not keep climbing past the top tier", () => {
+    expect(unrestStatusPenalty(100)).toBe(4);
+  });
+});
+
+describe("KINGDOM_TURN_PHASES", () => {
+  it("has no leftover XP-tracking steps — this campaign levels by milestone", () => {
+    const stepIds = KINGDOM_TURN_PHASES.flatMap((phase) => phase.steps.map((s) => s.id));
+    expect(stepIds).not.toContain("apply-xp");
+    expect(stepIds).not.toContain("increase-level");
+    expect(stepIds).toContain("milestone-check");
   });
 });

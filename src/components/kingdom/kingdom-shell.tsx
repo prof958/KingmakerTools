@@ -16,18 +16,21 @@ import { LeadershipRoster } from "./leadership-roster";
 import { FoundingChoices } from "./founding-choices";
 import { KingdomMap } from "./kingdom-map";
 import { SettlementsTab } from "./settlements-tab";
-import type { CharacterLite, HexData, KingdomData, SettlementData } from "./types";
+import { TurnTracker } from "./turn-tracker";
+import type { CharacterLite, HexData, KingdomData, SettlementData, TurnData } from "./types";
 
 export function KingdomShell({
   kingdom,
   characters,
   hexes,
   settlements,
+  turns,
 }: {
   kingdom: KingdomData;
   characters: CharacterLite[];
   hexes: HexData[];
   settlements: SettlementData[];
+  turns: TurnData[];
 }) {
   const router = useRouter();
   const [saving, setSaving] = useState(false);
@@ -75,6 +78,7 @@ export function KingdomShell({
       <Tabs defaultValue="overview" className="space-y-4">
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="turn">Turn</TabsTrigger>
           <TabsTrigger value="map">Map</TabsTrigger>
           <TabsTrigger value="settlements">Settlements</TabsTrigger>
           <TabsTrigger value="skills">Skills</TabsTrigger>
@@ -84,6 +88,17 @@ export function KingdomShell({
 
         <TabsContent value="overview">
           <KingdomOverview kingdom={kingdom} onPatch={patchKingdom} />
+        </TabsContent>
+        <TabsContent value="turn">
+          <TurnTracker
+            kingdom={kingdom}
+            characters={characters}
+            hexes={hexes}
+            settlements={settlements}
+            turns={turns}
+            onPatchKingdom={patchKingdom}
+            onRefresh={refresh}
+          />
         </TabsContent>
         <TabsContent value="map">
           <KingdomMap hexes={hexes} />

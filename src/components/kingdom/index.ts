@@ -6,4 +6,5 @@ export { FoundingChoices } from "./founding-choices";
 export { FoundingWizard } from "./founding-wizard";
 export { KingdomMap } from "./kingdom-map";
 export { SettlementsTab } from "./settlements-tab";
+export { TurnTracker } from "./turn-tracker";
 export type * from "./types";

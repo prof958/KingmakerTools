@@ -624,6 +624,19 @@ export const ANARCHY_UNREST = 20;
 /** Unrest ≥ this value causes 1d10 Ruin during the Upkeep phase. */
 export const UNREST_RUIN_THRESHOLD = 10;
 
+/** Unrest thresholds and their status penalty to every kingdom check (KPG 39). */
+const UNREST_PENALTY_TIERS: [threshold: number, penalty: number][] = [
+  [15, 4],
+  [10, 3],
+  [5, 2],
+  [1, 1],
+];
+
+/** The status penalty Unrest applies to every kingdom skill check right now. */
+export function unrestStatusPenalty(unrest: number): number {
+  return UNREST_PENALTY_TIERS.find(([threshold]) => unrest >= threshold)?.[1] ?? 0;
+}
+
 export const FAME_MAX_DEFAULT = 3;
 
 // ──────────────────────────────────────────────
@@ -977,10 +990,9 @@ export const KINGDOM_TURN_PHASES: TurnPhaseDef[] = [
     id: "event",
     name: "Event",
     steps: [
-      { id: "check-event", name: "Check for a Random Event", hint: "DC 16 flat check; DC drops by 5 each turn with no event." },
+      { id: "check-event", name: "Check for a Random Event", hint: "DC 16 flat check; DC drops by 5 each turn with no event (not tracked automatically)." },
       { id: "resolve-event", name: "Event Resolution", hint: "Resolve any triggered kingdom event." },
-      { id: "apply-xp", name: "Apply Kingdom XP", hint: "Hex claims, milestones, +30 for a random event, leftover RP → XP (max 120)." },
-      { id: "increase-level", name: "Increase Kingdom Level", hint: "If XP ≥ 1000 and below max level, level up and subtract 1000." },
+      { id: "milestone-check", name: "Milestone Check", hint: "This table levels the kingdom by milestone, not XP — review progress and bump the level on the Overview tab if it's earned." },
     ],
   },
 ];

@@ -67,6 +67,29 @@ export interface SettlementData {
   notes: string | null;
 }
 
+export interface TurnLogEntry {
+  at: string;
+  label: string;
+  detail?: string;
+}
+
+export interface TurnStepRecord {
+  done: boolean;
+  log: TurnLogEntry[];
+}
+
+export interface TurnPhaseData {
+  steps: Record<string, TurnStepRecord>;
+}
+
+export interface TurnData {
+  id: string;
+  turnNumber: number;
+  status: "in_progress" | "complete";
+  phaseData: TurnPhaseData;
+  summary: string | null;
+}
+
 export interface KingdomData {
   id: string;
   name: string;

@@ -29,19 +29,36 @@ export function LeadershipRoster({
   kingdom,
   characters,
   onRefresh,
+  onChange,
+  bare = false,
 }: {
   kingdom: KingdomData;
   characters: CharacterLite[];
   onRefresh: () => void;
+  /**
+   * Called with a human-readable description of each successful edit. The Turn
+   * tab passes this through to the turn log so re-shuffling leadership during
+   * Upkeep is recorded like every other thing that happens in a turn; the
+   * standalone Leadership tab leaves it off and nothing is logged.
+   */
+  onChange?: (label: string) => void;
+  /** Skip the outer Card chrome — for embedding inside another card, e.g. the Turn tab's Assign Leadership Roles step. */
+  bare?: boolean;
 }) {
   const [pending, setPending] = useState<string | null>(null);
 
   const byRole = new Map(kingdom.leadershipRoles.map((r) => [r.role, r]));
-  const investedCount = kingdom.leadershipRoles.filter((r) => r.invested).length;
+  const investedCount = kingdom.leadershipRoles.filter(
+    (r) => r.invested,
+  ).length;
   const pcs = characters.filter((c) => !c.isCompanion);
   const companions = characters.filter((c) => c.isCompanion);
 
-  async function patchRole(role: string, body: Record<string, unknown>) {
+  async function patchRole(
+    role: string,
+    body: Record<string, unknown>,
+    logLabel?: string,
+  ) {
     setPending(role);
     try {
       const res = await fetch("/api/kingdom/leadership", {
@@ -49,10 +66,147 @@ export function LeadershipRoster({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ role, ...body }),
       });
-      if (res.ok) onRefresh();
+      if (res.ok) {
+        if (logLabel) onChange?.(logLabel);
+        onRefresh();
+      }
     } finally {
       setPending(null);
     }
+  }
+
+  function nameFor(characterId: string | null, npcName: string | null): string {
+    if (characterId) {
+      return characters.find((c) => c.id === characterId)?.name ?? "someone";
+    }
+    return npcName || "Vacant";
+  }
+
+  const roles = (
+    <div className="space-y-3">
+      {LEADERSHIP_ROLES.map((def) => {
+        const row = byRole.get(def.id);
+        const assignedValue = row?.characterId ?? VACANT;
+        return (
+          <div key={def.id} className="rounded-lg border p-3">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <span className="text-sm font-medium">{def.name}</span>
+                <span className="ml-2 text-xs text-muted-foreground">
+                  key {ABILITY_LABELS[def.keyAbility]}
+                </span>
+              </div>
+              <Button
+                size="sm"
+                variant={row?.invested ? "default" : "outline"}
+                disabled={pending === def.id}
+                onClick={() =>
+                  patchRole(
+                    def.id,
+                    { invested: !row?.invested },
+                    `${def.name} ${row?.invested ? "divested" : "invested"} (${nameFor(
+                      row?.characterId ?? null,
+                      row?.npcName ?? null,
+                    )})`,
+                  )
+                }
+              >
+                {row?.invested ? "Invested" : "Invest"}
+              </Button>
+            </div>
+
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              <Select
+                value={assignedValue}
+                onValueChange={(v) => {
+                  const nextId = v && v !== VACANT ? v : null;
+                  patchRole(
+                    def.id,
+                    { characterId: nextId },
+                    `${def.name}: ${nameFor(row?.characterId ?? null, row?.npcName ?? null)} → ${nameFor(nextId, null)}`,
+                  );
+                }}
+                disabled={pending === def.id}
+              >
+                <SelectTrigger size="sm" className="w-44">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={VACANT} label="Vacant">
+                    Vacant
+                  </SelectItem>
+                  {pcs.length > 0 && (
+                    <SelectGroup>
+                      <SelectLabel>Party</SelectLabel>
+                      {pcs.map((c) => (
+                        <SelectItem key={c.id} value={c.id} label={c.name}>
+                          {c.emoji ? `${c.emoji} ` : ""}
+                          {c.name}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  )}
+                  {companions.length > 0 && (
+                    <SelectGroup>
+                      <SelectLabel>Companions</SelectLabel>
+                      {companions.map((c) => (
+                        <SelectItem key={c.id} value={c.id} label={c.name}>
+                          {c.emoji ? `${c.emoji} ` : ""}
+                          {c.name}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  )}
+                </SelectContent>
+              </Select>
+
+              <Input
+                className="h-7 w-40"
+                placeholder="or NPC name"
+                defaultValue={row?.npcName ?? ""}
+                onBlur={(e) => {
+                  const next = e.target.value.trim();
+                  if (next !== (row?.npcName ?? "")) {
+                    patchRole(
+                      def.id,
+                      { npcName: next || null },
+                      `${def.name}: ${nameFor(row?.characterId ?? null, row?.npcName ?? null)} → ${next || "Vacant"}`,
+                    );
+                  }
+                }}
+              />
+            </div>
+
+            {!row?.characterId && !row?.npcName && (
+              <p className="mt-2 text-xs text-destructive">
+                Vacant — {def.vacancyPenalty}
+              </p>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+
+  const badge = (
+    <Badge variant={investedCount === 4 ? "secondary" : "outline"}>
+      {investedCount} / 4 invested
+    </Badge>
+  );
+
+  if (bare) {
+    return (
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <span className="text-xs text-muted-foreground">
+            Invested roles grant a +1 status bonus to their key ability&apos;s
+            Kingdom skills.
+          </span>
+          {badge}
+        </div>
+        {roles}
+      </div>
+    );
   }
 
   return (
@@ -60,94 +214,10 @@ export function LeadershipRoster({
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-base">Leadership</CardTitle>
-          <Badge variant={investedCount === 4 ? "secondary" : "outline"}>
-            {investedCount} / 4 invested
-          </Badge>
+          {badge}
         </div>
       </CardHeader>
-      <CardContent className="space-y-3">
-        {LEADERSHIP_ROLES.map((def) => {
-          const row = byRole.get(def.id);
-          const assignedValue = row?.characterId ?? VACANT;
-          return (
-            <div key={def.id} className="rounded-lg border p-3">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <div>
-                  <span className="text-sm font-medium">{def.name}</span>
-                  <span className="ml-2 text-xs text-muted-foreground">
-                    key {ABILITY_LABELS[def.keyAbility]}
-                  </span>
-                </div>
-                <Button
-                  size="sm"
-                  variant={row?.invested ? "default" : "outline"}
-                  disabled={pending === def.id}
-                  onClick={() => patchRole(def.id, { invested: !row?.invested })}
-                >
-                  {row?.invested ? "Invested" : "Invest"}
-                </Button>
-              </div>
-
-              <div className="mt-2 flex flex-wrap items-center gap-2">
-                <Select
-                  value={assignedValue}
-                  onValueChange={(v) =>
-                    patchRole(def.id, { characterId: v && v !== VACANT ? v : null })
-                  }
-                  disabled={pending === def.id}
-                >
-                  <SelectTrigger size="sm" className="w-44">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value={VACANT} label="Vacant">
-                      Vacant
-                    </SelectItem>
-                    {pcs.length > 0 && (
-                      <SelectGroup>
-                        <SelectLabel>Party</SelectLabel>
-                        {pcs.map((c) => (
-                          <SelectItem key={c.id} value={c.id} label={c.name}>
-                            {c.emoji ? `${c.emoji} ` : ""}
-                            {c.name}
-                          </SelectItem>
-                        ))}
-                      </SelectGroup>
-                    )}
-                    {companions.length > 0 && (
-                      <SelectGroup>
-                        <SelectLabel>Companions</SelectLabel>
-                        {companions.map((c) => (
-                          <SelectItem key={c.id} value={c.id} label={c.name}>
-                            {c.emoji ? `${c.emoji} ` : ""}
-                            {c.name}
-                          </SelectItem>
-                        ))}
-                      </SelectGroup>
-                    )}
-                  </SelectContent>
-                </Select>
-
-                <Input
-                  className="h-7 w-40"
-                  placeholder="or NPC name"
-                  defaultValue={row?.npcName ?? ""}
-                  onBlur={(e) => {
-                    const next = e.target.value.trim();
-                    if (next !== (row?.npcName ?? "")) {
-                      patchRole(def.id, { npcName: next || null });
-                    }
-                  }}
-                />
-              </div>
-
-              {!row?.characterId && !row?.npcName && (
-                <p className="mt-2 text-xs text-destructive">Vacant — {def.vacancyPenalty}</p>
-              )}
-            </div>
-          );
-        })}
-      </CardContent>
+      <CardContent>{roles}</CardContent>
     </Card>
   );
 }

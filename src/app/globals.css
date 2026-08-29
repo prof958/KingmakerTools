@@ -128,3 +128,57 @@
     @apply font-sans;
   }
 }
+
+/* Kingdom Turn tracker — dice-roll drama. Not part of the shadcn/tw-animate-css
+   utility sets, so defined here rather than reached for via a third package. */
+@keyframes kt-dice-tumble {
+  0% {
+    transform: scale(0.85) rotate(-6deg);
+  }
+  50% {
+    transform: scale(1.08) rotate(4deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+}
+@keyframes kt-dice-shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-6px) rotate(-3deg);
+  }
+  40% {
+    transform: translateX(5px) rotate(2deg);
+  }
+  60% {
+    transform: translateX(-4px) rotate(-2deg);
+  }
+  80% {
+    transform: translateX(3px) rotate(1deg);
+  }
+}
+@keyframes kt-dice-land {
+  0% {
+    transform: scale(1.35);
+    opacity: 0.4;
+  }
+  60% {
+    transform: scale(0.94);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+.kt-dice-tumble {
+  animation: kt-dice-tumble 0.16s ease-out;
+}
+.kt-dice-shake {
+  animation: kt-dice-shake 0.5s ease-in-out;
+}
+.kt-dice-land {
+  animation: kt-dice-land 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}

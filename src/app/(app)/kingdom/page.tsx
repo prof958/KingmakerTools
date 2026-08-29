@@ -3,8 +3,7 @@
  *
  * Loads the campaign's kingdom, creating it on first visit. An unfounded
  * kingdom gets the founding wizard instead of the dashboard; the dashboard has
- * nothing meaningful to show until the founding choices exist. The turn
- * tracker lands in a later Phase 5 slice.
+ * nothing meaningful to show until the founding choices exist.
  */
 export const dynamic = "force-dynamic";
 
@@ -17,7 +16,7 @@ import { FoundingWizard, KingdomShell } from "@/components/kingdom";
 export default async function KingdomPage() {
   const campaign = await getOrCreateCampaign();
   const kingdom = await getOrCreateKingdom();
-  const [characters, hexes, settlements] = await Promise.all([
+  const [characters, hexes, settlements, turns] = await Promise.all([
     prisma.character.findMany({
       where: { campaignId: campaign.id },
       orderBy: { createdAt: "asc" },
@@ -31,12 +30,17 @@ export default async function KingdomPage() {
       where: { kingdomId: kingdom.id },
       orderBy: { createdAt: "asc" },
     }),
+    prisma.kingdomTurn.findMany({
+      where: { kingdomId: kingdom.id },
+      orderBy: { turnNumber: "desc" },
+    }),
   ]);
 
   const kingdomData = JSON.parse(JSON.stringify(kingdom));
   const characterData = JSON.parse(JSON.stringify(characters));
   const hexData = JSON.parse(JSON.stringify(hexes));
   const settlementData = JSON.parse(JSON.stringify(settlements));
+  const turnData = JSON.parse(JSON.stringify(turns));
 
   if (!kingdom.founded) {
     return <FoundingWizard kingdom={kingdomData} characters={characterData} />;
@@ -56,6 +60,7 @@ export default async function KingdomPage() {
         characters={characterData}
         hexes={hexData}
         settlements={settlementData}
+        turns={turnData}
       />
     </div>
   );
