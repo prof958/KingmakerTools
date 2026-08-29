@@ -40,6 +40,7 @@ import {
   PayConsumptionStep,
   RandomEventStep,
   ResourceCollectionStep,
+  type KingdomTab,
 } from "./turn-steps";
 import type { CharacterLite, HexData, KingdomData, SettlementData, TurnData } from "./types";
 
@@ -99,6 +100,7 @@ export function TurnTracker({
   turns,
   onPatchKingdom,
   onRefresh,
+  onNavigate,
 }: {
   kingdom: KingdomData;
   characters: CharacterLite[];
@@ -107,6 +109,7 @@ export function TurnTracker({
   turns: TurnData[];
   onPatchKingdom: (patch: Record<string, unknown>) => void;
   onRefresh: () => void;
+  onNavigate?: (tab: KingdomTab) => void;
 }) {
   const router = useRouter();
   const [phaseIndex, setPhaseIndex] = useState(0);
@@ -169,6 +172,16 @@ export function TurnTracker({
 
   function log(stepKey: string, label: string, detail?: string) {
     void patchStep(stepKey, { appendLog: { label, detail } });
+  }
+
+  /**
+   * Logging an outcome *is* doing the step, so it ticks the step off in the
+   * same request — no separate "mark done" click after every activity check or
+   * note. `done` is set alongside the entry rather than through `markDone` so
+   * it doesn't also append a redundant "marked done" line.
+   */
+  function logAndComplete(stepKey: string, label: string, detail?: string) {
+    void patchStep(stepKey, { done: true, appendLog: { label, detail } });
   }
 
   function removeLog(stepKey: string, index: number) {
@@ -389,11 +402,6 @@ export function TurnTracker({
             );
           })}
         </div>
-        {phaseComplete && nextPhase && (
-          <Button size="sm" variant="ghost" onClick={() => setPhaseIndex(phaseIndex + 1)}>
-            Continue to {nextPhase.name} <ArrowRight className="size-3.5" />
-          </Button>
-        )}
       </div>
 
       <div className="space-y-3">
@@ -425,6 +433,7 @@ export function TurnTracker({
                   done={done}
                   onMarkDone={(d) => markDone(stepKey, d)}
                   onLevelUp={levelUp}
+                  onNavigate={onNavigate}
                   lastLog={lastLog}
                 />
               );
@@ -438,6 +447,7 @@ export function TurnTracker({
                   done={done}
                   onApply={applyAdjustUnrest}
                   onMarkDone={(d) => markDone(stepKey, d)}
+                  onNavigate={onNavigate}
                   lastLog={lastLog}
                 />
               );
@@ -472,7 +482,7 @@ export function TurnTracker({
               body = (
                 <RandomEventStep
                   done={done}
-                  onLog={(label, detail) => log(stepKey, label, detail)}
+                  onLog={(label, detail) => logAndComplete(stepKey, label, detail)}
                   onMarkDone={(d) => markDone(stepKey, d)}
                   lastLog={lastLog}
                 />
@@ -487,8 +497,9 @@ export function TurnTracker({
                   kingdom={kingdom}
                   activities={activity ? [activity] : []}
                   done={done}
-                  onLog={(label, detail) => log(stepKey, label, detail)}
+                  onLog={(label, detail) => logAndComplete(stepKey, label, detail)}
                   onMarkDone={(d) => markDone(stepKey, d)}
+                  onNavigate={onNavigate}
                   lastLog={lastLog}
                 />
               );
@@ -509,8 +520,9 @@ export function TurnTracker({
                   kingdom={kingdom}
                   activities={activities}
                   done={done}
-                  onLog={(label, detail) => log(stepKey, label, detail)}
+                  onLog={(label, detail) => logAndComplete(stepKey, label, detail)}
                   onMarkDone={(d) => markDone(stepKey, d)}
+                  onNavigate={onNavigate}
                   lastLog={lastLog}
                 />
               );
@@ -525,7 +537,7 @@ export function TurnTracker({
                     NOTE_PLACEHOLDERS[stepKey] ?? "What happened? This goes into the turn log."
                   }
                   done={done}
-                  onLog={(label) => log(stepKey, label)}
+                  onLog={(label) => logAndComplete(stepKey, label)}
                   onMarkDone={(d) => markDone(stepKey, d)}
                   lastLog={lastLog}
                 />
@@ -562,6 +574,17 @@ export function TurnTracker({
           );
         })}
       </div>
+
+      {/* Sits after the steps, not up by the phase rail: you reach it by
+          working down the phase, and this is where you actually are when the
+          last step is finished. */}
+      {phaseComplete && nextPhase && (
+        <div>
+          <Button size="sm" onClick={() => setPhaseIndex(phaseIndex + 1)}>
+            Continue to {nextPhase.name} <ArrowRight className="size-3.5" />
+          </Button>
+        </div>
+      )}
 
       <TurnLogPanel current={current} open={logOpen} onOpenChange={setLogOpen} />
 

@@ -24,6 +24,7 @@ import {
   untrainedImprovisation,
   unrestStatusPenalty,
   startingSkills,
+  vacancyPenalty,
 } from "./kingdom";
 
 describe("abilityModifier", () => {
@@ -148,6 +149,56 @@ describe("investedStatusBonus", () => {
   });
 });
 
+describe("vacancyPenalty", () => {
+  it("is zero when every role is filled", () => {
+    expect(vacancyPenalty([], "culture").total).toBe(0);
+  });
+
+  it("applies the Ruler's −1 to every check regardless of ability or traits", () => {
+    for (const ability of ["culture", "economy", "loyalty", "stability"] as const) {
+      expect(vacancyPenalty(["ruler"], ability).total).toBe(1);
+    }
+  });
+
+  it("applies ability-keyed penalties only to matching skills", () => {
+    expect(vacancyPenalty(["counselor"], "culture").total).toBe(1);
+    expect(vacancyPenalty(["counselor"], "economy").total).toBe(0);
+    expect(vacancyPenalty(["treasurer"], "economy").total).toBe(1);
+    expect(vacancyPenalty(["emissary"], "loyalty").total).toBe(1);
+  });
+
+  it("keys the Viceroy's penalty to Stability, not its own Economy ability", () => {
+    expect(vacancyPenalty(["viceroy"], "stability").total).toBe(1);
+    expect(vacancyPenalty(["viceroy"], "economy").total).toBe(0);
+  });
+
+  it("applies the −4 trait penalties only to the matching activity", () => {
+    expect(vacancyPenalty(["warden"], "stability", ["REGION"]).total).toBe(4);
+    expect(vacancyPenalty(["warden"], "stability", ["CIVIC"]).total).toBe(0);
+    expect(vacancyPenalty(["general"], "stability", ["ARMY"]).total).toBe(4);
+    expect(vacancyPenalty(["magister"], "culture", ["ARMY"]).total).toBe(4);
+    expect(vacancyPenalty(["general"], "stability", []).total).toBe(0);
+  });
+
+  it("stacks every applicable vacancy, unlike status bonuses", () => {
+    // Ruler (−1 always) + Warden (−4 on Region) + Viceroy (−1 on Stability).
+    const result = vacancyPenalty(["ruler", "warden", "viceroy"], "stability", ["REGION"]);
+    expect(result.total).toBe(6);
+    expect(result.sources.map((s) => s.roleId)).toEqual(["ruler", "warden", "viceroy"]);
+  });
+
+  it("reports a named breakdown for the UI", () => {
+    const { sources } = vacancyPenalty(["counselor"], "culture");
+    expect(sources).toEqual([
+      { roleId: "counselor", roleName: "Counselor", amount: 1, reason: "Culture-based checks" },
+    ]);
+  });
+
+  it("ignores unknown role ids", () => {
+    expect(vacancyPenalty(["not-a-role"], "culture").total).toBe(0);
+  });
+});
+
 describe("sizeBracket", () => {
   it("returns the correct bracket and resource die", () => {
     expect(sizeBracket(1).resourceDie).toBe(4);
@@ -180,6 +231,12 @@ describe("controlDC", () => {
   it("clamps out-of-range levels", () => {
     expect(controlDC(0)).toBe(CONTROL_DC_BY_LEVEL[1]);
     expect(controlDC(99)).toBe(CONTROL_DC_BY_LEVEL[20]);
+  });
+
+  it("adds +2 while the Ruler seat is vacant, on top of the Size modifier", () => {
+    expect(controlDC(1, 1, true)).toBe(16);
+    expect(controlDC(5, 10, true)).toBe(23); // 20 base + 1 Province + 2 vacancy
+    expect(controlDC(5, 10, false)).toBe(21);
   });
 });
 

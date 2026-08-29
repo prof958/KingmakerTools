@@ -511,6 +511,79 @@ export function investedStatusBonus(
   return anyInvestedForAbility ? 1 : 0;
 }
 
+/**
+ * Penalty from leadership roles nobody is filling (KPG 18-19).
+ *
+ * A role is *vacant* when no character and no NPC holds it — which is separate
+ * from whether it is invested; investment is what grants the +1 status bonus,
+ * vacancy is what levies these penalties.
+ *
+ * Vacancy penalties are untyped, so every applicable one stacks (the Ruler's
+ * entry says so explicitly). Which ones apply depends on both the skill's key
+ * ability and the traits of the activity being attempted:
+ *
+ *   Ruler      −1 to every kingdom check (and +2 Control DC, see `controlDC`)
+ *   Counselor  −1 to Culture-based checks
+ *   Emissary   −1 to Loyalty-based checks
+ *   Treasurer  −1 to Economy-based checks
+ *   Viceroy    −1 to Stability-based checks (note: its own key ability is Economy)
+ *   General    −4 to Warfare activities
+ *   Magister   −4 to Warfare activities
+ *   Warden     −4 to Region activities
+ *
+ * This catalogue tags warfare activities with the ARMY trait, so that is what
+ * the −4 warfare penalties key off.
+ */
+const VACANCY_RULES: Record<
+  string,
+  { amount: number; reason: string; applies: (keyAbility: KingdomAbility, traits: string[]) => boolean }
+> = {
+  ruler: { amount: 1, reason: "all kingdom checks", applies: () => true },
+  counselor: { amount: 1, reason: "Culture-based checks", applies: (a) => a === "culture" },
+  emissary: { amount: 1, reason: "Loyalty-based checks", applies: (a) => a === "loyalty" },
+  treasurer: { amount: 1, reason: "Economy-based checks", applies: (a) => a === "economy" },
+  viceroy: { amount: 1, reason: "Stability-based checks", applies: (a) => a === "stability" },
+  general: { amount: 4, reason: "Warfare activities", applies: (_a, t) => t.includes("ARMY") },
+  magister: { amount: 4, reason: "Warfare activities", applies: (_a, t) => t.includes("ARMY") },
+  warden: { amount: 4, reason: "Region activities", applies: (_a, t) => t.includes("REGION") },
+};
+
+export interface VacancyPenaltySource {
+  roleId: string;
+  roleName: string;
+  amount: number;
+  reason: string;
+}
+
+export interface VacancyPenaltyResult {
+  /** Positive number, to be subtracted from the check. */
+  total: number;
+  sources: VacancyPenaltySource[];
+}
+
+/**
+ * Total vacancy penalty against one check, with the per-role breakdown so the
+ * UI can explain where a modifier came from.
+ */
+export function vacancyPenalty(
+  vacantRoleIds: string[],
+  skillKeyAbility: KingdomAbility,
+  activityTraits: string[] = [],
+): VacancyPenaltyResult {
+  const sources: VacancyPenaltySource[] = [];
+  for (const roleId of vacantRoleIds) {
+    const rule = VACANCY_RULES[roleId];
+    if (!rule || !rule.applies(skillKeyAbility, activityTraits)) continue;
+    sources.push({
+      roleId,
+      roleName: getLeadershipRole(roleId)?.name ?? roleId,
+      amount: rule.amount,
+      reason: rule.reason,
+    });
+  }
+  return { total: sources.reduce((sum, s) => sum + s.amount, 0), sources };
+}
+
 // ──────────────────────────────────────────────
 // Kingdom Size (KPG 37-38)
 // ──────────────────────────────────────────────
@@ -555,9 +628,17 @@ export function clampLevel(level: number): number {
   return Math.max(1, Math.min(20, Math.floor(level)));
 }
 
-/** Control DC = base for level + Size modifier. */
-export function controlDC(level: number, size = 1): number {
-  return CONTROL_DC_BY_LEVEL[clampLevel(level)] + sizeBracket(size).controlDCModifier;
+/**
+ * Control DC = base for level + Size modifier, +2 while the Ruler seat is
+ * vacant (KPG 19 — the one vacancy penalty that raises the DC instead of
+ * lowering the modifier).
+ */
+export function controlDC(level: number, size = 1, rulerVacant = false): number {
+  return (
+    CONTROL_DC_BY_LEVEL[clampLevel(level)] +
+    sizeBracket(size).controlDCModifier +
+    (rulerVacant ? 2 : 0)
+  );
 }
 
 /** Number of Resource Dice rolled at the start of a Kingdom turn. */

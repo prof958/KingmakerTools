@@ -10,7 +10,7 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { BlurCommitInput } from "@/components/blur-commit-input";
 import {
   Select,
   SelectContent,
@@ -160,20 +160,17 @@ export function LeadershipRoster({
                 </SelectContent>
               </Select>
 
-              <Input
+              <BlurCommitInput
                 className="h-7 w-40"
                 placeholder="or NPC name"
-                defaultValue={row?.npcName ?? ""}
-                onBlur={(e) => {
-                  const next = e.target.value.trim();
-                  if (next !== (row?.npcName ?? "")) {
-                    patchRole(
-                      def.id,
-                      { npcName: next || null },
-                      `${def.name}: ${nameFor(row?.characterId ?? null, row?.npcName ?? null)} → ${next || "Vacant"}`,
-                    );
-                  }
-                }}
+                value={row?.npcName ?? ""}
+                onCommit={(next) =>
+                  patchRole(
+                    def.id,
+                    { npcName: next || null },
+                    `${def.name}: ${nameFor(row?.characterId ?? null, row?.npcName ?? null)} → ${next || "Vacant"}`,
+                  )
+                }
               />
             </div>
 

@@ -9,7 +9,7 @@ import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
+import { BlurCommitInput } from "@/components/blur-commit-input";
 import { KingdomOverview } from "./kingdom-overview";
 import { KingdomSkills } from "./kingdom-skills";
 import { LeadershipRoster } from "./leadership-roster";
@@ -34,6 +34,7 @@ export function KingdomShell({
 }) {
   const router = useRouter();
   const [saving, setSaving] = useState(false);
+  const [tab, setTab] = useState("overview");
 
   const refresh = useCallback(() => router.refresh(), [router]);
 
@@ -58,12 +59,11 @@ export function KingdomShell({
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <Input
+          <BlurCommitInput
             className="h-9 w-64 text-lg font-semibold"
-            defaultValue={kingdom.name}
-            onBlur={(e) => {
-              const next = e.target.value.trim();
-              if (next && next !== kingdom.name) patchKingdom({ name: next });
+            value={kingdom.name}
+            onCommit={(next) => {
+              if (next) patchKingdom({ name: next });
             }}
           />
           <Badge variant="outline">Level {kingdom.level}</Badge>
@@ -75,7 +75,10 @@ export function KingdomShell({
         {saving && <span className="text-xs text-muted-foreground">Saving…</span>}
       </div>
 
-      <Tabs defaultValue="overview" className="space-y-4">
+      {/* Controlled rather than defaultValue so the Turn tab can send you
+          straight to the tab a step's outcome needs (the Map to give up a hex,
+          Settlements to place a structure) instead of just naming it. */}
+      <Tabs value={tab} onValueChange={(v) => v && setTab(v)} className="space-y-4">
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="turn">Turn</TabsTrigger>
@@ -98,6 +101,7 @@ export function KingdomShell({
             turns={turns}
             onPatchKingdom={patchKingdom}
             onRefresh={refresh}
+            onNavigate={setTab}
           />
         </TabsContent>
         <TabsContent value="map">

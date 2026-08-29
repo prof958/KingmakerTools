@@ -78,18 +78,32 @@ function DieBadge({
 export function DiceReveal<T>({
   label,
   faces,
+  dice = 1,
   roll,
   getTotal,
+  getFace,
   getTone,
   onSettled,
   disabled,
   size = "sm",
 }: {
   label: string;
-  /** Face count used for the tumbling placeholder values (20 for a d20, 4 for a d4, ...). */
+  /** Face count of a single die (20 for a d20, 4 for a d4, ...). */
   faces: number;
+  /** How many dice are rolled, so the tumble ranges over plausible sums. */
+  dice?: number;
   roll: () => T;
   getTotal: (result: T) => number;
+  /**
+   * What the die badge lands on — the raw dice, before any modifier.
+   *
+   * This is deliberately separate from `getTotal`: the badge is drawn as a die
+   * and tumbles through die faces, so landing it on a modifier-adjusted total
+   * would misreport what was actually rolled (a natural 5 at +1 would read as
+   * a 6). Defaults to `getTotal` for rolls that have no modifier, where the
+   * two are the same number.
+   */
+  getFace?: (result: T) => number;
   getTone?: (result: T) => DiceTone;
   onSettled?: (result: T) => void;
   disabled?: boolean;
@@ -116,13 +130,16 @@ export function DiceReveal<T>({
     const tumble = (ticksLeft: number, delay: number) => {
       if (tokenRef.current !== myToken) return;
       if (ticksLeft <= 0) {
-        setDisplay(getTotal(result));
+        setDisplay((getFace ?? getTotal)(result));
         setPhase("landed");
         setSettled(result);
         onSettled?.(result);
         return;
       }
-      setDisplay(1 + Math.floor(Math.random() * faces));
+      // Tumble across the range the dice can actually produce (N .. N×faces),
+      // so the numbers flickering past are ones this roll could have landed on.
+      const span = dice * faces - dice + 1;
+      setDisplay(dice + Math.floor(Math.random() * span));
       setTimeout(() => tumble(ticksLeft - 1, delay * 1.18), delay);
     };
     tumble(10, 45);

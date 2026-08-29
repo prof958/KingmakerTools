@@ -18,7 +18,7 @@
  */
 
 import { useMemo, useState } from "react";
-import { ChevronDown, ChevronUp, NotebookPen, Sparkles, TrendingUp } from "lucide-react";
+import { ArrowRight, ChevronDown, ChevronUp, NotebookPen, Sparkles, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { NumberInput } from "@/components/ui/number-input";
 import { Textarea } from "@/components/ui/textarea";
@@ -31,6 +31,7 @@ import {
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import {
+  LEADERSHIP_ROLES,
   RUINS,
   UNREST_RUIN_THRESHOLD,
   advancementTable,
@@ -42,6 +43,7 @@ import {
   skillModifier,
   untrainedImprovisation,
   unrestStatusPenalty,
+  vacancyPenalty,
   type KingdomAbility,
   type ProficiencyRank,
 } from "@/lib/pf2e/kingdom";
@@ -70,6 +72,61 @@ import type { CharacterLite, HexData, KingdomData, SettlementData } from "./type
 
 function fmtMod(n: number): string {
   return n >= 0 ? `+${n}` : `${n}`;
+}
+
+/**
+ * Human-readable breakdown of where a check's modifier came from, skipping the
+ * terms that are zero — so a roll can be audited at the table without anyone
+ * re-deriving it from the Overview and Leadership tabs.
+ */
+function modifierParts(b: {
+  abilityMod: number;
+  proficiencyBonus: number;
+  statusBonus: number;
+  itemBonus: number;
+  circumstanceBonus: number;
+  ruinPenalty: number;
+  vacancyPenalty: number;
+  otherPenalty: number;
+}): string[] {
+  return [
+    [b.abilityMod, "ability"],
+    [b.proficiencyBonus, "proficiency"],
+    [b.statusBonus, "invested"],
+    [b.itemBonus, "item"],
+    [b.circumstanceBonus, "circumstance"],
+    [-b.ruinPenalty, "Ruin"],
+    [-b.vacancyPenalty, "vacancy"],
+    [-b.otherPenalty, "Unrest"],
+  ]
+    .filter(([value]) => value !== 0)
+    .map(([value, label]) => `${fmtMod(value as number)} ${label}`);
+}
+
+/** Tab ids matching KingdomShell's <TabsTrigger value=...>. */
+export type KingdomTab = "overview" | "turn" | "map" | "settlements" | "skills" | "leadership" | "founding";
+
+/**
+ * Sends the player to the tab a step's outcome actually requires. Several
+ * outcomes ("choose which hex to abandon", "place the structure") can only be
+ * carried out elsewhere in the Kingdom section, and telling someone to go to
+ * the Map without taking them there is a needless step.
+ */
+export function GoToTab({
+  tab,
+  label,
+  onNavigate,
+}: {
+  tab: KingdomTab;
+  label: string;
+  onNavigate?: (tab: KingdomTab) => void;
+}) {
+  if (!onNavigate) return null;
+  return (
+    <Button size="sm" variant="outline" onClick={() => onNavigate(tab)}>
+      {label} <ArrowRight className="size-3.5" />
+    </Button>
+  );
 }
 
 const DEGREE_TONE: Record<Degree, DiceTone> = {
@@ -282,12 +339,14 @@ export function MilestoneStep({
   done,
   onMarkDone,
   onLevelUp,
+  onNavigate,
   lastLog,
 }: {
   kingdom: KingdomData;
   done: boolean;
   onMarkDone: (done: boolean) => void;
   onLevelUp: () => void;
+  onNavigate?: (tab: KingdomTab) => void;
   lastLog?: string;
 }) {
   const atMax = kingdom.level >= 20;
@@ -310,9 +369,19 @@ export function MilestoneStep({
           {next.features.join(" · ")}
         </p>
       )}
-      <Button size="sm" variant="outline" disabled={atMax} onClick={onLevelUp}>
-        <TrendingUp /> Level up to {Math.min(20, kingdom.level + 1)}
-      </Button>
+      <div className="flex flex-wrap items-center gap-2">
+        <Button size="sm" variant="outline" disabled={atMax} onClick={onLevelUp}>
+          <TrendingUp /> Level up to {Math.min(20, kingdom.level + 1)}
+        </Button>
+        {/* A level-up usually owes the player a choice that lives on another
+            tab — a skill increase, or ability boosts at 5/10/15/20. */}
+        {next?.skillIncrease && (
+          <GoToTab tab="skills" label="Pick the skill increase" onNavigate={onNavigate} />
+        )}
+        {next && next.abilityBoosts > 0 && (
+          <GoToTab tab="overview" label={`Apply ${next.abilityBoosts} boosts`} onNavigate={onNavigate} />
+        )}
+      </div>
     </StepShell>
   );
 }
@@ -324,6 +393,7 @@ export function AdjustUnrestStep({
   done,
   onApply,
   onMarkDone,
+  onNavigate,
   lastLog,
 }: {
   kingdom: KingdomData;
@@ -336,6 +406,7 @@ export function AdjustUnrestStep({
     detail: string,
   ) => void;
   onMarkDone: (done: boolean) => void;
+  onNavigate?: (tab: KingdomTab) => void;
   lastLog?: string;
 }) {
   const overcrowded = settlements.filter((s) => s.overcrowded).length;
@@ -425,11 +496,17 @@ export function AdjustUnrestStep({
                 getTone={(r) => (r.success ? "good" : "bad")}
                 onSettled={(r) => setHexLossPassed(r.success)}
               />
-              {hexLossPassed !== null && (
-                <p className={cn("text-sm font-medium", hexLossPassed ? "text-emerald-400" : "text-destructive")}>
-                  {hexLossPassed ? "No hex lost." : "Lose a hex — choose which one on the Map tab."}
-                </p>
-              )}
+              {hexLossPassed !== null &&
+                (hexLossPassed ? (
+                  <p className="text-sm font-medium text-emerald-400">No hex lost.</p>
+                ) : (
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium text-destructive">
+                      Lose a hex — choose which one to give up.
+                    </p>
+                    <GoToTab tab="map" label="Open the Map" onNavigate={onNavigate} />
+                  </div>
+                ))}
             </div>
           )}
 
@@ -491,6 +568,7 @@ export function ResourceCollectionStep({
       <DiceReveal
         label={`Roll ${diceCount}d${size.resourceDie}`}
         faces={size.resourceDie}
+        dice={diceCount}
         size="lg"
         roll={() => rollDice(diceCount, size.resourceDie)}
         getTotal={(r) => r.total}
@@ -750,6 +828,7 @@ export function ActivityCheckStep({
   done,
   onLog,
   onMarkDone,
+  onNavigate,
   lastLog,
 }: {
   title: string;
@@ -759,10 +838,20 @@ export function ActivityCheckStep({
   done: boolean;
   onLog: (label: string, detail: string) => void;
   onMarkDone: (done: boolean) => void;
+  onNavigate?: (tab: KingdomTab) => void;
   lastLog?: string;
 }) {
   const [activityId, setActivityId] = useState(activities[0]?.id ?? "");
   const activity = activities.find((a) => a.id === activityId) ?? null;
+
+  const vacantRoleIds = useMemo(
+    () =>
+      LEADERSHIP_ROLES.filter((def) => {
+        const row = kingdom.leadershipRoles.find((r) => r.role === def.id);
+        return !row?.characterId && !row?.npcName;
+      }).map((def) => def.id),
+    [kingdom.leadershipRoles],
+  );
 
   const skillOptions = useMemo(
     () =>
@@ -794,6 +883,10 @@ export function ActivityCheckStep({
       stability: kingdom.decayPenalty,
       loyalty: kingdom.strifePenalty,
     };
+    // A role is vacant when nobody holds it — separate from whether it's
+    // invested. Which penalties bite depends on the activity's traits, so this
+    // has to be recomputed per activity, not once per kingdom.
+    const vacancy = vacancyPenalty(vacantRoleIds, skill.keyAbility, activity?.traits ?? []);
     const breakdown = skillModifier({
       keyAbilityScore: kingdom[skill.keyAbility],
       rank,
@@ -801,12 +894,13 @@ export function ActivityCheckStep({
       untrainedImprovisation: ui,
       statusBonus,
       ruinPenalty: ruinPenaltyByAbility[skill.keyAbility],
+      vacancyPenalty: vacancy.total,
       otherPenalty: unrestStatusPenalty(kingdom.unrest),
     });
-    return { skill, breakdown };
-  }, [effectiveSkillId, kingdom]);
+    return { skill, breakdown, vacancy };
+  }, [effectiveSkillId, kingdom, vacantRoleIds, activity]);
 
-  const dc = controlDC(kingdom.level, kingdom.size);
+  const dc = controlDC(kingdom.level, kingdom.size, vacantRoleIds.includes("ruler"));
   // Recomputed from the editable total (rather than frozen at roll time), so
   // nudging the number before logging keeps the degree badge honest — the
   // natural die face is what still decides a nat-20/nat-1 shift, not the edit.
@@ -873,11 +967,27 @@ export function ActivityCheckStep({
         )}
 
         {check && (
-          <p className="text-xs text-muted-foreground">
-            {check.skill.name} modifier{" "}
-            <span className="font-medium text-foreground">{fmtMod(check.breakdown.total)}</span> vs
-            Control DC <span className="font-medium text-foreground">{dc}</span>
-          </p>
+          <div className="space-y-1">
+            <p className="text-xs text-muted-foreground">
+              {check.skill.name} modifier{" "}
+              <span className="font-medium text-foreground">{fmtMod(check.breakdown.total)}</span> vs
+              Control DC <span className="font-medium text-foreground">{dc}</span>
+              {vacantRoleIds.includes("ruler") && (
+                <span className="text-destructive"> (+2, Ruler vacant)</span>
+              )}
+            </p>
+            <p className="text-[0.7rem] text-muted-foreground/70">
+              {modifierParts(check.breakdown).join("  ")}
+            </p>
+            {check.vacancy.sources.length > 0 && (
+              <p className="text-[0.7rem] text-destructive/80">
+                Vacant:{" "}
+                {check.vacancy.sources
+                  .map((s) => `${s.roleName} −${s.amount} (${s.reason})`)
+                  .join(", ")}
+              </p>
+            )}
+          </div>
         )}
       </div>
 
@@ -889,6 +999,8 @@ export function ActivityCheckStep({
           disabled={!check}
           roll={() => rollCheck(check?.breakdown.total ?? 0, dc)}
           getTotal={(r) => r.total}
+          // The die shows the d20 face; the modifier is added beside it.
+          getFace={(r) => r.natural}
           getTone={(r) => DEGREE_TONE[r.degree]}
           onSettled={(r) => {
             setResult(r);
@@ -897,8 +1009,25 @@ export function ActivityCheckStep({
         />
         {result && (
           <>
+            <span className="text-sm text-muted-foreground">
+              {fmtMod(check?.breakdown.total ?? 0)} =
+            </span>
             <NumberInput className="h-8 w-20" value={total} onValueChange={setTotal} />
             {degree && <DegreeBadge degree={degree} />}
+            {/* A natural 20 or 1 shifts the degree one step, so it has to be
+                visible — otherwise the badge looks wrong for the total. */}
+            {(result.natural === 20 || result.natural === 1) && (
+              <span
+                className={cn(
+                  "rounded-md px-2 py-0.5 text-xs font-medium",
+                  result.natural === 20
+                    ? "bg-amber-500/15 text-amber-400"
+                    : "bg-destructive/15 text-destructive",
+                )}
+              >
+                nat {result.natural}
+              </span>
+            )}
           </>
         )}
       </div>
@@ -920,9 +1049,19 @@ export function ActivityCheckStep({
             <Sparkles className="mt-0.5 size-3.5 shrink-0 text-muted-foreground" />
             {activity.outcomes[degree]}
           </p>
-          <Button size="sm" onClick={apply}>
-            Log this result
-          </Button>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button size="sm" onClick={apply}>
+              Log this result
+            </Button>
+            {/* Region activities act on hexes and Civic ones on settlements, so
+                carrying out the outcome means going to that tab. */}
+            {activity.traits.includes("REGION") && (
+              <GoToTab tab="map" label="Open the Map" onNavigate={onNavigate} />
+            )}
+            {activity.traits.includes("CIVIC") && (
+              <GoToTab tab="settlements" label="Open Settlements" onNavigate={onNavigate} />
+            )}
+          </div>
         </div>
       )}
     </StepShell>
