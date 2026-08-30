@@ -7,6 +7,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getOrCreateCampaign } from "@/lib/campaign";
+import { describeCampsiteChange, logEvent } from "@/lib/log";
 
 type RouteParams = { params: Promise<{ id: string }> };
 
@@ -15,6 +16,8 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
     const { id } = await params;
     const body = await req.json();
     const campaign = await getOrCreateCampaign();
+
+    const before = await prisma.campsiteLayout.findUnique({ where: { id } });
 
     const data: Record<string, unknown> = {};
 
@@ -100,6 +103,23 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
       },
     });
 
+    if (before && layout) {
+      const change = describeCampsiteChange(before, layout, {
+        watchOrderReplaced: Array.isArray(body.watchShifts),
+        activitiesReplaced: Array.isArray(body.campingActivities),
+      });
+      if (change) {
+        await logEvent({
+          campaignId: campaign.id,
+          category: change.category,
+          summary: change.summary,
+          entityType: "campsite_layout",
+          entityId: layout.id,
+          entityName: layout.name,
+        });
+      }
+    }
+
     return NextResponse.json(layout);
   } catch (error) {
     console.error("Failed to update campsite layout:", error);
@@ -113,7 +133,20 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
 export async function DELETE(_req: NextRequest, { params }: RouteParams) {
   try {
     const { id } = await params;
+    const existing = await prisma.campsiteLayout.findUnique({ where: { id } });
     await prisma.campsiteLayout.delete({ where: { id } });
+
+    if (existing) {
+      await logEvent({
+        campaignId: existing.campaignId,
+        category: "CAMPSITE",
+        summary: `Deleted camp layout "${existing.name}"`,
+        entityType: "campsite_layout",
+        entityId: existing.id,
+        entityName: existing.name,
+      });
+    }
+
     return NextResponse.json({ ok: true });
   } catch (error) {
     console.error("Failed to delete campsite layout:", error);

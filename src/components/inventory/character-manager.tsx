@@ -19,7 +19,8 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Trash2, Pencil, Users, PawPrint } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { Plus, Trash2, Pencil, Users, PawPrint, Skull, HeartPulse } from "lucide-react";
 
 
 interface Character {
@@ -30,6 +31,9 @@ interface Character {
   strModifier: number;
   isCompanion: boolean;
   miscBulk: number;
+  status: "ACTIVE" | "FALLEN";
+  kiaAt: string | null;
+  kiaNote: string | null;
 }
 
 export function CharacterManager({
@@ -50,6 +54,55 @@ export function CharacterManager({
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+
+  // K.I.A. flow
+  const [kiaId, setKiaId] = useState<string | null>(null);
+  const [kiaNote, setKiaNote] = useState("");
+  const [fallenOpen, setFallenOpen] = useState(false);
+  const kiaTarget = characters.find((c) => c.id === kiaId) ?? null;
+
+  const activePcs = characters.filter((c) => !c.isCompanion && c.status !== "FALLEN");
+  const activeCompanions = characters.filter((c) => c.isCompanion && c.status !== "FALLEN");
+  const fallen = characters.filter((c) => c.status === "FALLEN");
+
+  function openKia(character: Character) {
+    setKiaId(character.id);
+    setKiaNote("");
+  }
+
+  async function confirmKia() {
+    if (!kiaId) return;
+    startTransition(async () => {
+      const res = await fetch(`/api/characters/${kiaId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "FALLEN", kiaNote: kiaNote.trim() || null }),
+      });
+      if (res.ok) {
+        const updated = await res.json();
+        setCharacters((prev) => prev.map((c) => (c.id === kiaId ? updated : c)));
+        setKiaId(null);
+        setKiaNote("");
+        setFallenOpen(true);
+        onUpdate?.();
+      }
+    });
+  }
+
+  async function handleRevive(id: string) {
+    startTransition(async () => {
+      const res = await fetch(`/api/characters/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "ACTIVE" }),
+      });
+      if (res.ok) {
+        const updated = await res.json();
+        setCharacters((prev) => prev.map((c) => (c.id === id ? updated : c)));
+        onUpdate?.();
+      }
+    });
+  }
 
   async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -299,24 +352,91 @@ export function CharacterManager({
           </p>
         ) : (
           <div className="space-y-2">
-            {characters.filter((c) => !c.isCompanion).map((c) => (
-              <CharacterRow key={c.id} character={c} onEdit={openEdit} onDelete={handleDelete} isPending={isPending} />
+            {activePcs.map((c) => (
+              <CharacterRow key={c.id} character={c} onEdit={openEdit} onDelete={handleDelete} onMarkKia={openKia} onRevive={handleRevive} isPending={isPending} />
             ))}
-            {characters.some((c) => c.isCompanion) && (
+            {activeCompanions.length > 0 && (
               <>
                 <div className="flex items-center gap-2 pt-2">
                   <PawPrint className="h-4 w-4 text-muted-foreground" />
                   <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Companions</span>
                   <div className="flex-1 border-t border-border" />
                 </div>
-                {characters.filter((c) => c.isCompanion).map((c) => (
-                  <CharacterRow key={c.id} character={c} onEdit={openEdit} onDelete={handleDelete} isPending={isPending} />
+                {activeCompanions.map((c) => (
+                  <CharacterRow key={c.id} character={c} onEdit={openEdit} onDelete={handleDelete} onMarkKia={openKia} onRevive={handleRevive} isPending={isPending} />
                 ))}
               </>
+            )}
+
+            {fallen.length > 0 && (
+              <details
+                className="pt-2"
+                open={fallenOpen}
+                onToggle={(e) => setFallenOpen((e.target as HTMLDetailsElement).open)}
+              >
+                <summary className="flex cursor-pointer items-center gap-2 list-none">
+                  <Skull className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                    Fallen ({fallen.length})
+                  </span>
+                  <div className="flex-1 border-t border-border" />
+                </summary>
+                <div className="space-y-2 pt-2">
+                  {fallen.map((c) => (
+                    <CharacterRow key={c.id} character={c} onEdit={openEdit} onDelete={handleDelete} onMarkKia={openKia} onRevive={handleRevive} isPending={isPending} />
+                  ))}
+                </div>
+              </details>
             )}
           </div>
         )}
       </CardContent>
+
+      {/* Mark K.I.A. confirmation */}
+      <Dialog open={kiaId !== null} onOpenChange={(open) => { if (!open) setKiaId(null); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              Mark {kiaTarget?.name ?? "character"} as killed in action?
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <p className="text-sm text-muted-foreground">
+              They move to the <strong>Fallen</strong> section and are left out of
+              party counts. Their inventory, wallet, and leadership history are
+              kept, and you can revive them later. A log entry is recorded.
+            </p>
+            <div>
+              <Label htmlFor="kia-note">How did they fall? (optional)</Label>
+              <Textarea
+                id="kia-note"
+                value={kiaNote}
+                onChange={(e) => setKiaNote(e.target.value)}
+                placeholder="Slain by the Stag Lord at the fort..."
+                rows={2}
+              />
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={() => setKiaId(null)}
+                disabled={isPending}
+              >
+                Cancel
+              </Button>
+              <Button
+                className="flex-1 bg-red-700 text-white hover:bg-red-800"
+                onClick={confirmKia}
+                disabled={isPending}
+              >
+                <Skull className="mr-1 h-4 w-4" />
+                {isPending ? "Marking..." : "Mark K.I.A."}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }
@@ -325,38 +445,77 @@ function CharacterRow({
   character: c,
   onEdit,
   onDelete,
+  onMarkKia,
+  onRevive,
   isPending,
 }: {
   character: Character;
   onEdit: (c: Character) => void;
   onDelete: (id: string) => void;
+  onMarkKia: (c: Character) => void;
+  onRevive: (id: string) => void;
   isPending: boolean;
 }) {
+  const fallen = c.status === "FALLEN";
   return (
-    <div className="flex items-center justify-between rounded-md border p-3">
-      <div className="flex items-center gap-3">
+    <div
+      className={`flex items-center justify-between rounded-md border p-3 ${
+        fallen ? "opacity-70" : ""
+      }`}
+    >
+      <div className="flex items-center gap-3 min-w-0">
         {c.imageUrl ? (
-          <img src={c.imageUrl} alt={c.name} className="w-8 h-8 rounded-full object-cover shrink-0" />
+          <img src={c.imageUrl} alt={c.name} className={`w-8 h-8 rounded-full object-cover shrink-0 ${fallen ? "grayscale" : ""}`} />
         ) : c.emoji ? (
-          <span className="text-lg w-8 h-8 flex items-center justify-center shrink-0">{c.emoji}</span>
+          <span className="text-lg w-8 h-8 flex items-center justify-center shrink-0">{fallen ? "💀" : c.emoji}</span>
         ) : (
-          <span className="text-lg w-8 h-8 flex items-center justify-center shrink-0">{c.isCompanion ? "🐾" : "🧑"}</span>
+          <span className="text-lg w-8 h-8 flex items-center justify-center shrink-0">{fallen ? "💀" : c.isCompanion ? "🐾" : "🧑"}</span>
         )}
-        <span className="font-medium">{c.name}</span>
-        <Badge variant="secondary" className="text-xs">
-          STR {c.strModifier >= 0 ? "+" : ""}
-          {c.strModifier}
-        </Badge>
-        {c.miscBulk > 0 && (
+        <span className={`font-medium ${fallen ? "line-through text-muted-foreground" : ""}`}>{c.name}</span>
+        {fallen ? (
+          <Badge className="bg-red-700 text-white hover:bg-red-800 text-xs">K.I.A.</Badge>
+        ) : (
+          <Badge variant="secondary" className="text-xs">
+            STR {c.strModifier >= 0 ? "+" : ""}
+            {c.strModifier}
+          </Badge>
+        )}
+        {!fallen && c.miscBulk > 0 && (
           <Badge variant="outline" className="text-xs">
             +{c.miscBulk} misc
           </Badge>
         )}
+        {fallen && c.kiaNote && (
+          <span className="truncate text-xs text-muted-foreground">{c.kiaNote}</span>
+        )}
       </div>
-      <div className="flex gap-1">
-        <Button size="icon" variant="ghost" onClick={() => onEdit(c)}>
-          <Pencil className="h-4 w-4" />
-        </Button>
+      <div className="flex shrink-0 gap-1">
+        {fallen ? (
+          <Button
+            size="icon"
+            variant="ghost"
+            onClick={() => onRevive(c.id)}
+            disabled={isPending}
+            title="Revive"
+          >
+            <HeartPulse className="h-4 w-4 text-emerald-600" />
+          </Button>
+        ) : (
+          <>
+            <Button size="icon" variant="ghost" onClick={() => onEdit(c)}>
+              <Pencil className="h-4 w-4" />
+            </Button>
+            <Button
+              size="icon"
+              variant="ghost"
+              onClick={() => onMarkKia(c)}
+              disabled={isPending}
+              title="Mark K.I.A."
+            >
+              <Skull className="h-4 w-4 text-muted-foreground" />
+            </Button>
+          </>
+        )}
         <Button
           size="icon"
           variant="ghost"

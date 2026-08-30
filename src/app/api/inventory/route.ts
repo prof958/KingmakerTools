@@ -7,6 +7,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getOrCreateCampaign } from "@/lib/campaign";
+import { logEvent } from "@/lib/log";
 
 export async function GET() {
   try {
@@ -73,6 +74,18 @@ export async function POST(req: NextRequest) {
         item: true,
         character: true,
       },
+    });
+
+    const qty = inventoryItem.quantity;
+    await logEvent({
+      campaignId: campaign.id,
+      category: "INVENTORY",
+      summary: `Added ${qty > 1 ? `${qty}× ` : ""}${inventoryItem.item.name}${
+        inventoryItem.character ? ` to ${inventoryItem.character.name}` : " to party loot"
+      }`,
+      entityType: "inventory_item",
+      entityId: inventoryItem.id,
+      entityName: inventoryItem.item.name,
     });
 
     return NextResponse.json(inventoryItem, { status: 201 });

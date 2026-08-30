@@ -7,6 +7,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getOrCreateCampaign } from "@/lib/campaign";
+import { logEvent } from "@/lib/log";
 
 export async function GET() {
   try {
@@ -60,6 +61,15 @@ export async function POST(req: NextRequest) {
         gp: 0,
         pp: 0,
       },
+    });
+
+    await logEvent({
+      campaignId: campaign.id,
+      category: "PARTY",
+      summary: `${character.name} joined the ${character.isCompanion ? "party as a companion" : "party"}`,
+      entityType: "character",
+      entityId: character.id,
+      entityName: character.name,
     });
 
     return NextResponse.json(character, { status: 201 });

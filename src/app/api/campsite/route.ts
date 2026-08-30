@@ -7,6 +7,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getOrCreateCampaign } from "@/lib/campaign";
+import { logEvent } from "@/lib/log";
 
 export async function GET() {
   try {
@@ -68,6 +69,15 @@ export async function POST(req: NextRequest) {
           include: { character: true },
         },
       },
+    });
+
+    await logEvent({
+      campaignId: campaign.id,
+      category: "CAMPSITE",
+      summary: `Created camp layout "${layout.name}"`,
+      entityType: "campsite_layout",
+      entityId: layout.id,
+      entityName: layout.name,
     });
 
     return NextResponse.json(layout, { status: 201 });

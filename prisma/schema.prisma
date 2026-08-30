@@ -37,6 +37,9 @@ model Campaign {
   // Phase 5
   kingdom Kingdom?
 
+  // Phase 6 — Campaign Log
+  logEntries LogEntry[]
+
   @@map("campaigns")
 }
 
@@ -50,6 +53,11 @@ model Character {
   isCompanion Boolean  @default(false) @map("is_companion")
   miscBulk    Float    @default(0) @map("misc_bulk")
   createdAt   DateTime @default(now()) @map("created_at")
+
+  // Phase 6 — killed-in-action tracking
+  status  CharacterStatus @default(ACTIVE)
+  kiaAt   DateTime?       @map("kia_at")
+  kiaNote String?         @map("kia_note")
 
   campaign          Campaign          @relation(fields: [campaignId], references: [id], onDelete: Cascade)
   inventoryItems    InventoryItem[]
@@ -484,6 +492,40 @@ model KingdomTurn {
 }
 
 // ──────────────────────────────────────────────
+// Phase 6 — Campaign Log
+// ──────────────────────────────────────────────
+
+model LogEntry {
+  id         String      @id @default(cuid())
+  campaignId String      @map("campaign_id")
+  category   LogCategory @default(NOTE)
+  source     LogSource   @default(MANUAL) // MANUAL = user wrote it, SYSTEM = auto-recorded
+
+  summary String // one-line headline
+  details String? // optional longer body
+
+  // Loose reference to the thing the entry is about. Kept denormalised so the
+  // entry still reads correctly after the entity is deleted.
+  entityType String? @map("entity_type") // "character" | "inventory_item" | "campsite_layout"
+  entityId   String? @map("entity_id")
+  entityName String? @map("entity_name")
+
+  meta Json? // optional structured before/after payload
+
+  // Snapshot of the in-world date when the entry was recorded.
+  golarionDay   Int? @map("golarion_day")
+  golarionMonth Int? @map("golarion_month")
+  golarionYear  Int? @map("golarion_year")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  campaign Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  @@index([campaignId, createdAt])
+  @@map("log_entries")
+}
+
+// ──────────────────────────────────────────────
 // Enums
 // ──────────────────────────────────────────────
 
@@ -544,4 +586,24 @@ enum BulkCarrierType {
   VEHICLE
   MAGICAL_STORAGE
   CUSTOM
+}
+
+enum CharacterStatus {
+  ACTIVE
+  FALLEN
+}
+
+enum LogCategory {
+  PARTY
+  INVENTORY
+  CAMPSITE
+  KINGDOM
+  SESSION
+  NOTE
+  DEATH
+}
+
+enum LogSource {
+  MANUAL
+  SYSTEM
 }
