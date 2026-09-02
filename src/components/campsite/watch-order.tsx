@@ -41,6 +41,7 @@ interface Character {
   emoji: string | null;
   imageUrl: string | null;
   isCompanion: boolean;
+  status: "ACTIVE" | "FALLEN";
 }
 
 export interface WatchShiftData {
@@ -200,9 +201,17 @@ export function WatchOrder({
   const [addCharId, setAddCharId] = useState("");
   const [isPending, startTransition] = useTransition();
 
-  const charMap = useMemo(
-    () => new Map(characters.map((c) => [c.id, c])),
+  // Fallen characters can't stand watch — gone until revived. Building
+  // charMap from only the living drops any existing shift slot of theirs
+  // too, via the `charMap.has(id)` filter below.
+  const livingCharacters = useMemo(
+    () => characters.filter((c) => c.status !== "FALLEN"),
     [characters],
+  );
+
+  const charMap = useMemo(
+    () => new Map(livingCharacters.map((c) => [c.id, c])),
+    [livingCharacters],
   );
 
   const validOrderedIds = useMemo(
@@ -221,8 +230,8 @@ export function WatchOrder({
   );
 
   const unusedChars = useMemo(
-    () => characters.filter((c) => !validOrderedIds.includes(c.id)),
-    [characters, validOrderedIds],
+    () => livingCharacters.filter((c) => !validOrderedIds.includes(c.id)),
+    [livingCharacters, validOrderedIds],
   );
 
   /* sensors */

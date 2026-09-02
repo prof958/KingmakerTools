@@ -39,6 +39,7 @@ interface Character {
   imageUrl: string | null;
   strModifier: number;
   isCompanion: boolean;
+  status: "ACTIVE" | "FALLEN";
 }
 
 interface Item {
@@ -338,20 +339,23 @@ export function InventoryTable({
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="shared" label="Shared">Shared</SelectItem>
-                        {characters.filter((c) => !c.isCompanion).length > 0 && (
+                        {/* Fallen characters can still be shown as an item's current
+                            owner (via the `items` map above), but aren't offered when
+                            reassigning going forward — gone until revived. */}
+                        {characters.filter((c) => !c.isCompanion && c.status !== "FALLEN").length > 0 && (
                           <SelectGroup>
                             <SelectLabel>Characters</SelectLabel>
-                            {characters.filter((c) => !c.isCompanion).map((c) => (
+                            {characters.filter((c) => !c.isCompanion && c.status !== "FALLEN").map((c) => (
                               <SelectItem key={c.id} value={c.id} label={c.name}>
                                 {c.name}
                               </SelectItem>
                             ))}
                           </SelectGroup>
                         )}
-                        {characters.filter((c) => c.isCompanion).length > 0 && (
+                        {characters.filter((c) => c.isCompanion && c.status !== "FALLEN").length > 0 && (
                           <SelectGroup>
                             <SelectLabel>Companions</SelectLabel>
-                            {characters.filter((c) => c.isCompanion).map((c) => (
+                            {characters.filter((c) => c.isCompanion && c.status !== "FALLEN").map((c) => (
                               <SelectItem key={c.id} value={c.id} label={c.name}>
                                 {c.name}
                               </SelectItem>

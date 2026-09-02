@@ -48,6 +48,7 @@ interface Character {
   emoji: string | null;
   imageUrl: string | null;
   isCompanion: boolean;
+  status: "ACTIVE" | "FALLEN";
 }
 
 /** Unified shape for selects (built-in or custom). */
@@ -78,6 +79,9 @@ export function ActivityPicker({
     useState<ActivityAssignment[]>(initialActivities);
   const [isPending, startTransition] = useTransition();
   const [showManager, setShowManager] = useState(false);
+
+  // Fallen characters can't perform a camping activity — gone until revived.
+  const livingCharacters = characters.filter((c) => c.status !== "FALLEN");
 
   // Merge built-in + custom into a unified list
   const allActivities: ActivityOption[] = useMemo(() => {
@@ -214,13 +218,13 @@ export function ActivityPicker({
           </div>
         </CardHeader>
         <CardContent className="space-y-3">
-          {characters.length === 0 && (
+          {livingCharacters.length === 0 && (
             <p className="text-sm text-muted-foreground">
               Add characters on the Inventory page first.
             </p>
           )}
 
-          {characters.filter((c) => !c.isCompanion).map((char) => {
+          {livingCharacters.filter((c) => !c.isCompanion).map((char) => {
             const assignment = activities.find(
               (a) => a.characterId === char.id,
             );
@@ -243,14 +247,14 @@ export function ActivityPicker({
             );
           })}
 
-          {characters.some((c) => c.isCompanion) && (
+          {livingCharacters.some((c) => c.isCompanion) && (
             <>
               <div className="flex items-center gap-2 pt-1">
                 <PawPrint className="h-4 w-4 text-muted-foreground" />
                 <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Companions</span>
                 <div className="flex-1 border-t border-border" />
               </div>
-              {characters.filter((c) => c.isCompanion).map((char) => {
+              {livingCharacters.filter((c) => c.isCompanion).map((char) => {
                 const assignment = activities.find(
                   (a) => a.characterId === char.id,
                 );

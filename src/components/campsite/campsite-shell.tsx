@@ -62,6 +62,7 @@ interface Character {
   emoji: string | null;
   imageUrl: string | null;
   isCompanion: boolean;
+  status: "ACTIVE" | "FALLEN";
 }
 
 export interface CustomCampActivityData {
@@ -398,7 +399,9 @@ export function CampsiteShell({
                   Add Character
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="start">
-                  {characters.map((char) => {
+                  {/* Fallen characters can't be added to camp — gone until revived.
+                      A token already on the canvas for them stays put. */}
+                  {characters.filter((c) => c.status !== "FALLEN").map((char) => {
                     const isDisabled = store.elements.some((el) => el.characterId === char.id);
                     return (
                       <DropdownMenuItem

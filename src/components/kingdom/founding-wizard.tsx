@@ -605,7 +605,7 @@ function LeadershipStep({
               <p className="mt-1 text-xs text-muted-foreground">{role.description}</p>
 
               <div className="mt-2 flex flex-wrap gap-1.5">
-                {characters.map((character) => {
+                {characters.filter((c) => c.status !== "FALLEN").map((character) => {
                   const isOn = current.characterId === character.id;
                   return (
                     <button

@@ -32,11 +32,32 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { shares, remainderCp } = splitLoot(totalCp, characterIds.length);
+    // Re-check status server-side rather than trusting the client's list —
+    // it may have been built from a page loaded before a character was
+    // marked fallen. A fallen character gets no share; the split still
+    // divides evenly among whoever's left, remainder to the treasury.
+    const livingIds = new Set(
+      (
+        await prisma.character.findMany({
+          where: { id: { in: characterIds }, status: "ACTIVE" },
+          select: { id: true },
+        })
+      ).map((c) => c.id),
+    );
+    const eligibleIds: string[] = characterIds.filter((id: string) => livingIds.has(id));
+
+    if (eligibleIds.length === 0) {
+      return NextResponse.json(
+        { error: "None of the selected characters can currently receive loot" },
+        { status: 400 }
+      );
+    }
+
+    const { shares, remainderCp } = splitLoot(totalCp, eligibleIds.length);
 
     // Apply each share to the character's wallet
-    for (let i = 0; i < characterIds.length; i++) {
-      const characterId = characterIds[i];
+    for (let i = 0; i < eligibleIds.length; i++) {
+      const characterId = eligibleIds[i];
       const share = shares[i];
 
       const wallet = await prisma.wallet.findFirst({
@@ -71,7 +92,7 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json({
-      shares: characterIds.map((id: string, i: number) => ({ characterId: id, ...shares[i] })),
+      shares: eligibleIds.map((id: string, i: number) => ({ characterId: id, ...shares[i] })),
       remainderCp,
     });
   } catch (error) {

@@ -59,6 +59,7 @@ interface Character {
   name: string;
   emoji: string | null;
   isCompanion: boolean;
+  status: "ACTIVE" | "FALLEN";
 }
 
 export function AddItemDialog({
@@ -79,6 +80,9 @@ export function AddItemDialog({
   const [quantity, setQuantity] = useState(1);
   const [notes, setNotes] = useState("");
   const [selectedAonItem, setSelectedAonItem] = useState<AonItem | null>(null);
+
+  // Fallen characters can't newly own loot — gone until revived.
+  const livingCharacters = characters.filter((c) => c.status !== "FALLEN");
 
   // Custom item fields
   const [customName, setCustomName] = useState("");
@@ -499,7 +503,7 @@ export function AddItemDialog({
                 onValueChange={(val) => setAssignTo(val ?? "shared")}
                 items={{
                   shared: "Shared / Party Loot",
-                  ...Object.fromEntries(characters.map((c) => [c.id, c.name])),
+                  ...Object.fromEntries(livingCharacters.map((c) => [c.id, c.name])),
                 }}
               >
                 <SelectTrigger className="h-8">
@@ -507,20 +511,20 @@ export function AddItemDialog({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="shared" label="Shared / Party Loot">Shared / Party Loot</SelectItem>
-                  {characters.filter((c) => !c.isCompanion).length > 0 && (
+                  {livingCharacters.filter((c) => !c.isCompanion).length > 0 && (
                     <SelectGroup>
                       <SelectLabel>Characters</SelectLabel>
-                      {characters.filter((c) => !c.isCompanion).map((c) => (
+                      {livingCharacters.filter((c) => !c.isCompanion).map((c) => (
                         <SelectItem key={c.id} value={c.id} label={c.name}>
                           {c.name}
                         </SelectItem>
                       ))}
                     </SelectGroup>
                   )}
-                  {characters.filter((c) => c.isCompanion).length > 0 && (
+                  {livingCharacters.filter((c) => c.isCompanion).length > 0 && (
                     <SelectGroup>
                       <SelectLabel>Companions</SelectLabel>
-                      {characters.filter((c) => c.isCompanion).map((c) => (
+                      {livingCharacters.filter((c) => c.isCompanion).map((c) => (
                         <SelectItem key={c.id} value={c.id} label={c.name}>
                           {c.name}
                         </SelectItem>
