@@ -11,6 +11,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import {
   ArrowRight,
   Calendar,
@@ -138,6 +139,8 @@ export function TurnTracker({
         },
       });
       refresh();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Couldn't start the turn. Try again.");
     } finally {
       setBusy(false);
     }
@@ -149,6 +152,8 @@ export function TurnTracker({
     try {
       await api(`/api/kingdom/turns/${current.id}`, "PATCH", { stepKey, ...body });
       refresh();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Couldn't save that turn step. Try again.");
     } finally {
       setBusy(false);
     }
@@ -208,6 +213,8 @@ export function TurnTracker({
       setPhaseIndex(0);
       setConfirmingComplete(false);
       refresh();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Couldn't complete the turn. Try again.");
     } finally {
       setBusy(false);
     }

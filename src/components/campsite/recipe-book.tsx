@@ -20,6 +20,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { BookOpen, Plus, Eye, EyeOff, Trash2, Pencil } from "lucide-react";
+import { toast } from "sonner";
 
 export interface RecipeData {
   id: string;
@@ -72,67 +73,91 @@ export function RecipeBook({
   function addRecipe() {
     if (!name.trim()) return;
     startTransition(async () => {
-      const res = await fetch("/api/recipes", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: name.trim(),
-          ingredients: ingredients.trim() || null,
-          dc: dc ? parseInt(dc, 10) : null,
-          dcSurvival: dcSurvival ? parseInt(dcSurvival, 10) : null,
-          dcCookingLore: dcCookingLore ? parseInt(dcCookingLore, 10) : null,
-          effectsCritSuccess: effectsCritSuccess.trim() || null,
-          effectsSuccess: effectsSuccess.trim() || null,
-          effectsFail: effectsFail.trim() || null,
-          effectsCritFail: effectsCritFail.trim() || null,
-          isDiscovered,
-        }),
-      });
-      if (res.ok) {
-        const created = await res.json();
-        setRecipes((prev) => [created, ...prev]);
-        resetForm();
-        setAddOpen(false);
+      try {
+        const res = await fetch("/api/recipes", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: name.trim(),
+            ingredients: ingredients.trim() || null,
+            dc: dc ? parseInt(dc, 10) : null,
+            dcSurvival: dcSurvival ? parseInt(dcSurvival, 10) : null,
+            dcCookingLore: dcCookingLore ? parseInt(dcCookingLore, 10) : null,
+            effectsCritSuccess: effectsCritSuccess.trim() || null,
+            effectsSuccess: effectsSuccess.trim() || null,
+            effectsFail: effectsFail.trim() || null,
+            effectsCritFail: effectsCritFail.trim() || null,
+            isDiscovered,
+          }),
+        });
+        if (res.ok) {
+          const created = await res.json();
+          setRecipes((prev) => [created, ...prev]);
+          resetForm();
+          setAddOpen(false);
+        } else {
+          toast.error("Couldn't add that recipe. Try again.");
+        }
+      } catch {
+        toast.error("Couldn't reach the server. Check your connection and try again.");
       }
     });
   }
 
   function toggleDiscovered(recipe: RecipeData) {
     startTransition(async () => {
-      const res = await fetch(`/api/recipes/${recipe.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ isDiscovered: !recipe.isDiscovered }),
-      });
-      if (res.ok) {
-        setRecipes((prev) =>
-          prev.map((r) =>
-            r.id === recipe.id ? { ...r, isDiscovered: !r.isDiscovered } : r,
-          ),
-        );
+      try {
+        const res = await fetch(`/api/recipes/${recipe.id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ isDiscovered: !recipe.isDiscovered }),
+        });
+        if (res.ok) {
+          setRecipes((prev) =>
+            prev.map((r) =>
+              r.id === recipe.id ? { ...r, isDiscovered: !r.isDiscovered } : r,
+            ),
+          );
+        } else {
+          toast.error("Couldn't update that recipe. Try again.");
+        }
+      } catch {
+        toast.error("Couldn't reach the server. Check your connection and try again.");
       }
     });
   }
 
   function deleteRecipe(id: string) {
     startTransition(async () => {
-      const res = await fetch(`/api/recipes/${id}`, { method: "DELETE" });
-      if (res.ok) {
-        setRecipes((prev) => prev.filter((r) => r.id !== id));
+      try {
+        const res = await fetch(`/api/recipes/${id}`, { method: "DELETE" });
+        if (res.ok) {
+          setRecipes((prev) => prev.filter((r) => r.id !== id));
+        } else {
+          toast.error("Couldn't delete that recipe. Try again.");
+        }
+      } catch {
+        toast.error("Couldn't reach the server. Check your connection and try again.");
       }
     });
   }
 
   function updateRecipe(id: string, data: Partial<RecipeData>) {
     startTransition(async () => {
-      const res = await fetch(`/api/recipes/${id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
-      if (res.ok) {
-        const updated = await res.json();
-        setRecipes((prev) => prev.map((r) => (r.id === id ? updated : r)));
+      try {
+        const res = await fetch(`/api/recipes/${id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data),
+        });
+        if (res.ok) {
+          const updated = await res.json();
+          setRecipes((prev) => prev.map((r) => (r.id === id ? updated : r)));
+        } else {
+          toast.error("Couldn't save those changes. Try again.");
+        }
+      } catch {
+        toast.error("Couldn't reach the server. Check your connection and try again.");
       }
     });
   }

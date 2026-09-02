@@ -38,8 +38,8 @@ export function ThemeToggle() {
       className="text-muted-foreground"
       title={`Theme: ${label}`}
     >
-      <Icon className="h-4 w-4" />
-      <span className="hidden sm:inline ml-2">{label}</span>
+      <Icon className="h-4 w-4" aria-hidden="true" />
+      <span className="sr-only sm:not-sr-only sm:ml-2">{label}</span>
     </Button>
   );
 }

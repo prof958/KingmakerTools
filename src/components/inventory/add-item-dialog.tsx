@@ -30,6 +30,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { Plus, Search } from "lucide-react";
+import { toast } from "sonner";
 import { formatCurrency } from "@/lib/pf2e/currency";
 import {
   AonItemSearch,
@@ -111,53 +112,68 @@ export function AddItemDialog({
 
   async function addFromCatalog(item: CatalogItem) {
     startTransition(async () => {
-      const res = await fetch("/api/inventory", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          itemId: item.id,
-          characterId: assignTo === "shared" ? null : assignTo,
-          bulkCarrierId: assignCarrier === "none" ? null : assignCarrier,
-          quantity,
-          notes: notes || null,
-        }),
-      });
-      if (res.ok) {
-        onAdd();
-        setOpen(false);
-        resetForm();
+      try {
+        const res = await fetch("/api/inventory", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            itemId: item.id,
+            characterId: assignTo === "shared" ? null : assignTo,
+            bulkCarrierId: assignCarrier === "none" ? null : assignCarrier,
+            quantity,
+            notes: notes || null,
+          }),
+        });
+        if (res.ok) {
+          onAdd();
+          setOpen(false);
+          resetForm();
+        } else {
+          toast.error("Couldn't add that item. Try again.");
+        }
+      } catch {
+        toast.error("Couldn't reach the server. Check your connection and try again.");
       }
     });
   }
 
   async function addFromAon(aonItem: AonItem) {
     startTransition(async () => {
-      // Create the item definition locally from AoN data
-      const payload = aonToItemPayload(aonItem);
-      const itemRes = await fetch("/api/items", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      if (!itemRes.ok) return;
-      const newItem = await itemRes.json();
+      try {
+        // Create the item definition locally from AoN data
+        const payload = aonToItemPayload(aonItem);
+        const itemRes = await fetch("/api/items", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        if (!itemRes.ok) {
+          toast.error("Couldn't add that item. Try again.");
+          return;
+        }
+        const newItem = await itemRes.json();
 
-      // Then add it to inventory
-      const res = await fetch("/api/inventory", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          itemId: newItem.id,
-          characterId: assignTo === "shared" ? null : assignTo,
-          bulkCarrierId: assignCarrier === "none" ? null : assignCarrier,
-          quantity,
-          notes: notes || null,
-        }),
-      });
-      if (res.ok) {
-        onAdd();
-        setOpen(false);
-        resetForm();
+        // Then add it to inventory
+        const res = await fetch("/api/inventory", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            itemId: newItem.id,
+            characterId: assignTo === "shared" ? null : assignTo,
+            bulkCarrierId: assignCarrier === "none" ? null : assignCarrier,
+            quantity,
+            notes: notes || null,
+          }),
+        });
+        if (res.ok) {
+          onAdd();
+          setOpen(false);
+          resetForm();
+        } else {
+          toast.error("Couldn't add that item to inventory. Try again.");
+        }
+      } catch {
+        toast.error("Couldn't reach the server. Check your connection and try again.");
       }
     });
   }
@@ -166,44 +182,53 @@ export function AddItemDialog({
     if (!customName.trim()) return;
 
     startTransition(async () => {
-      // Create the item definition first
-      const itemRes = await fetch("/api/items", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: customName.trim(),
-          bulkValue: parseFloat(customBulk) || 0,
-          isBulkLight: customBulkLight,
-          category: customCategory,
-          valueCp: Math.round(parseFloat(customValue) * 100), // input is in GP
-          description: customDesc || null,
-          ...(customCategory === "CONTAINER" && {
-            containerCapacity: parseFloat(customContainerCapacity) || null,
-            containerBulkReduction: parseFloat(customContainerReduction) || null,
+      try {
+        // Create the item definition first
+        const itemRes = await fetch("/api/items", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: customName.trim(),
+            bulkValue: parseFloat(customBulk) || 0,
+            isBulkLight: customBulkLight,
+            category: customCategory,
+            valueCp: Math.round(parseFloat(customValue) * 100), // input is in GP
+            description: customDesc || null,
+            ...(customCategory === "CONTAINER" && {
+              containerCapacity: parseFloat(customContainerCapacity) || null,
+              containerBulkReduction: parseFloat(customContainerReduction) || null,
+            }),
           }),
-        }),
-      });
+        });
 
-      if (!itemRes.ok) return;
-      const newItem = await itemRes.json();
+        if (!itemRes.ok) {
+          toast.error("Couldn't create that item. Try again.");
+          return;
+        }
+        const newItem = await itemRes.json();
 
-      // Then add it to inventory
-      const res = await fetch("/api/inventory", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          itemId: newItem.id,
-          characterId: assignTo === "shared" ? null : assignTo,
-          bulkCarrierId: assignCarrier === "none" ? null : assignCarrier,
-          quantity,
-          notes: notes || null,
-        }),
-      });
+        // Then add it to inventory
+        const res = await fetch("/api/inventory", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            itemId: newItem.id,
+            characterId: assignTo === "shared" ? null : assignTo,
+            bulkCarrierId: assignCarrier === "none" ? null : assignCarrier,
+            quantity,
+            notes: notes || null,
+          }),
+        });
 
-      if (res.ok) {
-        onAdd();
-        setOpen(false);
-        resetForm();
+        if (res.ok) {
+          onAdd();
+          setOpen(false);
+          resetForm();
+        } else {
+          toast.error("Couldn't add that item to inventory. Try again.");
+        }
+      } catch {
+        toast.error("Couldn't reach the server. Check your connection and try again.");
       }
     });
   }

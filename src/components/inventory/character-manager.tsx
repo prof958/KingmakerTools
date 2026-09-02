@@ -21,6 +21,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Plus, Trash2, Pencil, Users, PawPrint, Skull, HeartPulse } from "lucide-react";
+import { toast } from "sonner";
 
 
 interface Character {
@@ -73,33 +74,45 @@ export function CharacterManager({
   async function confirmKia() {
     if (!kiaId) return;
     startTransition(async () => {
-      const res = await fetch(`/api/characters/${kiaId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: "FALLEN", kiaNote: kiaNote.trim() || null }),
-      });
-      if (res.ok) {
-        const updated = await res.json();
-        setCharacters((prev) => prev.map((c) => (c.id === kiaId ? updated : c)));
-        setKiaId(null);
-        setKiaNote("");
-        setFallenOpen(true);
-        onUpdate?.();
+      try {
+        const res = await fetch(`/api/characters/${kiaId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status: "FALLEN", kiaNote: kiaNote.trim() || null }),
+        });
+        if (res.ok) {
+          const updated = await res.json();
+          setCharacters((prev) => prev.map((c) => (c.id === kiaId ? updated : c)));
+          setKiaId(null);
+          setKiaNote("");
+          setFallenOpen(true);
+          onUpdate?.();
+        } else {
+          toast.error("Couldn't mark that character K.I.A. Try again.");
+        }
+      } catch {
+        toast.error("Couldn't reach the server. Check your connection and try again.");
       }
     });
   }
 
   async function handleRevive(id: string) {
     startTransition(async () => {
-      const res = await fetch(`/api/characters/${id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: "ACTIVE" }),
-      });
-      if (res.ok) {
-        const updated = await res.json();
-        setCharacters((prev) => prev.map((c) => (c.id === id ? updated : c)));
-        onUpdate?.();
+      try {
+        const res = await fetch(`/api/characters/${id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status: "ACTIVE" }),
+        });
+        if (res.ok) {
+          const updated = await res.json();
+          setCharacters((prev) => prev.map((c) => (c.id === id ? updated : c)));
+          onUpdate?.();
+        } else {
+          toast.error("Couldn't revive that character. Try again.");
+        }
+      } catch {
+        toast.error("Couldn't reach the server. Check your connection and try again.");
       }
     });
   }
@@ -147,22 +160,28 @@ export function CharacterManager({
     if (!name.trim()) return;
 
     startTransition(async () => {
-      const res = await fetch("/api/characters", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: name.trim(), emoji, imageUrl, strModifier: strMod, isCompanion, miscBulk }),
-      });
-      if (res.ok) {
-        const character = await res.json();
-        setCharacters((prev) => [...prev, character]);
-        setName("");
-        setEmoji(null);
-        setImageUrl(null);
-        setStrMod(0);
-        setIsCompanion(false);
-        setMiscBulk(0);
-        setDialogOpen(false);
-        onUpdate?.();
+      try {
+        const res = await fetch("/api/characters", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name: name.trim(), emoji, imageUrl, strModifier: strMod, isCompanion, miscBulk }),
+        });
+        if (res.ok) {
+          const character = await res.json();
+          setCharacters((prev) => [...prev, character]);
+          setName("");
+          setEmoji(null);
+          setImageUrl(null);
+          setStrMod(0);
+          setIsCompanion(false);
+          setMiscBulk(0);
+          setDialogOpen(false);
+          onUpdate?.();
+        } else {
+          toast.error("Couldn't add that character. Try again.");
+        }
+      } catch {
+        toast.error("Couldn't reach the server. Check your connection and try again.");
       }
     });
   }
@@ -171,35 +190,47 @@ export function CharacterManager({
     if (!editId || !name.trim()) return;
 
     startTransition(async () => {
-      const res = await fetch(`/api/characters/${editId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: name.trim(), emoji, imageUrl, strModifier: strMod, isCompanion, miscBulk }),
-      });
-      if (res.ok) {
-        const updated = await res.json();
-        setCharacters((prev) =>
-          prev.map((c) => (c.id === editId ? updated : c))
-        );
-        setName("");
-        setEmoji(null);
-        setImageUrl(null);
-        setStrMod(0);
-        setIsCompanion(false);
-        setMiscBulk(0);
-        setEditId(null);
-        setDialogOpen(false);
-        onUpdate?.();
+      try {
+        const res = await fetch(`/api/characters/${editId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name: name.trim(), emoji, imageUrl, strModifier: strMod, isCompanion, miscBulk }),
+        });
+        if (res.ok) {
+          const updated = await res.json();
+          setCharacters((prev) =>
+            prev.map((c) => (c.id === editId ? updated : c))
+          );
+          setName("");
+          setEmoji(null);
+          setImageUrl(null);
+          setStrMod(0);
+          setIsCompanion(false);
+          setMiscBulk(0);
+          setEditId(null);
+          setDialogOpen(false);
+          onUpdate?.();
+        } else {
+          toast.error("Couldn't save those changes. Try again.");
+        }
+      } catch {
+        toast.error("Couldn't reach the server. Check your connection and try again.");
       }
     });
   }
 
   async function handleDelete(id: string) {
     startTransition(async () => {
-      const res = await fetch(`/api/characters/${id}`, { method: "DELETE" });
-      if (res.ok) {
-        setCharacters((prev) => prev.filter((c) => c.id !== id));
-        onUpdate?.();
+      try {
+        const res = await fetch(`/api/characters/${id}`, { method: "DELETE" });
+        if (res.ok) {
+          setCharacters((prev) => prev.filter((c) => c.id !== id));
+          onUpdate?.();
+        } else {
+          toast.error("Couldn't delete that character. Try again.");
+        }
+      } catch {
+        toast.error("Couldn't reach the server. Check your connection and try again.");
       }
     });
   }

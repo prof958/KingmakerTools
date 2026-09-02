@@ -26,6 +26,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { UtensilsCrossed, Save, Trash2, PawPrint, Plus, Settings2 } from "lucide-react";
+import { toast } from "sonner";
 import {
   CAMPING_ACTIVITIES,
   type CampingActivityDef,
@@ -148,20 +149,26 @@ export function ActivityPicker({
   function save() {
     if (!layoutId) return;
     startTransition(async () => {
-      const res = await fetch(`/api/campsite/${layoutId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          campingActivities: activities.map((a) => ({
-            characterId: a.characterId,
-            activityType: a.activityType,
-            skill: a.skill,
-            result: a.result,
-          })),
-        }),
-      });
-      if (res.ok) {
-        onSaveCallback?.(activities);
+      try {
+        const res = await fetch(`/api/campsite/${layoutId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            campingActivities: activities.map((a) => ({
+              characterId: a.characterId,
+              activityType: a.activityType,
+              skill: a.skill,
+              result: a.result,
+            })),
+          }),
+        });
+        if (res.ok) {
+          onSaveCallback?.(activities);
+        } else {
+          toast.error("Couldn't save activity assignments. Try again.");
+        }
+      } catch {
+        toast.error("Couldn't reach the server. Check your connection and try again.");
       }
     });
   }
@@ -402,32 +409,44 @@ function CustomActivityManager({
   function addActivity() {
     if (!name.trim()) return;
     startTransition(async () => {
-      const res = await fetch("/api/camp-activities", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: name.trim(),
-          skill: skill.trim() || null,
-          description: description.trim() || null,
-        }),
-      });
-      if (res.ok) {
-        const created = await res.json();
-        onChange([...customActivities, created]);
-        setName("");
-        setSkill("");
-        setDescription("");
+      try {
+        const res = await fetch("/api/camp-activities", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: name.trim(),
+            skill: skill.trim() || null,
+            description: description.trim() || null,
+          }),
+        });
+        if (res.ok) {
+          const created = await res.json();
+          onChange([...customActivities, created]);
+          setName("");
+          setSkill("");
+          setDescription("");
+        } else {
+          toast.error("Couldn't add that activity. Try again.");
+        }
+      } catch {
+        toast.error("Couldn't reach the server. Check your connection and try again.");
       }
     });
   }
 
   function removeActivity(id: string) {
     startTransition(async () => {
-      const res = await fetch(`/api/camp-activities/${id}`, {
-        method: "DELETE",
-      });
-      if (res.ok) {
-        onChange(customActivities.filter((a) => a.id !== id));
+      try {
+        const res = await fetch(`/api/camp-activities/${id}`, {
+          method: "DELETE",
+        });
+        if (res.ok) {
+          onChange(customActivities.filter((a) => a.id !== id));
+        } else {
+          toast.error("Couldn't delete that activity. Try again.");
+        }
+      } catch {
+        toast.error("Couldn't reach the server. Check your connection and try again.");
       }
     });
   }

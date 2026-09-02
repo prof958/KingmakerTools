@@ -7,6 +7,7 @@
 
 import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { BlurCommitInput } from "@/components/blur-commit-input";
@@ -47,7 +48,13 @@ export function KingdomShell({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(patch),
         });
-        if (res.ok) refresh();
+        if (res.ok) {
+          refresh();
+        } else {
+          toast.error("Couldn't save that kingdom change. Try again.");
+        }
+      } catch {
+        toast.error("Couldn't reach the server. Check your connection and try again.");
       } finally {
         setSaving(false);
       }

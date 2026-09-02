@@ -33,6 +33,7 @@ import {
 } from "@/components/ui/select";
 import { NumberInput } from "@/components/ui/number-input";
 import { Eye, Save, Plus, Trash2, GripVertical } from "lucide-react";
+import { toast } from "sonner";
 
 interface Character {
   id: string;
@@ -256,13 +257,19 @@ export function WatchOrder({
     if (!layoutId) return;
     const shifts = toWatchShifts(validOrderedIds, shiftCount);
     startTransition(async () => {
-      const res = await fetch(`/api/campsite/${layoutId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ watchShifts: shifts }),
-      });
-      if (res.ok) {
-        onSave?.(shifts);
+      try {
+        const res = await fetch(`/api/campsite/${layoutId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ watchShifts: shifts }),
+        });
+        if (res.ok) {
+          onSave?.(shifts);
+        } else {
+          toast.error("Couldn't save the watch order. Try again.");
+        }
+      } catch {
+        toast.error("Couldn't reach the server. Check your connection and try again.");
       }
     });
   }

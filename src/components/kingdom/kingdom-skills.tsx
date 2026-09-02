@@ -7,6 +7,7 @@
  */
 
 import { useState } from "react";
+import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -65,7 +66,13 @@ export function KingdomSkills({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ skill: skillId, rank }),
       });
-      if (res.ok) onRefresh();
+      if (res.ok) {
+        onRefresh();
+      } else {
+        toast.error("Couldn't update that skill rank. Try again.");
+      }
+    } catch {
+      toast.error("Couldn't reach the server. Check your connection and try again.");
     } finally {
       setPending(null);
     }

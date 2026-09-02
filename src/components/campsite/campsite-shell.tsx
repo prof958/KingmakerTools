@@ -19,6 +19,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Tent, Save, Plus, Trash2, RotateCcw, UserPlus } from "lucide-react";
+import { toast } from "sonner";
 import {
   useCampsiteStore,
   ELEMENT_PALETTE,
@@ -126,22 +127,28 @@ export function CampsiteShell({
 
   const createLayout = useCallback(() => {
     startTransition(async () => {
-      const res = await fetch("/api/campsite", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: "New Camp" }),
-      });
-      if (res.ok) {
-        const created = await res.json();
-        setLayouts((prev) =>
-          prev.map((l) => ({ ...l, isActive: false })).concat({
-            ...created,
-            watchShifts: [],
-            campingActivities: [],
-            elements: [],
-          }),
-        );
-        store.setLayout(created.id, created.name, []);
+      try {
+        const res = await fetch("/api/campsite", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name: "New Camp" }),
+        });
+        if (res.ok) {
+          const created = await res.json();
+          setLayouts((prev) =>
+            prev.map((l) => ({ ...l, isActive: false })).concat({
+              ...created,
+              watchShifts: [],
+              campingActivities: [],
+              elements: [],
+            }),
+          );
+          store.setLayout(created.id, created.name, []);
+        } else {
+          toast.error("Couldn't create a new camp layout. Try again.");
+        }
+      } catch {
+        toast.error("Couldn't reach the server. Check your connection and try again.");
       }
     });
   }, [store]);
@@ -151,7 +158,7 @@ export function CampsiteShell({
     startTransition(async () => {
       store.setSaving(true);
       try {
-        await fetch(`/api/campsite/${store.layoutId}`, {
+        const res = await fetch(`/api/campsite/${store.layoutId}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -159,15 +166,21 @@ export function CampsiteShell({
             elements: store.elements,
           }),
         });
-        // Sync saved data back into local layouts state so switching works
-        setLayouts((prev) =>
-          prev.map((l) =>
-            l.id === store.layoutId
-              ? { ...l, name: store.layoutName, elements: [...store.elements] }
-              : l,
-          ),
-        );
-        store.markSaved();
+        if (res.ok) {
+          // Sync saved data back into local layouts state so switching works
+          setLayouts((prev) =>
+            prev.map((l) =>
+              l.id === store.layoutId
+                ? { ...l, name: store.layoutName, elements: [...store.elements] }
+                : l,
+            ),
+          );
+          store.markSaved();
+        } else {
+          toast.error("Couldn't save the camp layout. Try again.");
+        }
+      } catch {
+        toast.error("Couldn't reach the server. Check your connection and try again.");
       } finally {
         store.setSaving(false);
       }
@@ -177,22 +190,28 @@ export function CampsiteShell({
   const deleteLayout = useCallback(() => {
     if (!store.layoutId) return;
     startTransition(async () => {
-      const res = await fetch(`/api/campsite/${store.layoutId}`, {
-        method: "DELETE",
-      });
-      if (res.ok) {
-        setLayouts((prev) => prev.filter((l) => l.id !== store.layoutId));
-        store.resetCanvas();
-        // Load first remaining layout
-        const remaining = layouts.filter((l) => l.id !== store.layoutId);
-        if (remaining.length > 0) {
-          const next = remaining[0];
-          store.setLayout(
-            next.id,
-            next.name,
-            Array.isArray(next.elements) ? next.elements : [],
-          );
+      try {
+        const res = await fetch(`/api/campsite/${store.layoutId}`, {
+          method: "DELETE",
+        });
+        if (res.ok) {
+          setLayouts((prev) => prev.filter((l) => l.id !== store.layoutId));
+          store.resetCanvas();
+          // Load first remaining layout
+          const remaining = layouts.filter((l) => l.id !== store.layoutId);
+          if (remaining.length > 0) {
+            const next = remaining[0];
+            store.setLayout(
+              next.id,
+              next.name,
+              Array.isArray(next.elements) ? next.elements : [],
+            );
+          }
+        } else {
+          toast.error("Couldn't delete that camp layout. Try again.");
         }
+      } catch {
+        toast.error("Couldn't reach the server. Check your connection and try again.");
       }
     });
   }, [store, layouts]);
