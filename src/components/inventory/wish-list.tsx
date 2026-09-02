@@ -315,7 +315,7 @@ export function WishList({
   return (
     <Card>
       <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <ShoppingCart className="h-5 w-5" />
             <CardTitle>Wishlist</CardTitle>

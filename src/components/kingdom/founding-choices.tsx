@@ -120,7 +120,7 @@ export function FoundingChoices({
     <div className="space-y-6">
       <Card>
         <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <CardTitle className="text-base">Founding Choices</CardTitle>
             <div className="flex gap-1">
               {(["VK", "RAW"] as const).map((rs) => (
@@ -264,7 +264,7 @@ export function FoundingChoices({
       {/* Preview */}
       <Card>
         <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <CardTitle className="text-base">Ability scores from these choices</CardTitle>
             {matches ? (
               <Badge variant="secondary">In sync</Badge>

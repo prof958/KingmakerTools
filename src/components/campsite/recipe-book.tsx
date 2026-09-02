@@ -168,7 +168,7 @@ export function RecipeBook({
   return (
     <Card>
       <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <BookOpen className="h-5 w-5" />
             <CardTitle>Recipe Book</CardTitle>

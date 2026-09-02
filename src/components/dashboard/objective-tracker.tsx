@@ -223,7 +223,7 @@ export function ObjectiveTracker({
   return (
     <Card>
       <CardHeader>
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <Target className="h-5 w-5" />
             <CardTitle>Objectives</CardTitle>
