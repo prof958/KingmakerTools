@@ -11,6 +11,7 @@
 import { useCallback, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { MAP_SHEETS } from "@/lib/map-sheets";
 import type { Axial } from "@/lib/hex";
@@ -67,7 +68,10 @@ export function KingdomMap({ hexes: initialHexes }: { hexes: HexData[] }) {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ sheet, q: selected.q, r: selected.r, ...changes }),
         });
-        if (!res.ok) return;
+        if (!res.ok) {
+          toast.error("Couldn't save that hex. Try again.");
+          return;
+        }
         const { hex } = (await res.json()) as { hex: HexData };
         setHexes((current) => {
           const rest = current.filter(
@@ -78,6 +82,8 @@ export function KingdomMap({ hexes: initialHexes }: { hexes: HexData[] }) {
         // Claiming or abandoning a hex moves the kingdom's Size, which the
         // Overview tab renders from server data.
         router.refresh();
+      } catch {
+        toast.error("Couldn't reach the server. Check your connection and try again.");
       } finally {
         setSaving(false);
       }

@@ -7,6 +7,7 @@
  */
 
 import { useState } from "react";
+import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -69,7 +70,11 @@ export function LeadershipRoster({
       if (res.ok) {
         if (logLabel) onChange?.(logLabel);
         onRefresh();
+      } else {
+        toast.error("Couldn't update that leadership role. Try again.");
       }
+    } catch {
+      toast.error("Couldn't reach the server. Check your connection and try again.");
     } finally {
       setPending(null);
     }

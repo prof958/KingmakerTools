@@ -47,6 +47,7 @@ import {
   ShoppingCart,
   Globe,
 } from "lucide-react";
+import { toast } from "sonner";
 import { formatCurrency } from "@/lib/pf2e/currency";
 import {
   AonItemSearch,
@@ -140,31 +141,40 @@ export function WishList({
 
   function addFromAon(aonItem: AonItem) {
     startTransition(async () => {
-      // Persist the AoN item to local catalog first
-      const payload = aonToItemPayload(aonItem);
-      const itemRes = await fetch("/api/items", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      if (!itemRes.ok) return;
-      const newItem = await itemRes.json();
+      try {
+        // Persist the AoN item to local catalog first
+        const payload = aonToItemPayload(aonItem);
+        const itemRes = await fetch("/api/items", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        if (!itemRes.ok) {
+          toast.error("Couldn't add that item. Try again.");
+          return;
+        }
+        const newItem = await itemRes.json();
 
-      // Add to wish list
-      const res = await fetch("/api/wishlist", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          itemId: newItem.id,
-          characterId: assignTo === "party" ? null : assignTo,
-          notes: notes.trim() || null,
-        }),
-      });
-      if (res.ok) {
-        const created = await res.json();
-        setItems((prev) => [created, ...prev]);
-        resetForm();
-        setAddOpen(false);
+        // Add to wish list
+        const res = await fetch("/api/wishlist", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            itemId: newItem.id,
+            characterId: assignTo === "party" ? null : assignTo,
+            notes: notes.trim() || null,
+          }),
+        });
+        if (res.ok) {
+          const created = await res.json();
+          setItems((prev) => [created, ...prev]);
+          resetForm();
+          setAddOpen(false);
+        } else {
+          toast.error("Couldn't add that item to the wish list. Try again.");
+        }
+      } catch {
+        toast.error("Couldn't reach the server. Check your connection and try again.");
       }
     });
   }
@@ -187,76 +197,100 @@ export function WishList({
     }
 
     startTransition(async () => {
-      const res = await fetch("/api/wishlist", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      if (res.ok) {
-        const created = await res.json();
-        setItems((prev) => [created, ...prev]);
-        resetForm();
-        setAddOpen(false);
+      try {
+        const res = await fetch("/api/wishlist", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        if (res.ok) {
+          const created = await res.json();
+          setItems((prev) => [created, ...prev]);
+          resetForm();
+          setAddOpen(false);
+        } else {
+          toast.error("Couldn't add that item to the wish list. Try again.");
+        }
+      } catch {
+        toast.error("Couldn't reach the server. Check your connection and try again.");
       }
     });
   }
 
   function toggleAcquired(item: WishListItemData) {
     startTransition(async () => {
-      const markingAcquired = !item.isAcquired;
-      const res = await fetch(`/api/wishlist/${item.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ isAcquired: markingAcquired }),
-      });
-      if (res.ok) {
-        const updated = await res.json();
-        setItems((prev) =>
-          prev.map((i) => (i.id === item.id ? updated : i)),
-        );
+      try {
+        const markingAcquired = !item.isAcquired;
+        const res = await fetch(`/api/wishlist/${item.id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ isAcquired: markingAcquired }),
+        });
+        if (res.ok) {
+          const updated = await res.json();
+          setItems((prev) =>
+            prev.map((i) => (i.id === item.id ? updated : i)),
+          );
 
-        // When marking acquired, also add the item to inventory
-        if (markingAcquired) {
-          let itemId = item.itemId;
+          // When marking acquired, also add the item to inventory
+          if (markingAcquired) {
+            let itemId = item.itemId;
 
-          // Custom items need a catalog entry first
-          if (!itemId && item.customName) {
-            const itemRes = await fetch("/api/items", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                name: item.customName,
-                valueCp: item.customPriceCp ?? 0,
-              }),
-            });
-            if (itemRes.ok) {
-              const created = await itemRes.json();
-              itemId = created.id;
+            // Custom items need a catalog entry first
+            if (!itemId && item.customName) {
+              const itemRes = await fetch("/api/items", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  name: item.customName,
+                  valueCp: item.customPriceCp ?? 0,
+                }),
+              });
+              if (itemRes.ok) {
+                const created = await itemRes.json();
+                itemId = created.id;
+              } else {
+                toast.error("Marked acquired, but couldn't add it to inventory. Add it manually.");
+              }
+            }
+
+            if (itemId) {
+              const invRes = await fetch("/api/inventory", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  itemId,
+                  characterId: item.characterId,
+                  notes: item.notes,
+                }),
+              });
+              if (invRes.ok) {
+                onAcquire?.();
+              } else {
+                toast.error("Marked acquired, but couldn't add it to inventory. Add it manually.");
+              }
             }
           }
-
-          if (itemId) {
-            await fetch("/api/inventory", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                itemId,
-                characterId: item.characterId,
-                notes: item.notes,
-              }),
-            });
-            onAcquire?.();
-          }
+        } else {
+          toast.error("Couldn't update that wish list item. Try again.");
         }
+      } catch {
+        toast.error("Couldn't reach the server. Check your connection and try again.");
       }
     });
   }
 
   function deleteItem(id: string) {
     startTransition(async () => {
-      const res = await fetch(`/api/wishlist/${id}`, { method: "DELETE" });
-      if (res.ok) {
-        setItems((prev) => prev.filter((i) => i.id !== id));
+      try {
+        const res = await fetch(`/api/wishlist/${id}`, { method: "DELETE" });
+        if (res.ok) {
+          setItems((prev) => prev.filter((i) => i.id !== id));
+        } else {
+          toast.error("Couldn't delete that wish list item. Try again.");
+        }
+      } catch {
+        toast.error("Couldn't reach the server. Check your connection and try again.");
       }
     });
   }

@@ -29,6 +29,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Plus, Trash2, Pencil, Truck } from "lucide-react";
+import { toast } from "sonner";
 import type { InventoryItemData } from "./inventory-table";
 import { sumBulk, type BulkItem } from "@/lib/pf2e/bulk";
 
@@ -161,42 +162,56 @@ export function BulkCarrierManager({
     };
 
     startTransition(async () => {
-      if (editId) {
-        const res = await fetch(`/api/bulk-carriers/${editId}`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        });
-        if (res.ok) {
-          const updated = await res.json();
-          setCarriers((prev) => prev.map((c) => (c.id === editId ? updated : c)));
-          setDialogOpen(false);
-          resetForm();
-          onUpdate?.();
+      try {
+        if (editId) {
+          const res = await fetch(`/api/bulk-carriers/${editId}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+          if (res.ok) {
+            const updated = await res.json();
+            setCarriers((prev) => prev.map((c) => (c.id === editId ? updated : c)));
+            setDialogOpen(false);
+            resetForm();
+            onUpdate?.();
+          } else {
+            toast.error("Couldn't save that carrier. Try again.");
+          }
+        } else {
+          const res = await fetch("/api/bulk-carriers", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+          if (res.ok) {
+            const created = await res.json();
+            setCarriers((prev) => [...prev, created]);
+            setDialogOpen(false);
+            resetForm();
+            onUpdate?.();
+          } else {
+            toast.error("Couldn't add that carrier. Try again.");
+          }
         }
-      } else {
-        const res = await fetch("/api/bulk-carriers", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        });
-        if (res.ok) {
-          const created = await res.json();
-          setCarriers((prev) => [...prev, created]);
-          setDialogOpen(false);
-          resetForm();
-          onUpdate?.();
-        }
+      } catch {
+        toast.error("Couldn't reach the server. Check your connection and try again.");
       }
     });
   }
 
   async function handleDelete(id: string) {
     startTransition(async () => {
-      const res = await fetch(`/api/bulk-carriers/${id}`, { method: "DELETE" });
-      if (res.ok) {
-        setCarriers((prev) => prev.filter((c) => c.id !== id));
-        onUpdate?.();
+      try {
+        const res = await fetch(`/api/bulk-carriers/${id}`, { method: "DELETE" });
+        if (res.ok) {
+          setCarriers((prev) => prev.filter((c) => c.id !== id));
+          onUpdate?.();
+        } else {
+          toast.error("Couldn't delete that carrier. Try again.");
+        }
+      } catch {
+        toast.error("Couldn't reach the server. Check your connection and try again.");
       }
     });
   }

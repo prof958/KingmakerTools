@@ -28,6 +28,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Trash2, Shield, Sparkles, Package, Truck } from "lucide-react";
+import { toast } from "sonner";
 import { formatCurrency } from "@/lib/pf2e/currency";
 import type { BulkCarrierData } from "./bulk-carrier-manager";
 
@@ -112,15 +113,21 @@ export function InventoryTable({
   const updateItem = useCallback(
     (id: string, data: Record<string, unknown>) => {
       startTransition(async () => {
-        const res = await fetch(`/api/inventory/${id}`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(data),
-        });
-        if (res.ok) {
-          const updated = await res.json();
-          setItems((prev) => prev.map((i) => (i.id === id ? { ...i, ...updated } : i)));
-          onUpdate?.();
+        try {
+          const res = await fetch(`/api/inventory/${id}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data),
+          });
+          if (res.ok) {
+            const updated = await res.json();
+            setItems((prev) => prev.map((i) => (i.id === id ? { ...i, ...updated } : i)));
+            onUpdate?.();
+          } else {
+            toast.error("Couldn't save that change. Try again.");
+          }
+        } catch {
+          toast.error("Couldn't reach the server. Check your connection and try again.");
         }
       });
     },
@@ -130,10 +137,16 @@ export function InventoryTable({
   const deleteItem = useCallback(
     (id: string) => {
       startTransition(async () => {
-        const res = await fetch(`/api/inventory/${id}`, { method: "DELETE" });
-        if (res.ok) {
-          setItems((prev) => prev.filter((i) => i.id !== id));
-          onUpdate?.();
+        try {
+          const res = await fetch(`/api/inventory/${id}`, { method: "DELETE" });
+          if (res.ok) {
+            setItems((prev) => prev.filter((i) => i.id !== id));
+            onUpdate?.();
+          } else {
+            toast.error("Couldn't delete that item. Try again.");
+          }
+        } catch {
+          toast.error("Couldn't reach the server. Check your connection and try again.");
         }
       });
     },

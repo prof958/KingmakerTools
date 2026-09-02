@@ -42,6 +42,7 @@ import {
   Trash2,
   Archive,
 } from "lucide-react";
+import { toast } from "sonner";
 
 export interface ObjectiveData {
   id: string;
@@ -116,22 +117,28 @@ export function ObjectiveTracker({
   const addObjective = useCallback(() => {
     if (!newTitle.trim()) return;
     startTransition(async () => {
-      const res = await fetch("/api/objectives", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: newTitle.trim(),
-          description: newDesc.trim() || null,
-          priority: parseInt(newPriority) || 0,
-        }),
-      });
-      if (res.ok) {
-        const obj = await res.json();
-        setObjectives((prev) => [...prev, obj]);
-        setNewTitle("");
-        setNewDesc("");
-        setNewPriority("0");
-        setAddOpen(false);
+      try {
+        const res = await fetch("/api/objectives", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            title: newTitle.trim(),
+            description: newDesc.trim() || null,
+            priority: parseInt(newPriority) || 0,
+          }),
+        });
+        if (res.ok) {
+          const obj = await res.json();
+          setObjectives((prev) => [...prev, obj]);
+          setNewTitle("");
+          setNewDesc("");
+          setNewPriority("0");
+          setAddOpen(false);
+        } else {
+          toast.error("Couldn't add that objective. Try again.");
+        }
+      } catch {
+        toast.error("Couldn't reach the server. Check your connection and try again.");
       }
     });
   }, [newTitle, newDesc, newPriority]);
@@ -139,16 +146,22 @@ export function ObjectiveTracker({
   const updateStatus = useCallback(
     (id: string, status: ObjectiveData["status"]) => {
       startTransition(async () => {
-        const res = await fetch(`/api/objectives/${id}`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ status }),
-        });
-        if (res.ok) {
-          const updated = await res.json();
-          setObjectives((prev) =>
-            prev.map((o) => (o.id === id ? { ...o, ...updated } : o)),
-          );
+        try {
+          const res = await fetch(`/api/objectives/${id}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ status }),
+          });
+          if (res.ok) {
+            const updated = await res.json();
+            setObjectives((prev) =>
+              prev.map((o) => (o.id === id ? { ...o, ...updated } : o)),
+            );
+          } else {
+            toast.error("Couldn't update that objective. Try again.");
+          }
+        } catch {
+          toast.error("Couldn't reach the server. Check your connection and try again.");
         }
       });
     },
@@ -158,31 +171,43 @@ export function ObjectiveTracker({
   const saveEdit = useCallback(() => {
     if (!editId || !editTitle.trim()) return;
     startTransition(async () => {
-      const res = await fetch(`/api/objectives/${editId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: editTitle.trim(),
-          description: editDesc.trim() || null,
-          priority: parseInt(editPriority) || 0,
-        }),
-      });
-      if (res.ok) {
-        const updated = await res.json();
-        setObjectives((prev) =>
-          prev.map((o) => (o.id === editId ? { ...o, ...updated } : o)),
-        );
-        setEditOpen(false);
-        setEditId(null);
+      try {
+        const res = await fetch(`/api/objectives/${editId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            title: editTitle.trim(),
+            description: editDesc.trim() || null,
+            priority: parseInt(editPriority) || 0,
+          }),
+        });
+        if (res.ok) {
+          const updated = await res.json();
+          setObjectives((prev) =>
+            prev.map((o) => (o.id === editId ? { ...o, ...updated } : o)),
+          );
+          setEditOpen(false);
+          setEditId(null);
+        } else {
+          toast.error("Couldn't save those changes. Try again.");
+        }
+      } catch {
+        toast.error("Couldn't reach the server. Check your connection and try again.");
       }
     });
   }, [editId, editTitle, editDesc, editPriority]);
 
   const deleteObjective = useCallback((id: string) => {
     startTransition(async () => {
-      const res = await fetch(`/api/objectives/${id}`, { method: "DELETE" });
-      if (res.ok) {
-        setObjectives((prev) => prev.filter((o) => o.id !== id));
+      try {
+        const res = await fetch(`/api/objectives/${id}`, { method: "DELETE" });
+        if (res.ok) {
+          setObjectives((prev) => prev.filter((o) => o.id !== id));
+        } else {
+          toast.error("Couldn't delete that objective. Try again.");
+        }
+      } catch {
+        toast.error("Couldn't reach the server. Check your connection and try again.");
       }
     });
   }, []);

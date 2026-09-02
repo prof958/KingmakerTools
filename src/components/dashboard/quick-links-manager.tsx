@@ -24,6 +24,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Link2, Plus, MoreVertical, Pencil, Trash2, ExternalLink } from "lucide-react";
+import { toast } from "sonner";
 
 export interface QuickLinkData {
   id: string;
@@ -79,22 +80,28 @@ export function QuickLinksManager({
     (label: string, url: string, category: string) => {
       if (!label.trim() || !url.trim()) return;
       startTransition(async () => {
-        const res = await fetch("/api/quick-links", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            label: label.trim(),
-            url: url.trim(),
-            category: category.trim() || null,
-          }),
-        });
-        if (res.ok) {
-          const link = await res.json();
-          setLinks((prev) => [...prev, link]);
-          setNewLabel("");
-          setNewUrl("");
-          setNewCategory("");
-          setAddOpen(false);
+        try {
+          const res = await fetch("/api/quick-links", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              label: label.trim(),
+              url: url.trim(),
+              category: category.trim() || null,
+            }),
+          });
+          if (res.ok) {
+            const link = await res.json();
+            setLinks((prev) => [...prev, link]);
+            setNewLabel("");
+            setNewUrl("");
+            setNewCategory("");
+            setAddOpen(false);
+          } else {
+            toast.error("Couldn't add that link. Try again.");
+          }
+        } catch {
+          toast.error("Couldn't reach the server. Check your connection and try again.");
         }
       });
     },
@@ -104,31 +111,43 @@ export function QuickLinksManager({
   const saveEdit = useCallback(() => {
     if (!editId || !editLabel.trim() || !editUrl.trim()) return;
     startTransition(async () => {
-      const res = await fetch(`/api/quick-links/${editId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          label: editLabel.trim(),
-          url: editUrl.trim(),
-          category: editCategory.trim() || null,
-        }),
-      });
-      if (res.ok) {
-        const updated = await res.json();
-        setLinks((prev) =>
-          prev.map((l) => (l.id === editId ? { ...l, ...updated } : l)),
-        );
-        setEditOpen(false);
-        setEditId(null);
+      try {
+        const res = await fetch(`/api/quick-links/${editId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            label: editLabel.trim(),
+            url: editUrl.trim(),
+            category: editCategory.trim() || null,
+          }),
+        });
+        if (res.ok) {
+          const updated = await res.json();
+          setLinks((prev) =>
+            prev.map((l) => (l.id === editId ? { ...l, ...updated } : l)),
+          );
+          setEditOpen(false);
+          setEditId(null);
+        } else {
+          toast.error("Couldn't save those changes. Try again.");
+        }
+      } catch {
+        toast.error("Couldn't reach the server. Check your connection and try again.");
       }
     });
   }, [editId, editLabel, editUrl, editCategory]);
 
   const deleteLink = useCallback((id: string) => {
     startTransition(async () => {
-      const res = await fetch(`/api/quick-links/${id}`, { method: "DELETE" });
-      if (res.ok) {
-        setLinks((prev) => prev.filter((l) => l.id !== id));
+      try {
+        const res = await fetch(`/api/quick-links/${id}`, { method: "DELETE" });
+        if (res.ok) {
+          setLinks((prev) => prev.filter((l) => l.id !== id));
+        } else {
+          toast.error("Couldn't delete that link. Try again.");
+        }
+      } catch {
+        toast.error("Couldn't reach the server. Check your connection and try again.");
       }
     });
   }, []);

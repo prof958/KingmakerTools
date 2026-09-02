@@ -21,6 +21,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Coins, Split, Save, PawPrint } from "lucide-react";
+import { toast } from "sonner";
 import { walletToCp, formatCurrency, formatAsGp, cpToWallet } from "@/lib/pf2e/currency";
 
 interface Character {
@@ -79,18 +80,24 @@ export function WalletManager({
 
   async function saveEdit(id: string) {
     startTransition(async () => {
-      const res = await fetch("/api/wallets", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          wallets: [{ id, ...editValues }],
-        }),
-      });
-      if (res.ok) {
-        setWallets((prev) =>
-          prev.map((w) => (w.id === id ? { ...w, ...editValues } : w))
-        );
-        setEditingId(null);
+      try {
+        const res = await fetch("/api/wallets", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            wallets: [{ id, ...editValues }],
+          }),
+        });
+        if (res.ok) {
+          setWallets((prev) =>
+            prev.map((w) => (w.id === id ? { ...w, ...editValues } : w))
+          );
+          setEditingId(null);
+        } else {
+          toast.error("Couldn't save that wallet. Try again.");
+        }
+      } catch {
+        toast.error("Couldn't reach the server. Check your connection and try again.");
       }
     });
   }
@@ -102,22 +109,28 @@ export function WalletManager({
     const totalCpToSplit = Math.round(gpValue * 100);
 
     startTransition(async () => {
-      const res = await fetch("/api/wallets/loot-split", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          totalCp: totalCpToSplit,
-          characterIds: characters.map((c) => c.id),
-        }),
-      });
-      if (res.ok) {
-        // Refresh wallets
-        const walletsRes = await fetch("/api/wallets");
-        if (walletsRes.ok) {
-          setWallets(await walletsRes.json());
+      try {
+        const res = await fetch("/api/wallets/loot-split", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            totalCp: totalCpToSplit,
+            characterIds: characters.map((c) => c.id),
+          }),
+        });
+        if (res.ok) {
+          // Refresh wallets
+          const walletsRes = await fetch("/api/wallets");
+          if (walletsRes.ok) {
+            setWallets(await walletsRes.json());
+          }
+          setSplitOpen(false);
+          setSplitGp("");
+        } else {
+          toast.error("Couldn't split the loot. Try again.");
         }
-        setSplitOpen(false);
-        setSplitGp("");
+      } catch {
+        toast.error("Couldn't reach the server. Check your connection and try again.");
       }
     });
   }

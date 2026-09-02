@@ -42,6 +42,7 @@ import {
   PenLine,
 } from "lucide-react";
 import { formatGolarionDate } from "@/lib/pf2e/calendar";
+import { toast } from "sonner";
 
 const CATEGORIES = [
   "PARTY",
@@ -148,22 +149,28 @@ export function LogView({
   function addEntry() {
     if (!newSummary.trim()) return;
     startTransition(async () => {
-      const res = await fetch("/api/log", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          summary: newSummary.trim(),
-          details: newDetails.trim() || null,
-          category: newCategory,
-        }),
-      });
-      if (res.ok) {
-        const entry: LogEntryData = await res.json();
-        setEntries((prev) => [entry, ...prev]);
-        setNewSummary("");
-        setNewDetails("");
-        setNewCategory("SESSION");
-        setAddOpen(false);
+      try {
+        const res = await fetch("/api/log", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            summary: newSummary.trim(),
+            details: newDetails.trim() || null,
+            category: newCategory,
+          }),
+        });
+        if (res.ok) {
+          const entry: LogEntryData = await res.json();
+          setEntries((prev) => [entry, ...prev]);
+          setNewSummary("");
+          setNewDetails("");
+          setNewCategory("SESSION");
+          setAddOpen(false);
+        } else {
+          toast.error("Couldn't add that log entry. Try again.");
+        }
+      } catch {
+        toast.error("Couldn't reach the server. Check your connection and try again.");
       }
     });
   }
@@ -179,31 +186,43 @@ export function LogView({
   function saveEdit() {
     if (!editId || !editSummary.trim()) return;
     startTransition(async () => {
-      const res = await fetch(`/api/log/${editId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          summary: editSummary.trim(),
-          details: editDetails.trim() || null,
-          category: editCategory,
-        }),
-      });
-      if (res.ok) {
-        const updated: LogEntryData = await res.json();
-        setEntries((prev) =>
-          prev.map((e) => (e.id === editId ? { ...e, ...updated } : e)),
-        );
-        setEditOpen(false);
-        setEditId(null);
+      try {
+        const res = await fetch(`/api/log/${editId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            summary: editSummary.trim(),
+            details: editDetails.trim() || null,
+            category: editCategory,
+          }),
+        });
+        if (res.ok) {
+          const updated: LogEntryData = await res.json();
+          setEntries((prev) =>
+            prev.map((e) => (e.id === editId ? { ...e, ...updated } : e)),
+          );
+          setEditOpen(false);
+          setEditId(null);
+        } else {
+          toast.error("Couldn't save those changes. Try again.");
+        }
+      } catch {
+        toast.error("Couldn't reach the server. Check your connection and try again.");
       }
     });
   }
 
   function deleteEntry(id: string) {
     startTransition(async () => {
-      const res = await fetch(`/api/log/${id}`, { method: "DELETE" });
-      if (res.ok) {
-        setEntries((prev) => prev.filter((e) => e.id !== id));
+      try {
+        const res = await fetch(`/api/log/${id}`, { method: "DELETE" });
+        if (res.ok) {
+          setEntries((prev) => prev.filter((e) => e.id !== id));
+        } else {
+          toast.error("Couldn't delete that log entry. Try again.");
+        }
+      } catch {
+        toast.error("Couldn't reach the server. Check your connection and try again.");
       }
     });
   }
