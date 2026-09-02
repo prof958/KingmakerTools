@@ -9,16 +9,14 @@ export const dynamic = "force-dynamic";
 
 import { Badge } from "@/components/ui/badge";
 import { prisma } from "@/lib/db";
-import { getOrCreateCampaign } from "@/lib/campaign";
 import { getOrCreateKingdom } from "@/lib/kingdom";
 import { FoundingWizard, KingdomShell } from "@/components/kingdom";
 
 export default async function KingdomPage() {
-  const campaign = await getOrCreateCampaign();
   const kingdom = await getOrCreateKingdom();
   const [characters, hexes, settlements, turns] = await Promise.all([
     prisma.character.findMany({
-      where: { campaignId: campaign.id },
+      where: { campaignId: kingdom.campaignId },
       orderBy: { createdAt: "asc" },
       select: { id: true, name: true, emoji: true, isCompanion: true },
     }),

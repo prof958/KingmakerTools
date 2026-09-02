@@ -47,14 +47,6 @@ export interface HexData {
   notes: string | null;
 }
 
-export interface SettlementLite {
-  id: string;
-  name: string;
-  type: string;
-  isCapital: boolean;
-  level: number;
-}
-
 export interface SettlementData {
   id: string;
   hexId: string | null;
@@ -144,7 +136,6 @@ export interface KingdomData {
   skills: KingdomSkillData[];
   feats: KingdomFeatData[];
   leadershipRoles: LeadershipRoleData[];
-  settlements: SettlementLite[];
 }
 
 export const ABILITY_KEYS: KingdomAbility[] = ["culture", "economy", "loyalty", "stability"];
