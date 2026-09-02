@@ -185,7 +185,7 @@ export function ActivityPicker({
     <div className="space-y-4">
       <Card>
         <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-2">
               <UtensilsCrossed className="h-5 w-5" />
               <CardTitle>Camping Activities</CardTitle>

@@ -5,7 +5,7 @@
  * Supports assigning items to characters, marking invested/worn, editing quantity, and deleting.
  */
 
-import { useState, useEffect, useTransition, useCallback } from "react";
+import { Fragment, useState, useEffect, useTransition, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { NumberInput } from "@/components/ui/number-input";
@@ -237,8 +237,12 @@ export function InventoryTable({
           <p className="text-xs">Use the &quot;Add Item&quot; button to add loot.</p>
         </div>
       ) : (
-        <div className="rounded-md border overflow-x-auto">
-          <Table>
+        <div className="space-y-1.5">
+          <p className="text-xs text-muted-foreground sm:hidden">
+            Scroll the table sideways to reach quantity, owner, carrier, and delete →
+          </p>
+          <div className="rounded-md border overflow-x-auto">
+            <Table>
             <TableHeader>
               <TableRow>
                 <TableHead className="w-[250px]">Item</TableHead>
@@ -253,7 +257,7 @@ export function InventoryTable({
             </TableHeader>
             <TableBody>
               {groups.map((group) => (
-                <>
+                <Fragment key={group.key ?? "none"}>
                   {showGroupHeaders && (
                     <TableRow key={`header-${group.key ?? "none"}`} className="bg-muted/50 hover:bg-muted/50">
                       <TableCell colSpan={8} className="py-1.5">
@@ -428,10 +432,11 @@ export function InventoryTable({
                   </TableCell>
                 </TableRow>
               ))}
-              </>
+                </Fragment>
               ))}
             </TableBody>
           </Table>
+          </div>
         </div>
       )}
     </div>
