@@ -12,6 +12,12 @@ import { KINGDOM_SKILLS, LEADERSHIP_ROLES, DEFAULT_RULESET } from "@/lib/pf2e/ki
 
 export type KingdomWithRelations = Awaited<ReturnType<typeof getOrCreateKingdom>>;
 
+/**
+ * Deliberately doesn't include `settlements` or `turns` — every caller that
+ * needs them already fetches its own (the Kingdom page wants all turns and
+ * settlements, `PATCH /api/kingdom/turns/[id]` wants one turn by id, etc.),
+ * so including them here would just be a second, unused copy on every call.
+ */
 export async function getOrCreateKingdom() {
   const campaign = await getOrCreateCampaign();
 
@@ -21,8 +27,6 @@ export async function getOrCreateKingdom() {
       skills: true,
       feats: { orderBy: { createdAt: "asc" } },
       leadershipRoles: { include: { character: true } },
-      settlements: { orderBy: { createdAt: "asc" } },
-      turns: { orderBy: { turnNumber: "desc" }, take: 1 },
     },
   });
 
@@ -48,8 +52,6 @@ export async function getOrCreateKingdom() {
       skills: true,
       feats: { orderBy: { createdAt: "asc" } },
       leadershipRoles: { include: { character: true } },
-      settlements: { orderBy: { createdAt: "asc" } },
-      turns: { orderBy: { turnNumber: "desc" }, take: 1 },
     },
   });
 }
