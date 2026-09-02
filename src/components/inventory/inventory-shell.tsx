@@ -23,6 +23,7 @@ interface Character {
   strModifier: number;
   isCompanion: boolean;
   miscBulk: number;
+  status: "ACTIVE" | "FALLEN";
 }
 
 interface WalletData {

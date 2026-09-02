@@ -30,6 +30,7 @@ interface Character {
   emoji: string | null;
   imageUrl: string | null;
   isCompanion: boolean;
+  status: "ACTIVE" | "FALLEN";
 }
 
 interface WalletData {
@@ -61,6 +62,9 @@ export function WalletManager({
 
   const treasury = wallets.find((w) => !w.characterId);
   const characterWallets = wallets.filter((w) => w.characterId && w.character);
+  // Fallen characters keep their existing wallet (shown above via
+  // characterWallets), but don't get a share of newly split loot.
+  const livingCharacters = characters.filter((c) => c.status !== "FALLEN");
 
   // Only sum wallets that are actually displayed (treasury + active character wallets)
   const displayedWallets = [...(treasury ? [treasury] : []), ...characterWallets];
@@ -104,7 +108,7 @@ export function WalletManager({
 
   async function handleLootSplit() {
     const gpValue = parseFloat(splitGp);
-    if (!gpValue || gpValue <= 0 || characters.length === 0) return;
+    if (!gpValue || gpValue <= 0 || livingCharacters.length === 0) return;
 
     const totalCpToSplit = Math.round(gpValue * 100);
 
@@ -115,7 +119,7 @@ export function WalletManager({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             totalCp: totalCpToSplit,
-            characterIds: characters.map((c) => c.id),
+            characterIds: livingCharacters.map((c) => c.id),
           }),
         });
         if (res.ok) {
@@ -137,11 +141,11 @@ export function WalletManager({
 
   const splitPreview = (() => {
     const gpValue = parseFloat(splitGp);
-    if (!gpValue || gpValue <= 0 || characters.length === 0) return null;
+    if (!gpValue || gpValue <= 0 || livingCharacters.length === 0) return null;
 
     const totalCpVal = Math.round(gpValue * 100);
-    const perPerson = Math.floor(totalCpVal / characters.length);
-    const remainder = totalCpVal - perPerson * characters.length;
+    const perPerson = Math.floor(totalCpVal / livingCharacters.length);
+    const remainder = totalCpVal - perPerson * livingCharacters.length;
 
     return {
       perPerson: cpToWallet(perPerson),
@@ -162,7 +166,7 @@ export function WalletManager({
           </Badge>
           <Dialog open={splitOpen} onOpenChange={setSplitOpen}>
             <DialogTrigger
-              disabled={characters.length === 0}
+              disabled={livingCharacters.length === 0}
               className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-8 px-3"
             >
               <Split className="mr-1 h-4 w-4" /> Split Loot
@@ -183,8 +187,8 @@ export function WalletManager({
                   />
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  Splitting among {characters.length} character{characters.length !== 1 ? "s" : ""}:
-                  {" "}{characters.map((c) => c.name).join(", ")}
+                  Splitting among {livingCharacters.length} character{livingCharacters.length !== 1 ? "s" : ""}:
+                  {" "}{livingCharacters.map((c) => c.name).join(", ")}
                 </p>
                 {splitPreview && (
                   <div className="rounded-md bg-muted p-3 space-y-1">

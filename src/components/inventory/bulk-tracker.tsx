@@ -19,6 +19,7 @@ interface Character {
   strModifier: number;
   isCompanion: boolean;
   miscBulk: number;
+  status: "ACTIVE" | "FALLEN";
 }
 
 interface WalletData {
@@ -48,6 +49,8 @@ export function BulkTracker({
     quantity: inv.quantity,
   }));
   const sharedBulk = calculateBulk(sharedBulkItems, 0, 0);
+  // Fallen characters aren't out carrying gear anymore — gone until revived.
+  const livingCharacters = characters.filter((c) => c.status !== "FALLEN");
 
   return (
     <Card>
@@ -58,13 +61,13 @@ export function BulkTracker({
         </CardTitle>
       </CardHeader>
       <CardContent>
-        {characters.length === 0 ? (
+        {livingCharacters.length === 0 ? (
           <p className="text-sm text-muted-foreground">
             Add characters to track their carrying capacity.
           </p>
         ) : (
           <div className="space-y-3">
-            {characters.filter((c) => !c.isCompanion).map((char) => (
+            {livingCharacters.filter((c) => !c.isCompanion).map((char) => (
               <BulkRow key={char.id} character={char} inventoryItems={inventoryItems} wallets={wallets} />
             ))}
 
@@ -98,14 +101,14 @@ export function BulkTracker({
               </>
             )}
 
-            {characters.some((c) => c.isCompanion) && (
+            {livingCharacters.some((c) => c.isCompanion) && (
               <>
                 <div className="flex items-center gap-2 pt-1">
                   <PawPrint className="h-4 w-4 text-muted-foreground" />
                   <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Companions</span>
                   <div className="flex-1 border-t border-border" />
                 </div>
-                {characters.filter((c) => c.isCompanion).map((char) => (
+                {livingCharacters.filter((c) => c.isCompanion).map((char) => (
                   <BulkRow key={char.id} character={char} inventoryItems={inventoryItems} wallets={wallets} />
                 ))}
               </>

@@ -18,7 +18,7 @@ export default async function KingdomPage() {
     prisma.character.findMany({
       where: { campaignId: kingdom.campaignId },
       orderBy: { createdAt: "asc" },
-      select: { id: true, name: true, emoji: true, isCompanion: true },
+      select: { id: true, name: true, emoji: true, isCompanion: true, status: true },
     }),
     prisma.hex.findMany({
       where: { kingdomId: kingdom.id },

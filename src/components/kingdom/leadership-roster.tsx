@@ -54,6 +54,11 @@ export function LeadershipRoster({
   ).length;
   const pcs = characters.filter((c) => !c.isCompanion);
   const companions = characters.filter((c) => c.isCompanion);
+  // Fallen characters can still hold a role at a glance (nameFor below keeps
+  // resolving their name), but aren't offered when assigning one going
+  // forward — they're gone until revived.
+  const assignablePcs = pcs.filter((c) => c.status !== "FALLEN");
+  const assignableCompanions = companions.filter((c) => c.status !== "FALLEN");
 
   async function patchRole(
     role: string,
@@ -132,6 +137,10 @@ export function LeadershipRoster({
                   );
                 }}
                 disabled={pending === def.id}
+                items={Object.fromEntries([
+                  [VACANT, "Vacant"],
+                  ...characters.map((c) => [c.id, c.name]),
+                ])}
               >
                 <SelectTrigger size="sm" className="w-44">
                   <SelectValue />
@@ -140,10 +149,10 @@ export function LeadershipRoster({
                   <SelectItem value={VACANT} label="Vacant">
                     Vacant
                   </SelectItem>
-                  {pcs.length > 0 && (
+                  {assignablePcs.length > 0 && (
                     <SelectGroup>
                       <SelectLabel>Party</SelectLabel>
-                      {pcs.map((c) => (
+                      {assignablePcs.map((c) => (
                         <SelectItem key={c.id} value={c.id} label={c.name}>
                           {c.emoji ? `${c.emoji} ` : ""}
                           {c.name}
@@ -151,10 +160,10 @@ export function LeadershipRoster({
                       ))}
                     </SelectGroup>
                   )}
-                  {companions.length > 0 && (
+                  {assignableCompanions.length > 0 && (
                     <SelectGroup>
                       <SelectLabel>Companions</SelectLabel>
-                      {companions.map((c) => (
+                      {assignableCompanions.map((c) => (
                         <SelectItem key={c.id} value={c.id} label={c.name}>
                           {c.emoji ? `${c.emoji} ` : ""}
                           {c.name}

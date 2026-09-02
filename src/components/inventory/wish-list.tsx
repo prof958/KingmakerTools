@@ -62,6 +62,7 @@ interface Character {
   name: string;
   emoji: string | null;
   isCompanion: boolean;
+  status: "ACTIVE" | "FALLEN";
 }
 
 interface CatalogItem {
@@ -101,6 +102,9 @@ export function WishList({
   const [isPending, startTransition] = useTransition();
   const [addOpen, setAddOpen] = useState(false);
   const [showAcquired, setShowAcquired] = useState(false);
+
+  // Fallen characters can't be wished new loot — gone until revived.
+  const livingCharacters = characters.filter((c) => c.status !== "FALLEN");
 
   // Add form state
   const [mode, setMode] = useState<"catalog" | "custom" | "aon">("custom");
@@ -456,7 +460,7 @@ export function WishList({
                     onValueChange={(val) => setAssignTo(val ?? "party")}
                     items={{
                       party: "Party / Shared",
-                      ...Object.fromEntries(characters.map((c) => [c.id, c.name])),
+                      ...Object.fromEntries(livingCharacters.map((c) => [c.id, c.name])),
                     }}
                   >
                     <SelectTrigger>
@@ -464,20 +468,20 @@ export function WishList({
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="party" label="Party / Shared">Party / Shared</SelectItem>
-                      {characters.filter((c) => !c.isCompanion).length > 0 && (
+                      {livingCharacters.filter((c) => !c.isCompanion).length > 0 && (
                         <SelectGroup>
                           <SelectLabel>Characters</SelectLabel>
-                          {characters.filter((c) => !c.isCompanion).map((c) => (
+                          {livingCharacters.filter((c) => !c.isCompanion).map((c) => (
                             <SelectItem key={c.id} value={c.id} label={c.name}>
                               {c.name}
                             </SelectItem>
                           ))}
                         </SelectGroup>
                       )}
-                      {characters.filter((c) => c.isCompanion).length > 0 && (
+                      {livingCharacters.filter((c) => c.isCompanion).length > 0 && (
                         <SelectGroup>
                           <SelectLabel>Companions</SelectLabel>
-                          {characters.filter((c) => c.isCompanion).map((c) => (
+                          {livingCharacters.filter((c) => c.isCompanion).map((c) => (
                             <SelectItem key={c.id} value={c.id} label={c.name}>
                               {c.name}
                             </SelectItem>

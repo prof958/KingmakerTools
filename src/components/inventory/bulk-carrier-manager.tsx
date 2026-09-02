@@ -94,6 +94,7 @@ interface Character {
   name: string;
   emoji: string | null;
   isCompanion: boolean;
+  status: "ACTIVE" | "FALLEN";
 }
 
 // ─── Component ─────────────────────────────────────────────
@@ -301,20 +302,22 @@ export function BulkCarrierManager({
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none" label="Nobody">Nobody</SelectItem>
-                    {characters.filter((c) => !c.isCompanion).length > 0 && (
+                    {/* A fallen character already assigned a carrier still shows correctly
+                        (via the `items` map above), but isn't offered for a new assignment. */}
+                    {characters.filter((c) => !c.isCompanion && c.status !== "FALLEN").length > 0 && (
                       <SelectGroup>
                         <SelectLabel>Characters</SelectLabel>
-                        {characters.filter((c) => !c.isCompanion).map((c) => (
+                        {characters.filter((c) => !c.isCompanion && c.status !== "FALLEN").map((c) => (
                           <SelectItem key={c.id} value={c.id} label={c.name}>
                             {c.name}
                           </SelectItem>
                         ))}
                       </SelectGroup>
                     )}
-                    {characters.filter((c) => c.isCompanion).length > 0 && (
+                    {characters.filter((c) => c.isCompanion && c.status !== "FALLEN").length > 0 && (
                       <SelectGroup>
                         <SelectLabel>Companions</SelectLabel>
-                        {characters.filter((c) => c.isCompanion).map((c) => (
+                        {characters.filter((c) => c.isCompanion && c.status !== "FALLEN").map((c) => (
                           <SelectItem key={c.id} value={c.id} label={c.name}>
                             {c.name}
                           </SelectItem>

@@ -6,6 +6,7 @@ export interface CharacterLite {
   name: string;
   emoji: string | null;
   isCompanion: boolean;
+  status: "ACTIVE" | "FALLEN";
 }
 
 export interface KingdomSkillData {
