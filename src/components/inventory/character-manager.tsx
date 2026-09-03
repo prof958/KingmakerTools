@@ -490,11 +490,11 @@ function CharacterRow({
   const fallen = c.status === "FALLEN";
   return (
     <div
-      className={`flex items-center justify-between rounded-md border p-3 ${
+      className={`flex items-start justify-between gap-2 rounded-md border p-3 ${
         fallen ? "opacity-70" : ""
       }`}
     >
-      <div className="flex items-center gap-3 min-w-0">
+      <div className="flex min-w-0 flex-1 items-start gap-3">
         {c.imageUrl ? (
           <img src={c.imageUrl} alt={c.name} className={`w-8 h-8 rounded-full object-cover shrink-0 ${fallen ? "grayscale" : ""}`} />
         ) : c.emoji ? (
@@ -502,23 +502,27 @@ function CharacterRow({
         ) : (
           <span className="text-lg w-8 h-8 flex items-center justify-center shrink-0">{fallen ? "💀" : c.isCompanion ? "🐾" : "🧑"}</span>
         )}
-        <span className={`font-medium ${fallen ? "line-through text-muted-foreground" : ""}`}>{c.name}</span>
-        {fallen ? (
-          <Badge className="bg-red-700 text-white hover:bg-red-800 text-xs">K.I.A.</Badge>
-        ) : (
-          <Badge variant="secondary" className="text-xs">
-            STR {c.strModifier >= 0 ? "+" : ""}
-            {c.strModifier}
-          </Badge>
-        )}
-        {!fallen && c.miscBulk > 0 && (
-          <Badge variant="outline" className="text-xs">
-            +{c.miscBulk} misc
-          </Badge>
-        )}
-        {fallen && c.kiaNote && (
-          <span className="truncate text-xs text-muted-foreground">{c.kiaNote}</span>
-        )}
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className={`font-medium break-words ${fallen ? "line-through text-muted-foreground" : ""}`}>{c.name}</span>
+            {fallen ? (
+              <Badge className="bg-red-700 text-white hover:bg-red-800 text-xs">K.I.A.</Badge>
+            ) : (
+              <Badge variant="secondary" className="text-xs">
+                STR {c.strModifier >= 0 ? "+" : ""}
+                {c.strModifier}
+              </Badge>
+            )}
+            {!fallen && c.miscBulk > 0 && (
+              <Badge variant="outline" className="text-xs">
+                +{c.miscBulk} misc
+              </Badge>
+            )}
+          </div>
+          {fallen && c.kiaNote && (
+            <p className="mt-0.5 text-xs text-muted-foreground">{c.kiaNote}</p>
+          )}
+        </div>
       </div>
       <div className="flex shrink-0 gap-1">
         {fallen ? (
