@@ -400,8 +400,8 @@ function RecipeRow({
 
   return (
     <div className="rounded-md border p-3 space-y-1">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
           <span className="font-medium text-sm">{recipe.name}</span>
           {recipe.dcSurvival && (
             <Badge variant="outline" className="text-xs">
@@ -419,7 +419,7 @@ function RecipeRow({
             </Badge>
           )}
         </div>
-        <div className="flex items-center gap-1">
+        <div className="flex shrink-0 items-center gap-1">
           <Button
             variant="ghost"
             size="icon"

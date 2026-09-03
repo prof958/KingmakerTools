@@ -134,7 +134,7 @@ export function KingdomMap({ hexes: initialHexes }: { hexes: HexData[] }) {
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[1fr_20rem]">
-        <div className="space-y-2">
+        <div className="min-w-0 space-y-2">
           <HexMapCanvas
             sheet={MAP_SHEETS.find((s) => s.id === sheet)!}
             hexes={bySheet}

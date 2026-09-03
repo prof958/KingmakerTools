@@ -324,13 +324,13 @@ export function WalletRow({
   if (isEditing) {
     return (
       <div className="rounded-md border p-2 space-y-1.5">
-        <div className="flex items-center justify-between">
-          <span className="text-sm font-medium flex items-center gap-1.5">
+        <div className="flex items-center justify-between gap-2">
+          <span className="min-w-0 flex-1 truncate text-sm font-medium flex items-center gap-1.5">
             {isTreasury ? "💰" : imageUrl ? (
-              <img src={imageUrl} alt={label} className="w-4 h-4 rounded-full object-cover inline-block" />
-            ) : emoji ?? "🧑"} {label}
+              <img src={imageUrl} alt={label} className="w-4 h-4 rounded-full object-cover inline-block shrink-0" />
+            ) : emoji ?? "🧑"} <span className="truncate">{label}</span>
           </span>
-          <div className="flex gap-1">
+          <div className="flex shrink-0 gap-1">
             <Button size="sm" className="h-7 text-xs" onClick={onSave} disabled={isPending}>
               <Save className="mr-1 h-3 w-3" /> Save
             </Button>
@@ -365,15 +365,15 @@ export function WalletRow({
 
   return (
     <div
-      className="flex items-center justify-between rounded-md border px-2.5 py-1.5 cursor-pointer hover:bg-muted/50 transition-colors"
+      className="flex items-center justify-between gap-2 rounded-md border px-2.5 py-1.5 cursor-pointer hover:bg-muted/50 transition-colors"
       onClick={onStartEdit}
     >
-      <span className="text-sm font-medium flex items-center gap-1.5">
+      <span className="min-w-0 flex-1 truncate text-sm font-medium flex items-center gap-1.5">
         {isTreasury ? "💰" : imageUrl ? (
-          <img src={imageUrl} alt={label} className="w-4 h-4 rounded-full object-cover inline-block" />
-        ) : emoji ?? "🧑"} {label}
+          <img src={imageUrl} alt={label} className="w-4 h-4 rounded-full object-cover inline-block shrink-0" />
+        ) : emoji ?? "🧑"} <span className="truncate">{label}</span>
       </span>
-      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+      <div className="flex shrink-0 items-center gap-2 text-xs text-muted-foreground">
         {wallet.pp > 0 && <span>{wallet.pp} pp</span>}
         <span>{wallet.gp} gp</span>
         {wallet.sp > 0 && <span>{wallet.sp} sp</span>}
