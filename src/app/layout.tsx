@@ -31,7 +31,7 @@ export default function RootLayout({
       suppressHydrationWarning
       className={`${inter.variable} ${cinzel.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-background text-foreground">
+      <body className="min-h-full flex flex-col overflow-x-hidden bg-background text-foreground">
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"

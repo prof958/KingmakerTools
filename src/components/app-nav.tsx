@@ -31,13 +31,15 @@ export function AppNav() {
     <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="mx-auto flex h-14 max-w-7xl items-center px-4">
         {/* Logo */}
-        <Link href="/dashboard" className="mr-6 flex items-center gap-2 font-heading font-bold text-lg">
+        <Link href="/dashboard" className="mr-6 flex shrink-0 items-center gap-2 font-heading font-bold text-lg">
           <Crown className="h-5 w-5 text-primary" />
-          <span>KingdomTools</span>
+          <span className="hidden sm:inline">KingdomTools</span>
         </Link>
 
-        {/* Tab Navigation */}
-        <nav className="flex items-center gap-1">
+        {/* Tab Navigation — scrolls sideways within itself on a narrow
+            screen instead of forcing the whole page wider; logo and the
+            theme/logout controls stay put either side of it. */}
+        <nav className="flex min-w-0 flex-1 items-center gap-1 overflow-x-auto">
           {tabs.map(({ href, label, icon: Icon }) => {
             const isActive = pathname === href || pathname.startsWith(href + "/");
             return (
@@ -46,7 +48,7 @@ export function AppNav() {
                 href={href}
                 title={label}
                 className={cn(
-                  "flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                  "flex shrink-0 items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors",
                   isActive
                     ? "bg-primary/10 text-primary"
                     : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
@@ -59,8 +61,8 @@ export function AppNav() {
           })}
         </nav>
 
-        {/* Spacer + Theme + Logout */}
-        <div className="ml-auto flex items-center gap-1">
+        {/* Theme + Logout */}
+        <div className="ml-auto flex shrink-0 items-center gap-1 pl-1">
           <ThemeToggle />
           <Button
             variant="ghost"
