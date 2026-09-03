@@ -15,6 +15,7 @@ const CATEGORIES = [
   "INVENTORY",
   "CAMPSITE",
   "KINGDOM",
+  "OBJECTIVE",
   "SESSION",
   "NOTE",
   "DEATH",

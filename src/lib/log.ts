@@ -20,6 +20,7 @@ export {
   describeCharacterChange,
   describeInventoryChange,
   describeCampsiteChange,
+  describeObjectiveChange,
   type DescribedChange,
 } from "./log-format";
 

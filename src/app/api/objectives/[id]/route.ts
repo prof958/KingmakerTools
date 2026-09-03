@@ -6,6 +6,7 @@
  */
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { describeObjectiveChange, logEvent } from "@/lib/log";
 
 type RouteParams = { params: Promise<{ id: string }> };
 
@@ -13,6 +14,11 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
   try {
     const { id } = await params;
     const body = await req.json();
+
+    const before = await prisma.objective.findUnique({ where: { id } });
+    if (!before) {
+      return NextResponse.json({ error: "Objective not found" }, { status: 404 });
+    }
 
     const data: Record<string, unknown> = {};
 
@@ -47,6 +53,21 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
       data,
     });
 
+    const change = describeObjectiveChange(
+      { title: before.title, status: before.status },
+      { title: objective.title, status: objective.status },
+    );
+    if (change) {
+      await logEvent({
+        campaignId: objective.campaignId,
+        category: change.category,
+        summary: change.summary,
+        entityType: "objective",
+        entityId: objective.id,
+        entityName: objective.title,
+      });
+    }
+
     return NextResponse.json(objective);
   } catch (error) {
     console.error("Failed to update objective:", error);
@@ -60,7 +81,20 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
 export async function DELETE(_req: NextRequest, { params }: RouteParams) {
   try {
     const { id } = await params;
+    const existing = await prisma.objective.findUnique({ where: { id } });
     await prisma.objective.delete({ where: { id } });
+
+    if (existing) {
+      await logEvent({
+        campaignId: existing.campaignId,
+        category: "OBJECTIVE",
+        summary: `Removed objective "${existing.title}"`,
+        entityType: "objective",
+        entityId: existing.id,
+        entityName: existing.title,
+      });
+    }
+
     return NextResponse.json({ ok: true });
   } catch (error) {
     console.error("Failed to delete objective:", error);

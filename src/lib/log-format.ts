@@ -119,6 +119,30 @@ export function describeCampsiteChange(
   return { category: "CAMPSITE", summary: capitalise(clauses.join("; ")) };
 }
 
+interface ObjectiveShape {
+  title: string;
+  status: "ACTIVE" | "COMPLETED" | "FAILED" | "ARCHIVED";
+}
+
+const OBJECTIVE_STATUS_VERB: Record<ObjectiveShape["status"], string> = {
+  ACTIVE: "reactivated",
+  COMPLETED: "completed",
+  FAILED: "failed",
+  ARCHIVED: "archived",
+};
+
+/** Status-change summary for an objective. Title/description/priority edits aren't logged. */
+export function describeObjectiveChange(
+  before: ObjectiveShape,
+  after: ObjectiveShape,
+): DescribedChange | null {
+  if (before.status === after.status) return null;
+  return {
+    category: "OBJECTIVE",
+    summary: `${capitalise(OBJECTIVE_STATUS_VERB[after.status])} objective "${after.title}"`,
+  };
+}
+
 function capitalise(s: string): string {
   return s.length === 0 ? s : s[0].toUpperCase() + s.slice(1);
 }
