@@ -65,9 +65,9 @@ export function KingdomShell({
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
+        <div className="flex min-w-0 flex-wrap items-center gap-3">
           <BlurCommitInput
-            className="h-9 w-64 text-lg font-semibold"
+            className="h-9 w-full text-lg font-semibold sm:w-64"
             value={kingdom.name}
             onCommit={(next) => {
               if (next) patchKingdom({ name: next });
