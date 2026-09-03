@@ -1,0 +1,1 @@
+ALTER TYPE "LogCategory" ADD VALUE 'OBJECTIVE';

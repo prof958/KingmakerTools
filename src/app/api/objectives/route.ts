@@ -7,6 +7,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getOrCreateCampaign } from "@/lib/campaign";
+import { logEvent } from "@/lib/log";
 
 export async function GET() {
   try {
@@ -48,6 +49,15 @@ export async function POST(req: NextRequest) {
         description: description?.trim() || null,
         priority: typeof priority === "number" ? priority : 0,
       },
+    });
+
+    await logEvent({
+      campaignId: campaign.id,
+      category: "OBJECTIVE",
+      summary: `Added objective "${objective.title}"`,
+      entityType: "objective",
+      entityId: objective.id,
+      entityName: objective.title,
     });
 
     return NextResponse.json(objective, { status: 201 });

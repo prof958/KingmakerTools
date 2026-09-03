@@ -3,6 +3,7 @@ import {
   describeCampsiteChange,
   describeCharacterChange,
   describeInventoryChange,
+  describeObjectiveChange,
 } from "./log-format";
 
 describe("describeCharacterChange", () => {
@@ -97,5 +98,40 @@ describe("describeCampsiteChange", () => {
     expect(
       describeCampsiteChange(base, base, { activitiesReplaced: true })?.summary,
     ).toBe('Updated camp activities for "Riverside"');
+  });
+});
+
+describe("describeObjectiveChange", () => {
+  const base = { title: "Clear the Stag Lord's fort", status: "ACTIVE" as const };
+
+  it("returns null when the status didn't change", () => {
+    expect(describeObjectiveChange(base, { ...base })).toBeNull();
+    expect(
+      describeObjectiveChange(base, { ...base, title: "Renamed" }),
+    ).toBeNull();
+  });
+
+  it("describes completing, failing, archiving, and reactivating", () => {
+    expect(
+      describeObjectiveChange(base, { ...base, status: "COMPLETED" })?.summary,
+    ).toBe('Completed objective "Clear the Stag Lord\'s fort"');
+    expect(
+      describeObjectiveChange(base, { ...base, status: "FAILED" })?.summary,
+    ).toBe('Failed objective "Clear the Stag Lord\'s fort"');
+    expect(
+      describeObjectiveChange(base, { ...base, status: "ARCHIVED" })?.summary,
+    ).toBe('Archived objective "Clear the Stag Lord\'s fort"');
+    expect(
+      describeObjectiveChange(
+        { ...base, status: "ARCHIVED" },
+        { ...base, status: "ACTIVE" },
+      )?.summary,
+    ).toBe('Reactivated objective "Clear the Stag Lord\'s fort"');
+  });
+
+  it("uses the OBJECTIVE category", () => {
+    expect(
+      describeObjectiveChange(base, { ...base, status: "COMPLETED" })?.category,
+    ).toBe("OBJECTIVE");
   });
 });

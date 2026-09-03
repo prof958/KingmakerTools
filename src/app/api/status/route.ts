@@ -3,10 +3,37 @@ import { prisma } from "@/lib/db";
 import { getOrCreateCampaign } from "@/lib/campaign";
 
 const MONTHS = [
-  "Abadius", "Calistril", "Pharast", "Gozran", 
-  "Desnus", "Sarenith", "Erastus", "Arodus", 
+  "Abadius", "Calistril", "Pharast", "Gozran",
+  "Desnus", "Sarenith", "Erastus", "Arodus",
   "Rova", "Lamashan", "Nethys", "Kuthona"
 ];
+
+/**
+ * Log entries from the most recent day that has any — "day" is the UTC
+ * calendar date of the newest entry, matching the same real-world-day
+ * grouping the Log page shows. Empty log = empty array, not an error.
+ */
+async function getLatestDayLog(campaignId: string) {
+  const latest = await prisma.logEntry.findFirst({
+    where: { campaignId },
+    orderBy: { createdAt: "desc" },
+    select: { createdAt: true }
+  });
+  if (!latest) return [];
+
+  const dayStart = new Date(Date.UTC(
+    latest.createdAt.getUTCFullYear(),
+    latest.createdAt.getUTCMonth(),
+    latest.createdAt.getUTCDate()
+  ));
+  const dayEnd = new Date(dayStart.getTime() + 24 * 60 * 60 * 1000);
+
+  return prisma.logEntry.findMany({
+    where: { campaignId, createdAt: { gte: dayStart, lt: dayEnd } },
+    orderBy: { createdAt: "desc" },
+    select: { category: true, source: true, summary: true, createdAt: true }
+  });
+}
 
 export async function GET() {
   try {
@@ -22,7 +49,8 @@ export async function GET() {
       bulkCarriers,
       wishlistCount,
       activeCampsite,
-      recipesCount
+      recipesCount,
+      latestDayLog
     ] = await Promise.all([
       prisma.character.findMany({
         where: { campaignId: campaign.id },
@@ -60,7 +88,8 @@ export async function GET() {
       }),
       prisma.recipe.count({
         where: { campaignId: campaign.id, isDiscovered: true }
-      })
+      }),
+      getLatestDayLog(campaign.id)
     ]);
 
     // Format the in-game date
@@ -96,6 +125,12 @@ export async function GET() {
       availableParty: characters.map(c => c.name),
       activeQuests: objectives.map(o => o.title),
       recentVictories: recentVictories.map(o => o.title),
+      recentLog: latestDayLog.map(e => ({
+        category: e.category,
+        source: e.source,
+        summary: e.summary,
+        time: e.createdAt.toISOString()
+      })),
       wealth: {
         totalPartyCashInGold: totalPartyGoldEquivalent,
         sharedTreasury: {
