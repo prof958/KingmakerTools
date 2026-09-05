@@ -146,3 +146,37 @@ export function addDays(day: number, month: number, year: number, delta: number)
 
   return { day: d, month: m, year: y };
 }
+
+/**
+ * Days from the epoch (1 Abadius 1 AR = day 0) to a date. Exported so callers
+ * can order and subtract Golarion dates with plain arithmetic instead of
+ * re-deriving month lengths and leap years themselves.
+ */
+export function absoluteDay(day: number, month: number, year: number): number {
+  return totalDaysFromEpoch(day, month, year);
+}
+
+/** Signed day count from `from` to `to` — positive when `to` is the later date. */
+export function daysBetween(from: GolarionDate, to: GolarionDate): number {
+  return (
+    absoluteDay(to.day, to.month, to.year) -
+    absoluteDay(from.day, from.month, from.year)
+  );
+}
+
+/**
+ * True when a (day, month, year) triple names a real date on this calendar.
+ * Used to reject nonsense before it reaches the database, where a date is
+ * stored as three loose integers rather than a single constrained value.
+ */
+export function isValidGolarionDate(
+  day: number,
+  month: number,
+  year: number,
+): boolean {
+  if (!Number.isInteger(day) || !Number.isInteger(month) || !Number.isInteger(year)) {
+    return false;
+  }
+  if (year < 1 || month < 1 || month > 12) return false;
+  return day >= 1 && day <= daysInMonth(month, year);
+}

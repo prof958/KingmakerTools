@@ -40,6 +40,9 @@ model Campaign {
   // Phase 6 — Campaign Log
   logEntries LogEntry[]
 
+  // Phase 7 — Companion Assignments
+  companionAssignments CompanionAssignment[]
+
   @@map("campaigns")
 }
 
@@ -68,6 +71,9 @@ model Character {
 
   // Phase 5
   leadershipRoles LeadershipRole[]
+
+  // Phase 7 — rows tying this character to the assignments they are on
+  assignments CompanionAssignmentMember[]
 
   @@map("characters")
 }
@@ -427,8 +433,9 @@ model Hex {
   label         String?
   notes         String?
 
-  kingdom    Kingdom     @relation(fields: [kingdomId], references: [id], onDelete: Cascade)
-  settlement Settlement?
+  kingdom              Kingdom               @relation(fields: [kingdomId], references: [id], onDelete: Cascade)
+  settlement           Settlement?
+  companionAssignments CompanionAssignment[]
 
   @@unique([kingdomId, sheet, q, r])
   @@map("hexes")
@@ -448,8 +455,9 @@ model Settlement {
   createdAt   DateTime       @default(now()) @map("created_at")
   updatedAt   DateTime       @updatedAt @map("updated_at")
 
-  kingdom Kingdom @relation(fields: [kingdomId], references: [id], onDelete: Cascade)
-  hex     Hex?    @relation(fields: [hexId], references: [id], onDelete: SetNull)
+  kingdom              Kingdom               @relation(fields: [kingdomId], references: [id], onDelete: Cascade)
+  hex                  Hex?                  @relation(fields: [hexId], references: [id], onDelete: SetNull)
+  companionAssignments CompanionAssignment[]
 
   @@map("settlements")
 }
@@ -523,6 +531,75 @@ model LogEntry {
 
   @@index([campaignId, createdAt])
   @@map("log_entries")
+}
+
+// ──────────────────────────────────────────────
+// Phase 7 — Companion Assignments
+// ──────────────────────────────────────────────
+
+/// Where a companion is and what they are doing. A companion's whereabouts is
+/// simply their one ACTIVE assignment — no active row means they are with the
+/// party. Injury and disappearance are modelled as assignment kinds rather
+/// than as extra Character columns so there is exactly one place to look up
+/// "where is everyone", and one history to read back.
+model CompanionAssignment {
+  id         String @id @default(cuid())
+  campaignId String @map("campaign_id")
+
+  kind        AssignmentKind   @default(QUEST)
+  status      AssignmentStatus @default(ACTIVE)
+  title       String
+  description String?
+
+  /// Always the display name, kept even when a hex/settlement is linked, so a
+  /// card still reads correctly after that hex or settlement is deleted.
+  locationName String? @map("location_name")
+  hexId        String? @map("hex_id")
+  settlementId String? @map("settlement_id")
+
+  // In-world departure date (Absalom Reckoning).
+  departDay   Int @map("depart_day")
+  departMonth Int @map("depart_month")
+  departYear  Int @map("depart_year")
+
+  // Expected return. Null = open-ended (a standing post, or a disappearance).
+  returnDay   Int? @map("return_day")
+  returnMonth Int? @map("return_month")
+  returnYear  Int? @map("return_year")
+
+  // Filled in when the assignment is resolved by hand.
+  outcome       String?
+  resolvedDay   Int?    @map("resolved_day")
+  resolvedMonth Int?    @map("resolved_month")
+  resolvedYear  Int?    @map("resolved_year")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  campaign   Campaign                    @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  hex        Hex?                        @relation(fields: [hexId], references: [id], onDelete: SetNull)
+  settlement Settlement?                 @relation(fields: [settlementId], references: [id], onDelete: SetNull)
+  members    CompanionAssignmentMember[]
+
+  @@index([campaignId, status])
+  @@map("companion_assignments")
+}
+
+/// Join row — an assignment can carry several companions (send a pair on an
+/// escort, keep the rest home), and a companion can only be on one ACTIVE
+/// assignment at a time (enforced in the API, not by a constraint, since the
+/// uniqueness only applies to ACTIVE rows).
+model CompanionAssignmentMember {
+  id           String @id @default(cuid())
+  assignmentId String @map("assignment_id")
+  characterId  String @map("character_id")
+
+  assignment CompanionAssignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  character  Character           @relation(fields: [characterId], references: [id], onDelete: Cascade)
+
+  @@unique([assignmentId, characterId])
+  @@index([characterId])
+  @@map("companion_assignment_members")
 }
 
 // ──────────────────────────────────────────────
@@ -607,4 +684,18 @@ enum LogCategory {
 enum LogSource {
   MANUAL
   SYSTEM
+}
+
+enum AssignmentKind {
+  QUEST
+  STATION
+  RECOVERING
+  MISSING
+}
+
+enum AssignmentStatus {
+  ACTIVE
+  COMPLETED
+  FAILED
+  RECALLED
 }
