@@ -1,26 +1,26 @@
 /**
  * Dashboard Page — Server Component
- * Fetches objectives, quick links, and wallet data, then renders the dashboard.
+ * Fetches objectives, quick links, wallet and companion data, then renders the
+ * dashboard.
  */
 export const dynamic = "force-dynamic";
 
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Crown } from "lucide-react";
 import { prisma } from "@/lib/db";
 import { getOrCreateCampaign } from "@/lib/campaign";
+import { loadCompanionBoard } from "@/lib/companion-data";
 import {
   ObjectiveTracker,
   QuickLinksManager,
   WealthSummary,
   GolarionCalendar,
 } from "@/components/dashboard";
+import { DeploymentBoard } from "@/components/companions";
 import { CharacterManager } from "@/components/inventory/character-manager";
 
 export default async function DashboardPage() {
   const campaign = await getOrCreateCampaign();
 
-  const [objectives, quickLinks, wallets, characters] = await Promise.all([
+  const [objectives, quickLinks, wallets, characters, board] = await Promise.all([
     prisma.objective.findMany({
       where: { campaignId: campaign.id },
       orderBy: [{ status: "asc" }, { priority: "desc" }, { createdAt: "asc" }],
@@ -38,6 +38,9 @@ export default async function DashboardPage() {
       where: { campaignId: campaign.id },
       orderBy: { createdAt: "asc" },
     }),
+    // Active assignments only — a resolved one says nothing about where
+    // anybody is right now, which is the only question this card answers.
+    loadCompanionBoard(campaign.id, { activeOnly: true }),
   ]);
 
   return (
@@ -64,6 +67,17 @@ export default async function DashboardPage() {
           initialObjectives={JSON.parse(JSON.stringify(objectives))}
         />
       </div>
+
+      {/* Companion deployment */}
+      <DeploymentBoard
+        companions={board.companions}
+        assignments={board.assignments}
+        today={{
+          day: campaign.golarionDay,
+          month: campaign.golarionMonth,
+          year: campaign.golarionYear,
+        }}
+      />
 
       {/* Quick Links */}
       <QuickLinksManager

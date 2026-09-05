@@ -1,6 +1,12 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getOrCreateCampaign } from "@/lib/campaign";
+import { loadCompanionBoard } from "@/lib/companion-data";
+import {
+  COMPANION_STATE_META,
+  deriveCompanionState,
+  describeTiming,
+} from "@/lib/companions";
 
 const MONTHS = [
   "Abadius", "Calistril", "Pharast", "Gozran",
@@ -50,7 +56,8 @@ export async function GET() {
       wishlistCount,
       activeCampsite,
       recipesCount,
-      latestDayLog
+      latestDayLog,
+      companionBoard
     ] = await Promise.all([
       prisma.character.findMany({
         where: { campaignId: campaign.id },
@@ -89,13 +96,38 @@ export async function GET() {
       prisma.recipe.count({
         where: { campaignId: campaign.id, isDiscovered: true }
       }),
-      getLatestDayLog(campaign.id)
+      getLatestDayLog(campaign.id),
+      loadCompanionBoard(campaign.id, { activeOnly: true })
     ]);
 
     // Format the in-game date
     const monthIndex = Math.max(0, Math.min(11, campaign.golarionMonth - 1));
     const monthName = MONTHS[monthIndex];
     const inGameDate = `${campaign.golarionDay} ${monthName}, ${campaign.golarionYear} AR`;
+
+    // Where every companion is right now. Derived from their one active
+    // assignment against the in-world date, exactly as the app's own board
+    // does it, so this payload can never disagree with the UI.
+    const today = {
+      day: campaign.golarionDay,
+      month: campaign.golarionMonth,
+      year: campaign.golarionYear
+    };
+    const activeByCharacter = new Map(
+      companionBoard.assignments.flatMap(a => a.members.map(m => [m.characterId, a] as const))
+    );
+    const companionStatus = companionBoard.companions.map(c => {
+      const assignment = activeByCharacter.get(c.id) ?? null;
+      const state = deriveCompanionState(assignment, today, c.status === "FALLEN");
+      return {
+        name: c.name,
+        state: COMPANION_STATE_META[state].label,
+        doing: assignment?.title ?? null,
+        location: assignment?.locationName ?? null,
+        timing: describeTiming(assignment, today),
+        needsAttention: COMPANION_STATE_META[state].needsAttention
+      };
+    });
 
     // Map character IDs to names for watch shifts
     const characterMap = new Map(characters.map(c => [c.id, c.name]));
@@ -124,6 +156,7 @@ export async function GET() {
       inGameDate,
       availableParty: characters.map(c => c.name),
       activeQuests: objectives.map(o => o.title),
+      companions: companionStatus,
       recentVictories: recentVictories.map(o => o.title),
       recentLog: latestDayLog.map(e => ({
         category: e.category,
