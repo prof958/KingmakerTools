@@ -1,4 +1,4 @@
-# KingmakerTools — self-hosting
+# KingmakerTools self-hosting
 #
 # 1. Change APP_PASSWORD below. Everyone in your party logs in with it.
 # 2. In this folder, run:   docker compose up -d
