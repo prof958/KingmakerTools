@@ -1,6 +1,7 @@
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
 import bcrypt from "bcryptjs";
+import { createHash, timingSafeEqual } from "node:crypto";
 
 const SESSION_COOKIE = "kt-session";
 const SESSION_DURATION = 60 * 60 * 24 * 30; // 30 days in seconds
@@ -19,12 +20,22 @@ function getSecret(): Uint8Array {
 const DEV_PASSWORD_HASH =
   "$2b$10$NUZIOIHwNzqXZreTb2hR6eNO28z9RqRocIqW4ByU3W6rmTknMNzyW";
 
+function sha256(value: string): Buffer {
+  return createHash("sha256").update(value).digest();
+}
+
 /**
- * Verify the provided password against the stored hash.
+ * Verify the provided password. APP_PASSWORD_HASH (bcrypt) wins when set;
+ * otherwise a plain APP_PASSWORD is accepted, which is what the self-hosting
+ * docker-compose.yml uses so nobody has to generate a hash full of `$` signs.
  */
 export async function verifyPassword(password: string): Promise<boolean> {
-  const hash = process.env.APP_PASSWORD_HASH || DEV_PASSWORD_HASH;
-  return bcrypt.compare(password, hash);
+  const hash = process.env.APP_PASSWORD_HASH;
+  const plain = process.env.APP_PASSWORD;
+  if (!hash && plain) {
+    return timingSafeEqual(sha256(password), sha256(plain));
+  }
+  return bcrypt.compare(password, hash || DEV_PASSWORD_HASH);
 }
 
 /**
@@ -40,7 +51,11 @@ export async function createSession(): Promise<void> {
   const cookieStore = await cookies();
   cookieStore.set(SESSION_COOKIE, token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    // Browsers drop Secure cookies over plain http (except on localhost), so a
+    // self-hosted install reached at http://<lan-ip>:3000 sets SECURE_COOKIES=false.
+    secure:
+      process.env.NODE_ENV === "production" &&
+      process.env.SECURE_COOKIES !== "false",
     sameSite: "lax",
     maxAge: SESSION_DURATION,
     path: "/",

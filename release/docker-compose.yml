@@ -1,0 +1,46 @@
+# KingmakerTools — self-hosting
+#
+# 1. Change APP_PASSWORD below. Everyone in your party logs in with it.
+# 2. In this folder, run:   docker compose up -d
+# 3. Open http://localhost:3000 (party members on your network use
+#    http://<this computer's IP>:3000)
+#
+# Update to the newest version:   docker compose pull && docker compose up -d
+# Stop it:                        docker compose down   (your data is kept)
+
+services:
+  app:
+    image: ghcr.io/prof958/kingmakertools:latest
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      APP_PASSWORD: "change-me"
+      DATABASE_URL: postgresql://kingmakertools:kingmakertools@db:5432/kingmakertools
+      # Set to "true" if you put this behind HTTPS (e.g. a reverse proxy).
+      SECURE_COOKIES: "false"
+    ports:
+      - "3000:3000"
+    volumes:
+      - app-data:/app/data
+
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      # Only reachable by the app container, never published to your network.
+      POSTGRES_USER: kingmakertools
+      POSTGRES_PASSWORD: kingmakertools
+      POSTGRES_DB: kingmakertools
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U kingmakertools"]
+      interval: 2s
+      timeout: 5s
+      retries: 15
+
+volumes:
+  app-data:
+  db-data:
