@@ -104,3 +104,24 @@ matching `scripts/extract-kingdom-*.py` script (requires `pymupdf`).
 
 KingmakerTools is an unofficial fan project and is not affiliated with or
 endorsed by Paizo Inc.
+
+## More screenshots
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/screenshots/inventory.png" alt="Inventory"><br><b>Inventory.</b> Shared loot with bulk, value and owner.</td>
+    <td width="50%"><img src="docs/screenshots/kingdom-map.png" alt="Kingdom map"><br><b>Kingdom map.</b> Reconnoiter and claim hexes on the Stolen Lands map.</td>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/kingdom-settlement.png" alt="Settlement"><br><b>Settlements.</b> Build structures on the urban grid.</td>
+    <td><img src="docs/screenshots/kingdom.png" alt="Kingdom overview"><br><b>Kingdom overview.</b> Resources, abilities and ruin.</td>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/kingdom-turn.png" alt="Kingdom turn"><br><b>Kingdom turn.</b> Every step of the turn, in order.</td>
+    <td><img src="docs/screenshots/campsite.png" alt="Campsite"><br><b>Campsite.</b> Lay out the camp and plan the watch.</td>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/log.png" alt="Log"><br><b>Log.</b> Session notes plus an automatic record of changes.</td>
+    <td align="center"><img src="docs/screenshots/mobile-dashboard.png" alt="The dashboard on a phone" width="200"><br><b>On a phone.</b> The dashboard on mobile.</td>
+  </tr>
+</table>
