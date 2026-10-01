@@ -1,3 +1,6 @@
+<img width="1854" height="924" alt="KingmakerTools screenshot" src="https://github.com/user-attachments/assets/a41177d2-62df-471b-9ebf-7315c798cf6a" />
+<img width="1880" height="920" alt="KingmakerTools screenshot" src="https://github.com/user-attachments/assets/22f57fa9-866e-4d03-9e4a-70f7ca0f5053" />
+
 # KingmakerTools
 
 A companion web app for groups playing the Pathfinder Second Edition *Kingmaker*
