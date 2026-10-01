@@ -1,7 +1,3 @@
-<img width="1854" height="924" alt="KingmakerTools screenshot" src="https://github.com/user-attachments/assets/a41177d2-62df-471b-9ebf-7315c798cf6a" />
-<img width="1880" height="920" alt="KingmakerTools screenshot" src="https://github.com/user-attachments/assets/22f57fa9-866e-4d03-9e4a-70f7ca0f5053" />
-<img width="1875" height="922" alt="KingmakerTools screenshot" src="https://github.com/user-attachments/assets/7bed8459-261e-449f-9cab-d3f3d59ecddf" />
-
 # KingmakerTools
 
 A companion web app for groups playing the Pathfinder Second Edition *Kingmaker*
@@ -11,6 +7,10 @@ encounters.
 
 It is built for players first. One person hosts it, and the whole party shares
 it from their browser, on desktop or phone.
+
+<img src="https://github.com/user-attachments/assets/a41177d2-62df-471b-9ebf-7315c798cf6a" alt="Dashboard with the in-game date, party wealth, objectives and companions">
+<img src="https://github.com/user-attachments/assets/22f57fa9-866e-4d03-9e4a-70f7ca0f5053" alt="Party page showing companions out on quests">
+<img src="https://github.com/user-attachments/assets/7bed8459-261e-449f-9cab-d3f3d59ecddf" alt="Kingdom founding wizard">
 
 ## What it does
 
