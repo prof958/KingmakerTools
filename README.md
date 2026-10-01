@@ -59,3 +59,12 @@ npm run db:studio    # browse the dev database
 
 Commit and push as normal; none of the files above carry any credential or
 connection info that points at the real database.
+
+## Rulebook data
+
+The kingdom activities, structures and map art under `src/lib/` and `public/kingdom/`
+are generated from the PF2e *Kingmaker Player's Guide* (free from Paizo) plus the
+fan-made *Vance & Kerenshara's 2e Kingdom Building Rule Changes*. The PDFs aren't
+included in this repo. To regenerate the data, drop them into `docs/` as
+`Kingmaker+Players+Guide.pdf` and `Vance and Kerenshara's 2e Kingdom Building Rule Changes.pdf`,
+then run the matching `scripts/extract-kingdom-*.py` script (needs `pymupdf`).

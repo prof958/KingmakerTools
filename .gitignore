@@ -57,3 +57,6 @@ next-env.d.ts
 # python bytecode cache from the docs/ extraction scripts
 __pycache__/
 *.pyc
+
+# rulebook PDFs read by the scripts/extract-kingdom-*.py tools; not redistributable
+docs/*.pdf
